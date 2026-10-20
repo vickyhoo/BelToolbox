@@ -1,3 +1,9 @@
+# Bel Toolbox 0.18.1-dev
+
+- When EUI Merchant Bulk Buy is enabled, the merchant assistant now uses EUI's existing quantity window instead of opening a second toolbox window. Ordinary gold purchases use a one-item step and accurate prorated total cost/affordability, including vendor repaints and repeated openings.
+- Currency/extended-cost and unique items retain native EUI behavior. High-price gold orders retain confirmation and non-refundable warnings. Closing, disabling, changing the merchant, unconfirmed delivery or server overdelivery stops the toolbox order; native pack semantics return when the assistant is disabled.
+- Fixed the ship/zeppelin tooltip's once-per-second flash: EUI's shared tooltip restarts its fade on ShowWidgetTooltip. After the initial open, timers now update only the existing owner's text and measured height, preserving alpha, anchors and animations. Hidden or unrelated widget tooltips are not shown or overwritten; if the shared frame cannot be located safely, its initial text remains static until the next hover.
+- Verified against the locally installed EUI quantity-dialog and merchant implementations in simulation, both before and after native dialog creation: one-window behavior, 1/7-item requests, exact costs, partial affordability, repaint, special-item fallback, confirmations/cancellation and overdelivery. Ship tooltip live-refresh/ownership checks and existing timer/calibration regressions passed. Live-client verification remains necessary.
 # Bel Toolbox 0.18.0-dev
 
 - Added independent boat/zeppelin countdown labels below EUI Forever Essentials world-map travel pins. EUI's map markers and transport icons must already be enabled; native icons and click behavior are preserved.

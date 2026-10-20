@@ -258,9 +258,9 @@ local registered = EUI.RegisterPlugin(addonName, {
                     function() return ns.GetMerchantSettings().enabled ~= false end,
                     function(value)
                         ns.GetMerchantSettings().enabled = value
-                        if not value and BelToolboxMerchantFrame then BelToolboxMerchantFrame:Hide() end
+                        ns.RefreshMerchantAssistant()
                     end,
-                    L("Shift-left-click a vendor item. Disable BuyEmAll to avoid duplicate purchase windows.")); y = y - h
+                    L("Shift-left-click a vendor item. When EUI Bulk Buy is enabled, use its window with individual item quantities for ordinary gold purchases. Currency-cost and unique items keep EUI's behavior.")); y = y - h
                 return math.abs(y) + 12
             end,
         },

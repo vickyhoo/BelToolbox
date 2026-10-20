@@ -148,12 +148,44 @@ local function Tip(record,now)
     if #lines==1 then lines[#lines+1]=ns.L("No timetable for this dock.")end
     return table.concat(lines,"\n")
 end
-local function ShowTip(pin,record)
+local widgetTooltip
+local function FindWidgetTooltip(pin,text)
+    local EUI=EllesmereUI
+    if not EUI._WidgetTooltipOwner or EUI._WidgetTooltipOwner()~=pin then return end
+    if widgetTooltip then return widgetTooltip end
+    if not UIParent or not UIParent.GetChildren then return end
+    for _,candidate in ipairs({UIParent:GetChildren()})do
+        if not (candidate.IsForbidden and candidate:IsForbidden())then
+            local region=candidate.text
+            local kind=type(region)
+            if (kind=="table"or kind=="userdata")and candidate.bg
+                and candidate.GetFrameStrata and candidate:GetFrameStrata()=="TOOLTIP"and region.GetText then
+                local value=region:GetText()
+                if Safe(value)and value==text then widgetTooltip=candidate;return candidate end
+            end
+        end
+    end
+end
+local function ShowTip(pin,record,initial)
     local EUI=EllesmereUI
     if not record.tip or not EUI or not EUI.ShowWidgetTooltip then return end
-    tooltipGuard=true
-    EUI.ShowWidgetTooltip(pin,record.tip.."\n\n"..Tip(record,Now()))
-    tooltipGuard=false
+    local text=record.tip.."\n\n"..Tip(record,Now())
+    if initial then
+        tooltipGuard=true
+        EUI.ShowWidgetTooltip(pin,text,record.tipOptions)
+        tooltipGuard=false
+        record.widget=FindWidgetTooltip(pin,text)
+    else
+        local tooltip=record.widget
+        -- ShowWidgetTooltip restarts its fade at alpha zero. Refresh only the
+        -- existing owner's text/height; never show, reanchor or animate it again.
+        if not tooltip or not EUI._WidgetTooltipOwner or EUI._WidgetTooltipOwner()~=pin or not tooltip:IsShown()then return end
+        if record.tipRendered==text then return end
+        tooltip.text:SetText(text)
+        local height=tooltip.text:GetStringHeight()
+        if Number(height)then tooltip:SetHeight(height+16)end
+    end
+    record.tipRendered=text
 end
 local function Forbidden(frame)
     return frame.IsForbidden and frame:IsForbidden()
@@ -309,9 +341,9 @@ local function Install()
     end
     if not hookedTooltip and EllesmereUI and type(EllesmereUI.ShowWidgetTooltip)=="function"then
         hookedTooltip=true
-        hooksecurefunc(EllesmereUI,"ShowWidgetTooltip",function(pin,text)
-            if tooltipGuard or not Enabled()or not labels[pin]then return end
-            labels[pin].tip=text;hovered=pin;ShowTip(pin,labels[pin])
+        hooksecurefunc(EllesmereUI,"ShowWidgetTooltip",function(pin,text,options)
+            if tooltipGuard or not Enabled()or not labels[pin]or type(text)~="string"then return end
+            labels[pin].tip=text;labels[pin].tipOptions=options;hovered=pin;ShowTip(pin,labels[pin],true)
         end)
     end
 end

@@ -3,6 +3,9 @@
 local _, ns = ...
 local translations = {
     enUS = {
+        ["Shift-left-click a vendor item. When EUI Bulk Buy is enabled, use its window with individual item quantities for ordinary gold purchases. Currency-cost and unique items keep EUI's behavior."] = "Shift-left-click a vendor item. When EUI Bulk Buy is enabled, use its window with individual item quantities for ordinary gold purchases. Currency-cost and unique items keep EUI's behavior.",
+        ["The server delivered more than requested; further purchases stopped."] = "The server delivered more than requested; further purchases stopped.",
+        ["Buy %d x %s for %s?"] = "Buy %d x %s for %s?",
         ["Ship and zeppelin timers"] = "Ship and zeppelin timers",
         ["Show the next arrival or departure below EUI map transport icons. Enable EUI Map Markers and transports first. Stand still aboard a moving boat or zeppelin to calibrate. No DockWatch dependency."] = "Show the next arrival or departure below EUI map transport icons. Enable EUI Map Markers and transports first. Stand still aboard a moving boat or zeppelin to calibrate. No DockWatch dependency.",
         ["Arrives in %s"] = "Arrives in %s",
@@ -316,6 +319,9 @@ local translations = {
         ["Show DND text in the client language."] = "Show DND text in the client language.",
     },
     zhCN = {
+        ["Shift-left-click a vendor item. When EUI Bulk Buy is enabled, use its window with individual item quantities for ordinary gold purchases. Currency-cost and unique items keep EUI's behavior."] = "Shift 左键点击商品。开启 EUI 批量购买后，复用其窗口，普通金币商品按实际件数购买；货币兑换和唯一物品保留 EUI 原有流程。",
+        ["The server delivered more than requested; further purchases stopped."] = "服务器发放数量超过请求数量，已停止后续购买。",
+        ["Buy %d x %s for %s?"] = "购买 %d 件 %s，共 %s？",
         ["Ship and zeppelin timers"] = "船与飞艇倒计时",
         ["Show the next arrival or departure below EUI map transport icons. Enable EUI Map Markers and transports first. Stand still aboard a moving boat or zeppelin to calibrate. No DockWatch dependency."] = "在 EUI 地图交通图标下显示下一次抵达或出发时间。需先开启 EUI 地图标记及交通图标。船或飞艇航行时站定可自动校准，不依赖 DockWatch。",
         ["Arrives in %s"] = "%s 后抵达",
