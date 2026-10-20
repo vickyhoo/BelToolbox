@@ -1,3 +1,7 @@
+# Bel Toolbox 0.18.5-dev
+
+- Fixed the replacement Bulk Buy amount line appearing blank: the new label no longer inherits content-driven bounds from EUI's initially empty native cost FontString. It is anchored directly to the dialog with a fixed 20-pixel height and explicit opacity.
+- Added simulated geometry/visibility checks alongside the existing exact-unit-total, repaint and native-restoration tests, for both native dialog creation orders. Client verification remains necessary.
 # Bel Toolbox 0.18.4-dev
 
 - Fixed the visible EUI Bulk Buy total still reverting to bundle pricing. For toolbox-managed ordinary gold items, a dedicated cost label now occupies the original cost-line position while EUI's independently refreshed bundle-cost label is transparent. The visible total uses ceil(quantity * bundlePrice / bundleCount).

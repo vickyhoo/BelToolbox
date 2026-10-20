@@ -229,7 +229,12 @@ local function BindNative(dialog)
     local nativeAlpha=nativeCost:GetAlpha()or 1
     local unitCost=dialog:CreateFontString(nil,"OVERLAY","GameFontHighlight")
     dialog._belUnitCost=unitCost
-    unitCost:SetAllPoints(nativeCost)
+    -- The native FontString has content-driven geometry and may be empty
+    -- when the dialog is created. Do not inherit its zero/collapsed bounds.
+    unitCost:SetPoint("TOPLEFT",dialog,"TOPLEFT",10,-61)
+    unitCost:SetPoint("TOPRIGHT",dialog,"TOPRIGHT",-10,-61)
+    unitCost:SetHeight(20)
+    unitCost:SetJustifyV("MIDDLE")
     local font,size,flags=nativeCost:GetFont()
     if font then unitCost:SetFont(font,size,flags)end
     local r,g,b,a=nativeCost:GetTextColor()
@@ -237,6 +242,7 @@ local function BindNative(dialog)
     unitCost:SetJustifyH("LEFT");unitCost:SetWordWrap(false);unitCost:SetShown(false)
     local function CostMode(owned)
         nativeCost:SetAlpha(owned and 0 or nativeAlpha)
+        unitCost:SetAlpha(1)
         unitCost:SetShown(owned and true or false)
     end
     local function Eligible()
