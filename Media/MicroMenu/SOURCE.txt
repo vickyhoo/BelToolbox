@@ -1,0 +1,3 @@
+Original geometric icons created for Bel Toolbox.
+Copyright (c) 2026 Bel. Distributed under the MIT License in ../../LICENSE.
+No NDui or RurutiaSuite artwork is included in this directory.
