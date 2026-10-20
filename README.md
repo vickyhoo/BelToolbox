@@ -2,7 +2,7 @@
 
 贝尔工具箱 · Quality-of-life extensions for **EllesmereUI on WoW Forever**.
 
-Author: **Bel** · License: **MIT** · Current version: **0.17.1 beta**
+Author: **Bel** · License: **MIT** · Current version: **0.17.2 beta**
 
 ## Features
 
@@ -49,6 +49,7 @@ Settings are in **EUI → Bel Toolbox**, or enter `/bel` / `/beltoolbox`.
 
 ## Diagnostics and verification
 
+- `/belchatdebug on`, `/belchatdebug`, `/belchatdebug off`: opt-in chat-copy color diagnostics. Open the copy window with enhancements on and off, then dump the last four snapshots. Reports color tokens and player-link labels without message bodies; nothing is saved or polled.
 - `/belbagdebug`: bag shortcut eligibility.
 - `/belmaildebug`: mail recipient API diagnostics.
 - `/belprofitdebug on`, `/belprofitdebug`, `/belprofitdebug off`: opt-in, bounded profession tooltip diagnostics. Disabled by default, no polling or saved trace.

@@ -4,6 +4,7 @@ local installed
 local events,ClassEvents
 local names,shortNames,guids={},{},{}
 local nameCount=0
+local diagnostics={enabled=false,snapshots={}}
 local function Settings()
     local db=ns.GetSettings();db.chatCopy=db.chatCopy or {};return db.chatCopy
 end
@@ -98,12 +99,67 @@ local function Clean(text,colors)
     return text:gsub("|T.-|t",""):gsub("|A.-|a",""):gsub("|K.-|k",""):gsub("|n","\n")
 end
 local function Plain(text)return text:gsub("|c%x%x%x%x%x%x%x%x",""):gsub("|r",""):gsub("||","|")end
-local function ColoredLines(chatNS)
+local function ActiveSource(chatNS)
     local selected=GENERAL_CHAT_DOCK and FCFDock_GetSelectedWindow and FCFDock_GetSelectedWindow(GENERAL_CHAT_DOCK)
     local frame=selected or ChatFrame1
     local win=chatNS._chatWins and chatNS._chatWins[frame]
-    local source=win and win.smf or frame
-    if chatNS._clHosted and frame==ChatFrame2 then source=frame end
+    local engine=win and not (chatNS._clHosted and frame==ChatFrame2)
+    return engine and win.smf or frame,engine and "engine"or "native"
+end
+local function Split(text)
+    local result={}
+    if Text(text)then for line in (text.."\n"):gmatch("(.-)\n")do result[#result+1]=line end end
+    return result
+end
+local function Shape(text)
+    if not Text(text)then return "-"end
+    local codes={}
+    for token in text:gmatch("|c%x%x%x%x%x%x%x%x")do codes[#codes+1]=token end
+    local _,resets=text:gsub("|r","")
+    local _,pipes=text:gsub("||","")
+    local _,named=text:gsub("|cn[%w_]+:","")
+    local labels={}
+    for target,label in text:gmatch("|Hplayer:([^|]-)|h(.-)|h")do
+        labels[#labels+1]=PlayerKey(target).."="..label
+        if #labels==2 then break end
+    end
+    -- Only control codes and player-link labels: never capture message bodies.
+    local result="bytes="..#text.." colors="..table.concat(codes,",").." resets="..resets.." escaped="..pipes.." named="..named.." links="..table.concat(labels,",")
+    if #result>900 then result="bytes="..#text.." (oversized control sequence omitted)"end
+    return result:gsub("|","[PIPE]")
+end
+local function DebugSnapshot(popup,record)
+    if not diagnostics.enabled then return end
+    local db=Settings()
+    local source,kind=ActiveSource(record.chatNS)
+    local native=Split(record.original)
+    local output=Split(popup._editBox._readOnlyText)
+    local snapshot={"enabled="..tostring(Enabled()).." channel="..tostring(db.channelColors~=false).." class="..tostring(db.classNames~=false).." source="..kind.." native-lines="..#native.." output-lines="..#output}
+    if source and type(source.GetNumMessages)=="function"and type(source.GetMessageInfo)=="function"then
+        local ok,count=pcall(source.GetNumMessages,source)
+        if ok and Readable(count)and type(count)=="number"then
+            snapshot[1]=snapshot[1].." source-lines="..count
+            local samples={}
+            for i=1,count do
+                local success,text,r,g,b=pcall(source.GetMessageInfo,source,i)
+                if success and Text(text)and text:find("|Hplayer:",1,true)then
+                    samples[#samples+1]={i=i,text=Shape(text),rgb=Color(r,g,b):gsub("|","[PIPE]")}
+                end
+            end
+            for j,sample in ipairs(samples)do
+                if j<=2 or j>#samples-3 then
+                    snapshot[#snapshot+1]="row="..sample.i.." RGB="..sample.rgb.." raw "..sample.text
+                    snapshot[#snapshot+1]="native "..Shape(native[sample.i])
+                    snapshot[#snapshot+1]="output "..Shape(output[sample.i])
+                end
+            end
+        end
+    end
+    local log=diagnostics.snapshots;log[#log+1]=snapshot
+    if #log>4 then table.remove(log,1)end
+end
+local function ColoredLines(chatNS)
+    local source=ActiveSource(chatNS)
     if not source or type(source.GetNumMessages)~="function"or type(source.GetMessageInfo)~="function"then return end
     local ok,count=pcall(source.GetNumMessages,source)
     if not ok or not Readable(count)or type(count)~="number"then return end
@@ -186,6 +242,7 @@ local function Configure(popup,record)
         popup:ClearAllPoints();popup:SetPoint("CENTER",UIParent,"CENTER",0,60)
         popup._editBox._readOnlyText=record.original
         popup._textBox:SetText(record.original or "")
+        DebugSnapshot(popup,record)
         return
     end
     if enabled and type(db.x)=="number"and type(db.y)=="number"then
@@ -198,6 +255,7 @@ local function Configure(popup,record)
         for line in ((record.original or "").."\n"):gmatch("(.-)\n")do record.lines[#record.lines+1]=line end
     end
     Filter(popup,record)
+    DebugSnapshot(popup,record)
 end
 local function Extend(dimmer,chatNS)
     local popup=dimmer and dimmer._popup
@@ -297,3 +355,22 @@ events:SetScript("OnEvent",function(_,event,...)
     Install()
 end)
 Install()
+
+SLASH_BELCHATDEBUG1="/belchatdebug"
+SlashCmdList.BELCHATDEBUG=function(command)
+    command=(command or ""):lower():match("^%s*(.-)%s*$")
+    local function Print(text)print(ns.L("Bel Toolbox")..": "..text)end
+    if command=="on"then
+        diagnostics.enabled=true;diagnostics.snapshots={}
+        Print(ns.L("Chat copy diagnostics enabled. Open the copy window with enhancements on and off, then run /belchatdebug."));return
+    elseif command=="off"then
+        diagnostics.enabled=false;diagnostics.snapshots={}
+        Print(ns.L("Chat copy diagnostics disabled."));return
+    end
+    Print("chat-copy debug 0.17.2 active="..tostring(diagnostics.enabled).." snapshots="..#diagnostics.snapshots)
+    for i,snapshot in ipairs(diagnostics.snapshots)do
+        Print("snapshot "..i)
+        for _,line in ipairs(snapshot)do Print(line)end
+    end
+    if #diagnostics.snapshots==0 then Print(ns.L("Use /belchatdebug on before opening the copy window."))end
+end

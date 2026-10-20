@@ -1,3 +1,9 @@
+# Bel Toolbox 0.17.2 — Beta
+
+- Added opt-in `/belchatdebug on`, `/belchatdebug`, and `/belchatdebug off` diagnostics for the remaining live-client name-color issue.
+- Compare source-buffer, original EUI-copy, and enhanced-output color tokens in both enabled and disabled states, including color/escape counts and active settings.
+- Retain only the last four snapshots in memory; no message bodies, saved logs, polling, or default diagnostic overhead. The class-color issue remains under investigation pending a client trace.
+- Diagnostic lifecycle, bounded storage, body omission, exact native restoration, search and resize simulations passed.
 # Bel Toolbox 0.17.1 — Beta
 
 - Added a master switch that restores EUI's native copy text, size and layout when disabled. Existing settings with all three old options disabled migrate to the native window.

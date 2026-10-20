@@ -3,6 +3,9 @@
 local _, ns = ...
 local translations = {
     enUS = {
+        ["Chat copy diagnostics enabled. Open the copy window with enhancements on and off, then run /belchatdebug."] = "Chat copy diagnostics enabled. Open the copy window with enhancements on and off, then run /belchatdebug.",
+        ["Chat copy diagnostics disabled."] = "Chat copy diagnostics disabled.",
+        ["Use /belchatdebug on before opening the copy window."] = "Use /belchatdebug on before opening the copy window.",
         ["Enable chat copy enhancements"] = "Enable chat copy enhancements",
         ["Disable to restore EUI's original copy window, text and layout."] = "Disable to restore EUI's original copy window, text and layout.",
         ["Move and resize chat copy window"] = "Move and resize chat copy window",
@@ -306,6 +309,9 @@ local translations = {
         ["Show DND text in the client language."] = "Show DND text in the client language.",
     },
     zhCN = {
+        ["Chat copy diagnostics enabled. Open the copy window with enhancements on and off, then run /belchatdebug."] = "聊天复制诊断已开启。分别在增强开启和关闭时打开复制窗口，再输入 /belchatdebug 输出记录。",
+        ["Chat copy diagnostics disabled."] = "聊天复制诊断已关闭。",
+        ["Use /belchatdebug on before opening the copy window."] = "请先输入 /belchatdebug on，再打开聊天复制窗口。",
         ["Enable chat copy enhancements"] = "启用聊天复制窗口增强",
         ["Disable to restore EUI's original copy window, text and layout."] = "关闭后完整恢复 EUI 原始复制窗口、文字和布局。",
         ["Move and resize chat copy window"] = "允许移动和拉伸聊天复制窗口",
