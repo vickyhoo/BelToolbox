@@ -1,3 +1,6 @@
+# Bel Toolbox 0.18.3-dev
+
+- Ship/zeppelin timers are now off by default. Only an explicitly enabled setting starts calibration, displays labels or automatically enables EUI transport markers. Existing explicit on/off preferences are preserved.
 # Bel Toolbox 0.18.2-dev
 
 - Enabling transport timers now enables EUI Map Markers and Transports through the existing MapTravel configuration and apply interface. This also runs at login for enabled timers and after late map/module loading.

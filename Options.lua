@@ -140,7 +140,7 @@ local registered = EUI.RegisterPlugin(addonName, {
                 Toggle("Map corner resize handle",function()return ns.GetEnhancements().mapCornerResize~=false end,
                     function(v)ns.GetEnhancements().mapCornerResize=v;ns.RefreshMapResize()end,
                     "Drag the bottom-right corner to resize. Windowed mode only. The size is saved with EUI window settings.")
-                Toggle("Ship and zeppelin timers",function()return ns.GetTransportSettings().enabled~=false end,
+                Toggle("Ship and zeppelin timers",function()return ns.GetTransportSettings().enabled==true end,
                     function(v)ns.GetTransportSettings().enabled=v;ns.RefreshTransportTimers()end,
                     "Show the next arrival or departure below EUI map transport icons. Automatically enables EUI Map Markers and transports. Stand still aboard a moving boat or zeppelin to calibrate.")
                 Header("Chat Copy Window")

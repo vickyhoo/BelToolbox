@@ -11,7 +11,7 @@ function ns.GetTransportSettings()
     local db=ns.GetSettings();db.transportTimers=db.transportTimers or {}
     return db.transportTimers
 end
-local function Enabled()return ns.GetTransportSettings().enabled~=false end
+local function Enabled()return ns.GetTransportSettings().enabled==true end
 local function Now()return GetServerTime()end
 local function Other(from)return from=="a"and "b"or "a"end
 local function Direction(from)return from=="a"and "ab"or "ba"end
