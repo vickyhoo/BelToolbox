@@ -99,6 +99,33 @@ local function Clean(text,colors)
     return text:gsub("|T.-|t",""):gsub("|A.-|a",""):gsub("|K.-|k",""):gsub("|n","\n")
 end
 local function Plain(text)return text:gsub("|c%x%x%x%x%x%x%x%x",""):gsub("|r",""):gsub("||","|")end
+local function ChannelText(text,base)
+    -- Each transition closes the current span before opening the next one.
+    -- Replacing |r with another |c leaves spans open across message boundaries.
+    local result,active={base},base
+    local i,start=1,1
+    while i<=#text do
+        if text:sub(i,i)=="|"then
+            local pair=text:sub(i,i+1)
+            if pair=="||"then i=i+2
+            else
+                local token=text:sub(i):match("^|c%x%x%x%x%x%x%x%x")or text:sub(i):match("^|cn[%w_]+:")
+                if pair=="|r"then token="|r"end
+                if token then
+                    result[#result+1]=text:sub(start,i-1)
+                    local nextColor=token=="|r"and base or token
+                    if nextColor~=active then result[#result+1]="|r"..nextColor;active=nextColor end
+                    i=i+#token;start=i
+                else i=i+1 end
+            end
+        else i=i+1 end
+    end
+    result[#result+1]=text:sub(start);result[#result+1]="|r"
+    return table.concat(result)
+end
+local function NativeClean(text)
+    return text:gsub("|H.-|h(.-)|h","%1"):gsub("|T.-|t",""):gsub("|A.-|a",""):gsub("|K.-|k",""):gsub("|n","\n"):gsub("||","|")
+end
 local function ActiveSource(chatNS)
     local selected=GENERAL_CHAT_DOCK and FCFDock_GetSelectedWindow and FCFDock_GetSelectedWindow(GENERAL_CHAT_DOCK)
     local frame=selected or ChatFrame1
@@ -140,17 +167,27 @@ local function DebugSnapshot(popup,record)
         if ok and Readable(count)and type(count)=="number"then
             snapshot[1]=snapshot[1].." source-lines="..count
             local samples={}
+            local physical=1
             for i=1,count do
                 local success,text,r,g,b=pcall(source.GetMessageInfo,source,i)
-                if success and Text(text)and text:find("|Hplayer:",1,true)then
-                    samples[#samples+1]={i=i,text=Shape(text),rgb=Color(r,g,b):gsub("|","[PIPE]")}
+                if success and Readable(text)and type(text)=="string"then
+                    local clean=NativeClean(text)
+                    local _,breaks=clean:gsub("\n","")
+                    if text:find("|Hplayer:",1,true)then
+                        samples[#samples+1]={i=i,first=physical,last=physical+breaks,text=Shape(text),rgb=Color(r,g,b):gsub("|","[PIPE]")}
+                    end
+                    physical=physical+breaks+1
                 end
             end
             for j,sample in ipairs(samples)do
                 if j<=2 or j>#samples-3 then
-                    snapshot[#snapshot+1]="row="..sample.i.." RGB="..sample.rgb.." raw "..sample.text
-                    snapshot[#snapshot+1]="native "..Shape(native[sample.i])
-                    snapshot[#snapshot+1]="output "..Shape(output[sample.i])
+                    snapshot[#snapshot+1]="row="..sample.i.." text-line="..sample.first.." RGB="..sample.rgb.." raw "..sample.text
+                    local function Span(lines)
+                        if sample.last>#lines then return nil end
+                        return table.concat(lines,"\n",sample.first,sample.last)
+                    end
+                    snapshot[#snapshot+1]="native "..Shape(Span(native))
+                    snapshot[#snapshot+1]="output "..Shape(Span(output))
                 end
             end
         end
@@ -177,7 +214,7 @@ local function ColoredLines(chatNS)
             text=Clean(text,colors)
             if Settings().channelColors~=false then
                 local color=Color(r,g,b)
-                text=color..text:gsub("|r",color).."|r"
+                text=ChannelText(text,color)
             end
             lines[#lines+1]=text
     end
@@ -367,7 +404,7 @@ SlashCmdList.BELCHATDEBUG=function(command)
         diagnostics.enabled=false;diagnostics.snapshots={}
         Print(ns.L("Chat copy diagnostics disabled."));return
     end
-    Print("chat-copy debug 0.17.2 active="..tostring(diagnostics.enabled).." snapshots="..#diagnostics.snapshots)
+    Print("chat-copy debug 0.17.3 active="..tostring(diagnostics.enabled).." snapshots="..#diagnostics.snapshots)
     for i,snapshot in ipairs(diagnostics.snapshots)do
         Print("snapshot "..i)
         for _,line in ipairs(snapshot)do Print(line)end

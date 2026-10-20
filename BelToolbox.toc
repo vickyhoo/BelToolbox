@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## Title: Bel Toolbox
 ## Notes: Mage tools, tooltips, merchant assistant, offline inventory and mail contacts
-## Version: 0.17.2
+## Version: 0.17.3
 ## IconTexture: Interface\AddOns\BelToolbox\Media\Logo.tga
 ## Author: Bel
 ## License: MIT

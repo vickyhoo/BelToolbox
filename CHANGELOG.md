@@ -1,3 +1,9 @@
+# Bel Toolbox 0.17.3 — Beta
+
+- Fixed unbalanced inline color spans in enhanced chat-copy output: replacing each native reset with another channel-color opener left spans unclosed across messages. Channel transitions now close the previous span before opening the next, with no nested or accumulating spans.
+- Preserve player/item colors and restore channel body color while keeping each message's markup balanced. Literal escaped pipes and named-color tokens are handled during transitions.
+- Corrected diagnostic row alignment for messages containing embedded newlines; source message indices now map to their corresponding physical lines in the native and enhanced text.
+- Regression checks cover 350 class-colored senders across 700 physical lines with depth-one, balanced color transitions and correct first-to-last name colors. Existing search, native restoration, drag/resize and diagnostic checks passed. Live-client confirmation is still needed.
 # Bel Toolbox 0.17.2 — Beta
 
 - Added opt-in `/belchatdebug on`, `/belchatdebug`, and `/belchatdebug off` diagnostics for the remaining live-client name-color issue.
