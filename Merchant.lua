@@ -223,6 +223,22 @@ local function BindNative(dialog)
     if not dialog or dialog._belNativeBound or not dialog._eb or not dialog._buttons or not dialog._buttons.buy
         or not dialog._extra or not dialog.SetRange or not dialog.SetValue or not dialog.Open then return end
     dialog._belNativeBound=true
+    -- EUI refreshes its private bundle-cost line independently. Keep that
+    -- calculation intact but use a separate visible line for unit quantities.
+    local nativeCost=dialog._extra
+    local nativeAlpha=nativeCost:GetAlpha()or 1
+    local unitCost=dialog:CreateFontString(nil,"OVERLAY","GameFontHighlight")
+    dialog._belUnitCost=unitCost
+    unitCost:SetAllPoints(nativeCost)
+    local font,size,flags=nativeCost:GetFont()
+    if font then unitCost:SetFont(font,size,flags)end
+    local r,g,b,a=nativeCost:GetTextColor()
+    if r then unitCost:SetTextColor(r,g,b,a)end
+    unitCost:SetJustifyH("LEFT");unitCost:SetWordWrap(false);unitCost:SetShown(false)
+    local function CostMode(owned)
+        nativeCost:SetAlpha(owned and 0 or nativeAlpha)
+        unitCost:SetShown(owned and true or false)
+    end
     local function Eligible()
         if Settings().enabled==false or not NativeEnabled()or not dialog._index then return end
         return Info(dialog._index)
@@ -232,6 +248,7 @@ local function BindNative(dialog)
         if not item then
             if frame==dialog then Stop();selected=nil;frame=nil end
             dialog._belNativeBulk=nil
+            CostMode(false)
             return
         end
         if frame~=dialog or not selected or selected.index~=item.index or selected.id~=item.id then
@@ -240,7 +257,8 @@ local function BindNative(dialog)
             frame=dialog;selected=item
         end
         dialog._belNativeBulk=true
-        dialog.input,dialog.buy,dialog.cost=dialog._eb,dialog._buttons.buy,dialog._extra
+        dialog.input,dialog.buy,dialog.cost=dialog._eb,dialog._buttons.buy,unitCost
+        CostMode(true)
         dialog._step=1;dialog._max=Limit(item)
         if dialog._maxLbl then dialog._maxLbl:SetText("/ "..dialog._max)end
         return item
@@ -248,24 +266,12 @@ local function BindNative(dialog)
     hooksecurefunc(dialog,"SetRange",function()if Prepare()then Update()end end)
     hooksecurefunc(dialog,"SetValue",function()if Prepare()then Update()end end)
     dialog._eb:HookScript("OnTextChanged",function()if Prepare()then Update()end end)
-    -- EUI's repaint path also calls its private ShowCost directly (outside
-    -- SetValue). Keep the native cost line correct for individual quantities.
-    local costGuard
-    hooksecurefunc(dialog._extra,"SetText",function()
-        if costGuard or frame~=dialog or not dialog._belNativeBulk then return end
-        local item=Eligible()
-        if not item then return end
-        local amount=tonumber(dialog._eb:GetText())or 0
-        local text=L("Total: ")..GetCoinTextureString(math.ceil(amount*item.price/item.pack))
-        if dialog._extra:GetText()~=text then
-            costGuard=true;dialog._extra:SetText(text);costGuard=nil
-        end
-    end)
     hooksecurefunc(dialog,"Open",function()
         if Prepare()then Stop();dialog._eb:SetText("1");Update()end
     end)
     dialog:HookScript("OnHide",function()
         if frame==dialog then Stop();selected=nil end
+        CostMode(false)
     end)
     local oldBuy=dialog._buttons.buy:GetScript("OnClick")
     local oldEnter=dialog._eb:GetScript("OnEnterPressed")

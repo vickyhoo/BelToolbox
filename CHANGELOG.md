@@ -1,3 +1,8 @@
+# Bel Toolbox 0.18.4-dev
+
+- Fixed the visible EUI Bulk Buy total still reverting to bundle pricing. For toolbox-managed ordinary gold items, a dedicated cost label now occupies the original cost-line position while EUI's independently refreshed bundle-cost label is transparent. The visible total uses ceil(quantity * bundlePrice / bundleCount).
+- The label copies EUI's font and color; only one cost line is visible. Special-cost/unique items, closing the dialog and disabling the assistant restore EUI's native cost line.
+- Simulated 1/7-item totals, direct native bundle-cost overwrites, merchant repaints, fractional-copper rounding and special/disabled restoration passed with both native dialog creation orders. Client confirmation remains necessary.
 # Bel Toolbox 0.18.3-dev
 
 - Ship/zeppelin timers are now off by default. Only an explicitly enabled setting starts calibration, displays labels or automatically enables EUI transport markers. Existing explicit on/off preferences are preserved.
