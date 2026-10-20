@@ -2,7 +2,7 @@
 
 贝尔工具箱 · Quality-of-life extensions for **EllesmereUI on WoW Forever**.
 
-Author: **Bel** · License: **MIT** · Current version: **0.16.1 beta**
+Author: **Bel** · License: **MIT** · Current version: **0.17.0 beta**
 
 ## Features
 
@@ -12,7 +12,7 @@ Author: **Bel** · License: **MIT** · Current version: **0.16.1 beta**
 - **Bag shortcuts:** optional automatic weapon buff targeting and Mage comprehension-scroll shortcuts outside combat.
 - **Tooltips:** item/spell title icons, AFK/DND status beside player names, class/reaction/quality borders and configurable text colors.
 - **Profession helper:** estimated recipe-list profit and return percentage using installed Auctionator, TradeSkillMaster or CraftProfit price APIs; preserves skill-up arrows and supports difficulty-colored recipe names.
-- **Chat:** configurable channel shortcuts, original micro-menu artwork, and an EUI chat-copy window with a resize grip and preserved channel colors.
+- **Chat:** configurable channel shortcuts, original micro-menu artwork, and an EUI chat-copy window with dragging, resizing, name/text search, channel colors and class-colored player names.
 - **Interface utilities:** quick focus with optional control marker, map resize handle, EUI window-movement integration, animated resting indicator, native quest-object sparkles and compact raid-tool extensions.
 
 ## Installation
@@ -28,7 +28,7 @@ Settings are in **EUI → Bel Toolbox**, or enter `/bel` / `/beltoolbox`.
 
 将插件文件夹命名为 `BelToolbox`，放入无限服客户端的 `Interface/AddOns/`，确认目录内直接包含 `BelToolbox.toc`。设置入口为 **EUI → 贝尔工具箱**，也可输入 `/bel`。
 
-聊天复制窗口默认可拖动右下角调整大小，自动记忆尺寸，并保留频道颜色；可在 **界面增强 → 聊天复制窗口** 中分别关闭。
+聊天复制窗口可拖动顶部移动、拖动右下角调整大小，并记忆位置和尺寸。搜索框可按角色名或正文筛选，清空后恢复全部消息。角色名称使用已知发言者、队伍和公会的职业信息染色，未知职业保留原色，正文保留频道颜色；染色选项位于 **界面增强 → 聊天复制窗口**。
 
 ## Dependencies and compatibility
 

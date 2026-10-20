@@ -3,6 +3,11 @@
 local _, ns = ...
 local translations = {
     enUS = {
+        ["Copy Chat"] = "Copy Chat",
+        ["Search messages"] = "Search messages",
+        ["%d / %d messages"] = "%d / %d",
+        ["Class-colored names in copied chat"] = "Class-colored names in copied chat",
+        ["Color player names using known sender, group and guild class information. Unknown names keep their original colors."] = "Color player names using known sender, group and guild class information. Unknown names keep their original colors.",
         ["Chat Copy Window"] = "Chat Copy Window",
         ["Resizable chat copy window"] = "Resizable chat copy window",
         ["Drag the bottom-right corner of EUI's chat copy window to resize it. The size is remembered."] = "Drag the bottom-right corner of EUI's chat copy window to resize it. The size is remembered.",
@@ -295,6 +300,11 @@ local translations = {
         ["Show DND text in the client language."] = "Show DND text in the client language.",
     },
     zhCN = {
+        ["Copy Chat"] = "复制聊天",
+        ["Search messages"] = "搜索消息",
+        ["%d / %d messages"] = "%d / %d 条",
+        ["Class-colored names in copied chat"] = "复制聊天中的角色名称按职业染色",
+        ["Color player names using known sender, group and guild class information. Unknown names keep their original colors."] = "根据已知发言者、队伍和公会的职业信息染色；未知职业的名字保留原有颜色。",
         ["Chat Copy Window"] = "聊天复制窗口",
         ["Resizable chat copy window"] = "允许拉伸聊天复制窗口",
         ["Drag the bottom-right corner of EUI's chat copy window to resize it. The size is remembered."] = "拖动 EUI 聊天复制窗口的右下角调整大小，自动记忆窗口尺寸。",

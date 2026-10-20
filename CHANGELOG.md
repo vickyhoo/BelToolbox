@@ -1,3 +1,10 @@
+# Bel Toolbox 0.17.0 — Beta
+
+- Added a draggable chat-copy header with saved window position.
+- Added literal name/message search, a matching-message counter and a clear button. Closing the window cancels pending searches; reopening restores the full message list.
+- Added optional class-colored player names using chat sender GUIDs and known group/guild information. Unknown or ambiguous classes retain their existing colors; message bodies preserve channel colors.
+- Class metadata is session-only and bounded; search is debounced without polling or persistent chat storage.
+- Simulated chat source, class lookup, search, drag/resize persistence and Lua compilation checks passed. In-game verification remains necessary.
 # Bel Toolbox 0.16.1 — Beta
 
 - Declared EllesmereUI as a required dependency instead of an optional dependency.

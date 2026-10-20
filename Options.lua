@@ -147,6 +147,9 @@ local registered = EUI.RegisterPlugin(addonName, {
                 Toggle("Channel colors in copied chat",function()local db=ns.GetSettings().chatCopy;return not db or db.channelColors~=false end,
                     function(v)local db=ns.GetSettings();db.chatCopy=db.chatCopy or {};db.chatCopy.channelColors=v;ns.RefreshChatCopy()end,
                     "Preserve each message's original channel color and inline link colors in EUI's chat copy window.")
+                Toggle("Class-colored names in copied chat",function()local db=ns.GetSettings().chatCopy;return not db or db.classNames~=false end,
+                    function(v)local db=ns.GetSettings();db.chatCopy=db.chatCopy or {};db.chatCopy.classNames=v;ns.RefreshChatCopy()end,
+                    "Color player names using known sender, group and guild class information. Unknown names keep their original colors.")
                 Header("Data Bars")
                 Toggle("Bel Toolbox icons",function()return ns.GetEnhancements().belMicroMenuIcons~=false end,
                     function(v)ns.GetEnhancements().belMicroMenuIcons=v;ns.RefreshMicroMenuIcons()end,
