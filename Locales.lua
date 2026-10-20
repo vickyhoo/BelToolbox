@@ -3,6 +3,7 @@
 local _, ns = ...
 local translations = {
     enUS = {
+        ["%d copper"] = "%d copper",
         ["Shift-left-click a vendor item. When EUI Bulk Buy is enabled, use its window with individual item quantities for ordinary gold purchases. Currency-cost and unique items keep EUI's behavior."] = "Shift-left-click a vendor item. When EUI Bulk Buy is enabled, use its window with individual item quantities for ordinary gold purchases. Currency-cost and unique items keep EUI's behavior.",
         ["The server delivered more than requested; further purchases stopped."] = "The server delivered more than requested; further purchases stopped.",
         ["Buy %d x %s for %s?"] = "Buy %d x %s for %s?",
@@ -319,6 +320,7 @@ local translations = {
         ["Show DND text in the client language."] = "Show DND text in the client language.",
     },
     zhCN = {
+        ["%d copper"] = "%d 铜",
         ["Shift-left-click a vendor item. When EUI Bulk Buy is enabled, use its window with individual item quantities for ordinary gold purchases. Currency-cost and unique items keep EUI's behavior."] = "Shift 左键点击商品。开启 EUI 批量购买后，复用其窗口，普通金币商品按实际件数购买；货币兑换和唯一物品保留 EUI 原有流程。",
         ["The server delivered more than requested; further purchases stopped."] = "服务器发放数量超过请求数量，已停止后续购买。",
         ["Buy %d x %s for %s?"] = "购买 %d 件 %s，共 %s？",

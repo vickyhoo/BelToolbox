@@ -1,5 +1,13 @@
 local _, ns = ...
 local L = ns.L
+local function MoneyText(copper)
+    local format=C_CurrencyInfo and C_CurrencyInfo.GetCoinTextureString or GetCoinTextureString
+    if type(format)=="function"then
+        local text=format(copper)
+        if type(text)=="string"and text~=""then return text end
+    end
+    return L("%d copper",copper)
+end
 local function Say(message) print("|cff4accffBel Toolbox:|r " .. message) end
 local function Settings()
     local db = ns.GetSettings()
@@ -89,7 +97,7 @@ local function Update()
         if handle and EllesmereUI and EllesmereUI.CloseConfirmPopup then EllesmereUI:CloseConfirmPopup(handle)end
     end
     if frame.detail then frame.detail:SetText(string.format(L("Vendor pack: %d   |   Max: %d"), item.pack, Limit(item)))end
-    frame.cost:SetText(L("Total: ") .. GetCoinTextureString(math.ceil(amount * item.price / item.pack)))
+    frame.cost:SetText(L("Total: ") .. MoneyText(math.ceil(amount * item.price / item.pack)))
     if frame._belNativeBulk then
         frame.buy:SetEnabled(not running and not pending and amount>=1 and amount<=Limit(item))
     end
@@ -150,7 +158,7 @@ local function Purchase()
     local EUI=EllesmereUI
     local cost=math.ceil(amount*item.price/item.pack)
     if frame._belNativeBulk and cost>=(MERCHANT_HIGH_PRICE_COST or 1500000)and EUI and EUI.ShowConfirmPopup then
-        local message=L("Buy %d x %s for %s?",amount,item.link,GetCoinTextureString(cost))
+        local message=L("Buy %d x %s for %s?",amount,item.link,MoneyText(cost))
         if C_MerchantFrame and C_MerchantFrame.IsMerchantItemRefundable and not C_MerchantFrame.IsMerchantItemRefundable(item.index)then
             message=message.."\n\n"..EUI.L("This purchase is not refundable.")
         end
@@ -370,8 +378,9 @@ if SlashCmdList then SlashCmdList.BELMERCHANTDEBUG=function()
     local dialog=_G.EUI_MerchantBulkBuyFrame
     local unit=dialog and dialog._belUnitCost
     local native=dialog and dialog._extra
-    Print("merchant-cost debug 0.18.6 enabled="..Value(Settings().enabled~=false).." EUI="..Value(NativeEnabled()and true or false)
+    Print("merchant-cost debug 0.18.7 enabled="..Value(Settings().enabled~=false).." EUI="..Value(NativeEnabled()and true or false)
         .." shown="..Read(dialog,"IsShown").." owned="..Value(dialog and dialog._belNativeBulk).." active="..Value(frame==dialog))
+    Print("moneyAPI="..type(C_CurrencyInfo and C_CurrencyInfo.GetCoinTextureString).." legacyMoneyAPI="..type(GetCoinTextureString))
     if not dialog then return end
     local item=dialog._index and Info(dialog._index)
     local qty=dialog._eb and tonumber(dialog._eb:GetText())

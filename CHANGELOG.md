@@ -1,3 +1,8 @@
+# Bel Toolbox 0.18.7-dev
+
+- Fixed use of the legacy global GetCoinTextureString in the merchant amount line and high-price confirmation. Prefer C_CurrencyInfo.GetCoinTextureString, matching EUI; fall back to the legacy global or localized copper text when unavailable.
+- A namespace-only client simulation reproduces the previous version aborting before SetText with a missing global formatter. Updated tests remove the global instead of assuming it exists; unit-cost rendering and native dialog integration pass in both load orders. Legacy-only merchant tests also pass.
+- `/belmerchantdebug` now reports both formatter API types to verify the actual client compatibility path. Live-client confirmation remains necessary.
 # Bel Toolbox 0.18.6-dev
 
 - Added read-only `/belmerchantdebug` diagnostics for the unresolved live-client blank Bulk Buy amount. Reports active adapter state, requested quantity, bundle pricing, expected copper total and both amount FontStrings' contents, visibility, alpha, geometry, font, color and anchors.
