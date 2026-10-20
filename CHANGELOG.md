@@ -1,3 +1,30 @@
+# Bel Toolbox 0.18.7
+
+Quality-of-life extensions for EllesmereUI on WoW Forever.
+
+## New
+
+- Added independent ship and zeppelin countdowns below EUI's existing world-map transport icons. White shows time until arrival; gold shows time until departure. Hover for individual services and calibration information.
+- Transport timers are off by default. Enabling them automatically enables EUI Map Markers and Transports, preserving other map categories.
+- Included 13 recorded ship/zeppelin routes with automatic onboard calibration and realm-specific saved timings. No additional route lines, clock icons or moving vehicles are drawn.
+
+## Improvements and fixes
+
+- The merchant assistant now reuses EUI Bulk Buy when enabled, avoiding duplicate purchase windows. Ordinary gold items accept individual quantities, including one item from a vendor bundle.
+- Corrected per-item totals, affordability and fractional-copper rounding. Fixed amount-label visibility and compatibility with the namespaced currency formatter.
+- Preserved native EUI handling for currency-cost and unique items, plus high-price confirmation for toolbox-managed gold purchases.
+- Stopped ship/zeppelin tooltip refreshes from restarting EUI's fade animation every second.
+- Added `/belmerchantdebug` for read-only amount-label diagnostics.
+
+## Installation and notes
+
+- Requires EllesmereUI for WoW Forever (Interface 16001). Extract the included `BelToolbox` folder into `Interface/AddOns/`, then restart or `/reload`.
+- Settings: **EUI > Bel Toolbox**, or `/bel` / `/beltoolbox`.
+- Enable transport timers under **Interface Enhancements**. Stand still aboard a sailing ship or zeppelin to calibrate. Server restarts or layer changes may require recalibration; unsupported docks show `?`.
+- Lua compilation and simulated merchant, map, chat, profession and transport regression checks passed. Exact behavior on the live client still needs verification; the latest merchant amount fix has not yet received in-game confirmation.
+
+DockWatch route data is included under MIT; its copyright and license are preserved in `THIRD_PARTY_NOTICES.md`.
+
 # Bel Toolbox 0.18.7-dev
 
 - Fixed use of the legacy global GetCoinTextureString in the merchant amount line and high-price confirmation. Prefer C_CurrencyInfo.GetCoinTextureString, matching EUI; fall back to the legacy global or localized copper text when unavailable.
