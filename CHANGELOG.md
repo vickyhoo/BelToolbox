@@ -1,3 +1,9 @@
+# Bel Toolbox 0.16.1 — Beta
+
+- Declared EllesmereUI as a required dependency instead of an optional dependency.
+- Grouped Bel Toolbox under EllesmereUI in the in-game addon manager using the same Group and Category metadata as native EUI modules.
+- Individual EUI feature modules and price providers remain optional.
+
 # Bel Toolbox 0.16.0 — Beta
 
 - Added chat copy window enhancements through EUI's HostPopup hook, without editing EUI addon files.

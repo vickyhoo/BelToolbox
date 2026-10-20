@@ -2,7 +2,7 @@
 
 贝尔工具箱 · Quality-of-life extensions for **EllesmereUI on WoW Forever**.
 
-Author: **Bel** · License: **MIT** · Current version: **0.16.0 beta**
+Author: **Bel** · License: **MIT** · Current version: **0.16.1 beta**
 
 ## Features
 
@@ -33,7 +33,8 @@ Settings are in **EUI → Bel Toolbox**, or enter `/bel` / `/beltoolbox`.
 ## Dependencies and compatibility
 
 - Designed for **WoW Forever / Interface 16001** and the local EllesmereUI Forever APIs used by this version.
-- EllesmereUI is required for the integrated settings and UI extensions; install the relevant EUI modules for their corresponding integrations.
+- EllesmereUI is a required TOC dependency and loads before Bel Toolbox. Missing or disabled EUI prevents Bel Toolbox from loading. Install the relevant optional EUI modules for their corresponding integrations.
+- In the game addon manager, Bel Toolbox is grouped under EllesmereUI.
 - Profession profit needs a supported price-provider addon with usable price data. CraftProfit is optional. No auction scanner is bundled.
 - If CraftProfit's own recipe-row tags are enabled, they take priority to avoid duplicate tags.
 - Some EUI extensions use guarded internal interfaces and may need updates after EUI changes.
