@@ -17,6 +17,10 @@ Author: **Bel** · License: **MIT** · Current version: **0.17.3 beta**
 
 ## Installation
 
+`main` is reserved for formal releases. Ongoing development, fixes and beta iterations are maintained on `dev`.
+
+分支约定：`dev` 用于功能开发、修复和测试版本；`main` 仅用于正式发布。
+
 1. Install EllesmereUI for your WoW Forever client.
 2. Download a release ZIP and extract its `BelToolbox` folder into `Interface/AddOns/`.
 3. If using GitHub's **Code → Download ZIP**, rename the extracted `BelToolbox-main` folder to `BelToolbox`.
