@@ -347,3 +347,46 @@ events:SetScript("OnEvent", function(_, event)
     elseif frame and frame:IsShown() then Update() end
 end)
 HookNative()
+
+-- One-shot, read-only client diagnostics. No polling, saved logs or purchases.
+SLASH_BELMERCHANTDEBUG1="/belmerchantdebug"
+if SlashCmdList then SlashCmdList.BELMERCHANTDEBUG=function()
+    local function Value(value)
+        if issecretvalue and issecretvalue(value)then return "<protected>"end
+        return tostring(value)
+    end
+    local function Print(text)print(L("Bel Toolbox")..": "..text)end
+    local function Read(object,method,...)
+        if not object or type(object[method])~="function"then return "-"end
+        local values={pcall(object[method],object,...)}
+        if not values[1]then return "<error>"end
+        local output={}
+        for i=2,#values do output[#output+1]=Value(values[i])end
+        return table.concat(output,",")
+    end
+    local function Text(region)
+        return Read(region,"GetText"):gsub("|T.-|t","[coin]"):gsub("|","[PIPE]")
+    end
+    local dialog=_G.EUI_MerchantBulkBuyFrame
+    local unit=dialog and dialog._belUnitCost
+    local native=dialog and dialog._extra
+    Print("merchant-cost debug 0.18.6 enabled="..Value(Settings().enabled~=false).." EUI="..Value(NativeEnabled()and true or false)
+        .." shown="..Read(dialog,"IsShown").." owned="..Value(dialog and dialog._belNativeBulk).." active="..Value(frame==dialog))
+    if not dialog then return end
+    local item=dialog._index and Info(dialog._index)
+    local qty=dialog._eb and tonumber(dialog._eb:GetText())
+    Print("index="..Value(dialog._index).." qty="..Value(qty).." step="..Value(dialog._step)
+        .." pack="..Value(item and item.pack).." price="..Value(item and item.price)
+        .." expectedCopper="..Value(item and qty and math.ceil(qty*item.price/item.pack))
+        .." selected="..Value(selected and selected.id).." costIsUnit="..Value(dialog.cost==unit))
+    for _,entry in ipairs({{name="unit",region=unit},{name="native",region=native}})do
+        local region=entry.region
+        Print(entry.name.." text="..Text(region).." shown="..Read(region,"IsShown").." visible="..Read(region,"IsVisible")
+            .." alpha="..Read(region,"GetAlpha").." effectiveAlpha="..Read(region,"GetEffectiveAlpha"))
+        Print(entry.name.." width="..Read(region,"GetWidth").." height="..Read(region,"GetHeight")
+            .." stringWidth="..Read(region,"GetStringWidth").." stringHeight="..Read(region,"GetStringHeight")
+            .." left="..Read(region,"GetLeft").." top="..Read(region,"GetTop"))
+        Print(entry.name.." font="..Read(region,"GetFont").." color="..Read(region,"GetTextColor").." layer="..Read(region,"GetDrawLayer"))
+    end
+    Print("unit anchor1="..Read(unit,"GetPoint",1).." anchor2="..Read(unit,"GetPoint",2))
+end end

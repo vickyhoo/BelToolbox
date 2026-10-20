@@ -1,3 +1,8 @@
+# Bel Toolbox 0.18.6-dev
+
+- Added read-only `/belmerchantdebug` diagnostics for the unresolved live-client blank Bulk Buy amount. Reports active adapter state, requested quantity, bundle pricing, expected copper total and both amount FontStrings' contents, visibility, alpha, geometry, font, color and anchors.
+- This diagnostic build does not claim to resolve the blank label. The command performs no purchases, rendering changes, polling or persistent logging.
+- Simulated diagnostic output correctly distinguishes populated and blank/hidden labels without changing purchases or visibility. Existing native EUI integration checks pass.
 # Bel Toolbox 0.18.5-dev
 
 - Fixed the replacement Bulk Buy amount line appearing blank: the new label no longer inherits content-driven bounds from EUI's initially empty native cost FontString. It is anchored directly to the dialog with a fixed 20-pixel height and explicit opacity.
