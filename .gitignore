@@ -1,0 +1,14 @@
+# Local editor and system files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local game data, diagnostics and release artifacts
+SavedVariables/
+WTF/
+*.bak
+*.log
+*.zip
+work/
+outputs/
