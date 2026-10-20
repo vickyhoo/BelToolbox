@@ -1,3 +1,10 @@
+# Bel Toolbox 0.17.1 — Beta
+
+- Added a master switch that restores EUI's native copy text, size and layout when disabled. Existing settings with all three old options disabled migrate to the native window.
+- Bound dragging to the move/resize option and added a separate search toggle. Disabling cancels pending searches and prevents hidden controls from moving/resizing the window.
+- Preserve native EUI player-name colors before applying class fallbacks. Reuse existing colored player links across messages, including pre-login history, without overwriting native inline colors.
+- Removed an unnecessary GUID-format restriction for class lookups on custom clients.
+- Simulated native restoration, repeated reopening, search cancellation, independent controls and name-color preservation checks passed, alongside settings, merchant/map and profession-profit regressions. Client verification remains necessary.
 # Bel Toolbox 0.17.0 — Beta
 
 - Added a draggable chat-copy header with saved window position.

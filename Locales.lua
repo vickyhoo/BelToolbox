@@ -3,6 +3,12 @@
 local _, ns = ...
 local translations = {
     enUS = {
+        ["Enable chat copy enhancements"] = "Enable chat copy enhancements",
+        ["Disable to restore EUI's original copy window, text and layout."] = "Disable to restore EUI's original copy window, text and layout.",
+        ["Move and resize chat copy window"] = "Move and resize chat copy window",
+        ["Drag the title to move or the bottom-right corner to resize. Position and size are remembered."] = "Drag the title to move or the bottom-right corner to resize. Position and size are remembered.",
+        ["Search copied chat"] = "Search copied chat",
+        ["Preserve EUI's player colors first, then fill missing name colors from other messages and known class information."] = "Preserve EUI's player colors first, then fill missing name colors from other messages and known class information.",
         ["Copy Chat"] = "Copy Chat",
         ["Search messages"] = "Search messages",
         ["%d / %d messages"] = "%d / %d",
@@ -300,6 +306,12 @@ local translations = {
         ["Show DND text in the client language."] = "Show DND text in the client language.",
     },
     zhCN = {
+        ["Enable chat copy enhancements"] = "启用聊天复制窗口增强",
+        ["Disable to restore EUI's original copy window, text and layout."] = "关闭后完整恢复 EUI 原始复制窗口、文字和布局。",
+        ["Move and resize chat copy window"] = "允许移动和拉伸聊天复制窗口",
+        ["Drag the title to move or the bottom-right corner to resize. Position and size are remembered."] = "拖动标题移动，拖动右下角调整大小，自动记忆位置和尺寸。",
+        ["Search copied chat"] = "启用复制聊天搜索",
+        ["Preserve EUI's player colors first, then fill missing name colors from other messages and known class information."] = "优先保留 EUI 原有姓名颜色，再通过其他消息中的同名角色颜色和已知职业信息补齐。",
         ["Copy Chat"] = "复制聊天",
         ["Search messages"] = "搜索消息",
         ["%d / %d messages"] = "%d / %d 条",

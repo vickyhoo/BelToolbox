@@ -7,6 +7,13 @@ local nameCount=0
 local function Settings()
     local db=ns.GetSettings();db.chatCopy=db.chatCopy or {};return db.chatCopy
 end
+local function Enabled()
+    local db=Settings()
+    if db.enabled~=nil then return db.enabled end
+    -- Migrate the previous version's all-off state to a fully native window.
+    return not (db.resizable==false and db.channelColors==false and db.classNames==false)
+end
+ns.IsChatCopyEnabled=Enabled
 local function Readable(value)return not (issecretvalue and issecretvalue(value))end
 local function Text(value)return Readable(value)and type(value)=="string"and value~=""end
 local function AddClass(name,class)
@@ -22,7 +29,7 @@ local function AddClass(name,class)
     elseif shortNames[short]~=class then shortNames[short]=false end
 end
 local function CaptureSender(sender,guid)
-    if not Text(sender)or not Text(guid)or not guid:match("^Player%-")or not GetPlayerInfoByGUID then return end
+    if not Text(sender)or not Text(guid)or not GetPlayerInfoByGUID then return end
     local class=guids[guid]
     if not class then
         local ok,_,value=pcall(GetPlayerInfoByGUID,guid)
@@ -60,9 +67,25 @@ local function Color(r,g,b)
     local function Byte(v)return math.floor(math.max(0,math.min(1,v))*255+.5)end
     return string.format("|cff%02x%02x%02x",Byte(r),Byte(g),Byte(b))
 end
-local function Clean(text)
+local function PlayerKey(target)return (target:match("^([^:]+)")or ""):lower()end
+local function LearnColors(text,colors)
+    -- Blizzard/EUI already know many more senders than our session cache.
+    -- Reuse their formatted player-link colors, including history from login.
+    for target,label in text:gmatch("|Hplayer:([^|]-)|h(.-)|h")do
+        local color=label:match("(|c%x%x%x%x%x%x%x%x)")
+        if color then colors[PlayerKey(target)]=color end
+    end
+    for color,target in text:gmatch("(|c%x%x%x%x%x%x%x%x)|Hplayer:([^|]-)|h")do
+        colors[PlayerKey(target)]=color
+    end
+end
+local function Clean(text,colors)
     text=text:gsub("|H([^:|]+):([^|]-)|h(.-)|h",function(kind,target,label)
         if kind=="player"and Settings().classNames~=false then
+            -- Preserve native inline colors rather than replacing them.
+            if label:find("|c",1,true)then return label end
+            local native=colors and colors[PlayerKey(target)]
+            if native then return native..label.."|r"end
             local name=target:match("^([^:]+)")
             local key=name and name:lower()
             local class=key and names[key]
@@ -84,21 +107,28 @@ local function ColoredLines(chatNS)
     if not source or type(source.GetNumMessages)~="function"or type(source.GetMessageInfo)~="function"then return end
     local ok,count=pcall(source.GetNumMessages,source)
     if not ok or not Readable(count)or type(count)~="number"then return end
-    local lines={}
+    local lines,raw,colors={},{},{}
     for i=1,count do
         local success,text,r,g,b=pcall(source.GetMessageInfo,source,i)
         if success and Readable(text)and type(text)=="string"then
+            raw[#raw+1]={text,r,g,b};LearnColors(text,colors)
+        end
+    end
+    for _,message in ipairs(raw)do
+            local text,r,g,b=(unpack or table.unpack)(message)
             -- Keep hyperlink display text and inline colors; remove UI-only
             -- textures and protected-name placeholders, as EUI's copy view does.
-            text=Clean(text)
-            local color=Settings().channelColors~=false and Color(r,g,b)or "|cffffffff"
-            text=text:gsub("|r",color)
-            lines[#lines+1]=color..text.."|r"
-        end
+            text=Clean(text,colors)
+            if Settings().channelColors~=false then
+                local color=Color(r,g,b)
+                text=color..text:gsub("|r",color).."|r"
+            end
+            lines[#lines+1]=text
     end
     if #lines>0 then return lines end
 end
 local function Filter(popup,record)
+    if not Enabled()then return end
     local query=record.search:GetText()or ""
     query=query:match("^%s*(.-)%s*$"):lower()
     local result={}
@@ -125,7 +155,21 @@ local function Stop(popup,record)
 end
 local function Configure(popup,record)
     local db=Settings()
-    local enabled=db.resizable~=false
+    local active=Enabled()
+    local enabled=active and db.resizable~=false
+    Stop(popup,record)
+    record.searchToken=(record.searchToken or 0)+1
+    local searchable=active and db.searchable~=false
+    record.drag:SetShown(active)
+    record.drag:EnableMouse(enabled)
+    popup:SetMovable(enabled)
+    record.search:SetShown(searchable);record.label:SetShown(searchable);record.count:SetShown(searchable)
+    if not searchable then
+        record.syncing=true;record.search:SetText("");record.search:ClearFocus();record.syncing=nil
+    end
+    popup._textBox:ClearAllPoints()
+    popup._textBox:SetPoint("TOPLEFT",popup,"TOPLEFT",20,active and (searchable and -66 or -34)or -20)
+    popup._textBox:SetPoint("BOTTOMRIGHT",popup,"BOTTOMRIGHT",-20,60)
     popup:SetResizable(enabled)
     record.grip:SetShown(enabled)
     if not enabled then
@@ -138,7 +182,13 @@ local function Configure(popup,record)
         local h=type(db.height)=="number"and db.height or record.height
         popup:SetSize(math.max(400,math.min(maxW,w)),math.max(280,math.min(maxH,h)))
     end
-    if type(db.x)=="number"and type(db.y)=="number"then
+    if not active then
+        popup:ClearAllPoints();popup:SetPoint("CENTER",UIParent,"CENTER",0,60)
+        popup._editBox._readOnlyText=record.original
+        popup._textBox:SetText(record.original or "")
+        return
+    end
+    if enabled and type(db.x)=="number"and type(db.y)=="number"then
         popup:ClearAllPoints();popup:SetPoint("CENTER",UIParent,"BOTTOMLEFT",db.x,db.y)
     end
     CaptureRoster()
@@ -160,11 +210,15 @@ local function Extend(dimmer,chatNS)
         record.drag=drag
         drag:SetPoint("TOPLEFT",popup,"TOPLEFT",4,-2);drag:SetPoint("TOPRIGHT",popup,"TOPRIGHT",-4,-2);drag:SetHeight(26)
         drag:EnableMouse(true);drag:RegisterForDrag("LeftButton")
-        drag:SetScript("OnDragStart",function()record.moving=true;popup:StartMoving()end)
+        drag:SetScript("OnDragStart",function()
+            if not Enabled()or Settings().resizable==false then return end
+            record.moving=true;popup:StartMoving()
+        end)
         drag:SetScript("OnDragStop",function()Stop(popup,record)end)
         local title=drag:CreateFontString(nil,"OVERLAY","GameFontNormal")
         title:SetPoint("CENTER");title:SetText(ns.L("Copy Chat"))
         local label=popup:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+        record.label=label
         label:SetPoint("TOPLEFT",popup,"TOPLEFT",20,-40);label:SetText(ns.L("Search messages"))
         local count=popup:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
         record.count=count;count:SetPoint("TOPRIGHT",popup,"TOPRIGHT",-20,-40);count:SetWidth(94);count:SetJustifyH("RIGHT")
@@ -180,7 +234,7 @@ local function Extend(dimmer,chatNS)
         cross:SetPoint("CENTER");cross:SetText("×")
         clear:SetScript("OnClick",function()search:SetText("");search:ClearFocus()end)
         search:SetScript("OnTextChanged",function()
-            if record.syncing then return end
+            if record.syncing or not Enabled()or Settings().searchable==false then return end
             record.searchToken=(record.searchToken or 0)+1
             local token=record.searchToken
             C_Timer.After(.15,function()if token==record.searchToken then Filter(popup,record)end end)
@@ -198,7 +252,7 @@ local function Extend(dimmer,chatNS)
         grip:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
         grip:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
         grip:SetScript("OnMouseDown",function(_,button)
-            if button~="LeftButton"or Settings().resizable==false then return end
+            if button~="LeftButton"or not Enabled()or Settings().resizable==false then return end
             record.resizing=true;popup:StartSizing("BOTTOMRIGHT")
         end)
         grip:SetScript("OnMouseUp",function()Stop(popup,record)end)
@@ -229,7 +283,7 @@ events:RegisterEvent("PLAYER_LOGIN");events:RegisterEvent("ADDON_LOADED")
 local messageEvents={"CHAT_MSG_SAY","CHAT_MSG_YELL","CHAT_MSG_CHANNEL","CHAT_MSG_GUILD","CHAT_MSG_OFFICER","CHAT_MSG_PARTY","CHAT_MSG_PARTY_LEADER","CHAT_MSG_RAID","CHAT_MSG_RAID_LEADER","CHAT_MSG_RAID_WARNING","CHAT_MSG_WHISPER","CHAT_MSG_WHISPER_INFORM","CHAT_MSG_INSTANCE_CHAT","CHAT_MSG_INSTANCE_CHAT_LEADER"}
 ClassEvents=function()
     for _,event in ipairs(messageEvents)do
-        if Settings().classNames~=false then events:RegisterEvent(event)else events:UnregisterEvent(event)end
+        if Enabled()and Settings().classNames~=false then events:RegisterEvent(event)else events:UnregisterEvent(event)end
     end
 end
 events:SetScript("OnEvent",function(_,event,...)

@@ -141,15 +141,20 @@ local registered = EUI.RegisterPlugin(addonName, {
                     function(v)ns.GetEnhancements().mapCornerResize=v;ns.RefreshMapResize()end,
                     "Drag the bottom-right corner to resize. Windowed mode only. The size is saved with EUI window settings.")
                 Header("Chat Copy Window")
-                Toggle("Resizable chat copy window",function()local db=ns.GetSettings().chatCopy;return not db or db.resizable~=false end,
+                Toggle("Enable chat copy enhancements",ns.IsChatCopyEnabled,
+                    function(v)local db=ns.GetSettings();db.chatCopy=db.chatCopy or {};db.chatCopy.enabled=v;ns.RefreshChatCopy()end,
+                    "Disable to restore EUI's original copy window, text and layout.")
+                Toggle("Move and resize chat copy window",function()local db=ns.GetSettings().chatCopy;return not db or db.resizable~=false end,
                     function(v)local db=ns.GetSettings();db.chatCopy=db.chatCopy or {};db.chatCopy.resizable=v;ns.RefreshChatCopy()end,
-                    "Drag the bottom-right corner of EUI's chat copy window to resize it. The size is remembered.")
+                    "Drag the title to move or the bottom-right corner to resize. Position and size are remembered.")
+                Toggle("Search copied chat",function()local db=ns.GetSettings().chatCopy;return not db or db.searchable~=false end,
+                    function(v)local db=ns.GetSettings();db.chatCopy=db.chatCopy or {};db.chatCopy.searchable=v;ns.RefreshChatCopy()end)
                 Toggle("Channel colors in copied chat",function()local db=ns.GetSettings().chatCopy;return not db or db.channelColors~=false end,
                     function(v)local db=ns.GetSettings();db.chatCopy=db.chatCopy or {};db.chatCopy.channelColors=v;ns.RefreshChatCopy()end,
                     "Preserve each message's original channel color and inline link colors in EUI's chat copy window.")
                 Toggle("Class-colored names in copied chat",function()local db=ns.GetSettings().chatCopy;return not db or db.classNames~=false end,
                     function(v)local db=ns.GetSettings();db.chatCopy=db.chatCopy or {};db.chatCopy.classNames=v;ns.RefreshChatCopy()end,
-                    "Color player names using known sender, group and guild class information. Unknown names keep their original colors.")
+                    "Preserve EUI's player colors first, then fill missing name colors from other messages and known class information.")
                 Header("Data Bars")
                 Toggle("Bel Toolbox icons",function()return ns.GetEnhancements().belMicroMenuIcons~=false end,
                     function(v)ns.GetEnhancements().belMicroMenuIcons=v;ns.RefreshMicroMenuIcons()end,

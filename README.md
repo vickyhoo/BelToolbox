@@ -2,7 +2,7 @@
 
 贝尔工具箱 · Quality-of-life extensions for **EllesmereUI on WoW Forever**.
 
-Author: **Bel** · License: **MIT** · Current version: **0.17.0 beta**
+Author: **Bel** · License: **MIT** · Current version: **0.17.1 beta**
 
 ## Features
 
@@ -28,7 +28,7 @@ Settings are in **EUI → Bel Toolbox**, or enter `/bel` / `/beltoolbox`.
 
 将插件文件夹命名为 `BelToolbox`，放入无限服客户端的 `Interface/AddOns/`，确认目录内直接包含 `BelToolbox.toc`。设置入口为 **EUI → 贝尔工具箱**，也可输入 `/bel`。
 
-聊天复制窗口可拖动顶部移动、拖动右下角调整大小，并记忆位置和尺寸。搜索框可按角色名或正文筛选，清空后恢复全部消息。角色名称使用已知发言者、队伍和公会的职业信息染色，未知职业保留原色，正文保留频道颜色；染色选项位于 **界面增强 → 聊天复制窗口**。
+聊天复制窗口增强提供总开关，关闭后恢复 EUI 原始窗口和内容；此前三个选项均关闭的设置会自动保持关闭。移动与拉伸、搜索可分别控制。启用移动与拉伸后，可拖动顶部移动、拖动右下角调整大小，并记忆位置和尺寸。搜索框可按角色名或正文筛选，清空后恢复全部消息。角色名称优先保留 EUI 原有颜色，再通过其他消息中的同一角色颜色和已知职业信息补齐，未知职业保留原色，正文保留频道颜色；染色选项位于 **界面增强 → 聊天复制窗口**。
 
 ## Dependencies and compatibility
 
