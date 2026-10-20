@@ -1,3 +1,11 @@
+# Bel Toolbox 0.18.0-dev
+
+- Added independent boat/zeppelin countdown labels below EUI Forever Essentials world-map travel pins. EUI's map markers and transport icons must already be enabled; native icons and click behavior are preserved.
+- White labels count down to arrival; gold labels count down to departure. Grouped harbors show the nearest service, with individual routes and calibration provenance in the existing tooltip. Unsupported docks show `?`.
+- Bundled 13 DockWatch ship/zeppelin route baselines and recorded tracks under MIT, with attribution in THIRD_PARTY_NOTICES.md. No DockWatch runtime, media, route drawing, animated transports, flights, tram or peer communication is included.
+- Added conservative onboard calibration: sustained carried movement while the player stands still must match a unique recorded route/direction. Walk/taxi/fly/fall/vehicle/combat and ambiguous tracks are rejected. Calibration is stored by realm; known three-stop circuit departures propagate between legs.
+- One-second work is canceled when disabled; map label discovery/rendering runs only while the map is open. Tracks are used for calibration only, not drawn. Server restarts/layer changes may invalidate an old baseline until a new ride is observed.
+- Simulated label attachment, native click preservation, schedule derivation, realm isolation, recorded-track calibration, three-stop circuits, movement/combat guards, pooled pins, tooltip restoration and enable/disable checks passed. Existing merchant/map/settings, profession-profit and chat-copy regressions passed. Live-client visual/timing verification is pending.
 # Bel Toolbox 0.17.3 — Beta
 
 - Fixed unbalanced inline color spans in enhanced chat-copy output: replacing each native reset with another channel-color opener left spans unclosed across messages. Channel transitions now close the previous span before opening the next, with no nested or accumulating spans.

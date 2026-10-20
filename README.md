@@ -2,7 +2,7 @@
 
 贝尔工具箱 · Quality-of-life extensions for **EllesmereUI on WoW Forever**.
 
-Author: **Bel** · License: **MIT** · Current version: **0.17.3 beta**
+Author: **Bel** · License: **MIT** · Current version: **0.18.0-dev**
 
 ## Features
 
@@ -13,6 +13,7 @@ Author: **Bel** · License: **MIT** · Current version: **0.17.3 beta**
 - **Tooltips:** item/spell title icons, AFK/DND status beside player names, class/reaction/quality borders and configurable text colors.
 - **Profession helper:** estimated recipe-list profit and return percentage using installed Auctionator, TradeSkillMaster or CraftProfit price APIs; preserves skill-up arrows and supports difficulty-colored recipe names.
 - **Chat:** configurable channel shortcuts, original micro-menu artwork, and an EUI chat-copy window with dragging, resizing, name/text search, channel colors and class-colored player names.
+- **Ship/zeppelin timers:** independent countdowns below existing EUI world-map transport icons, with built-in schedules and recorded-track calibration while standing aboard. No DockWatch installation is needed.
 - **Interface utilities:** quick focus with optional control marker, map resize handle, EUI window-movement integration, animated resting indicator, native quest-object sparkles and compact raid-tool extensions.
 
 ## Installation
@@ -33,6 +34,8 @@ Settings are in **EUI → Bel Toolbox**, or enter `/bel` / `/beltoolbox`.
 将插件文件夹命名为 `BelToolbox`，放入无限服客户端的 `Interface/AddOns/`，确认目录内直接包含 `BelToolbox.toc`。设置入口为 **EUI → 贝尔工具箱**，也可输入 `/bel`。
 
 聊天复制窗口增强提供总开关，关闭后恢复 EUI 原始窗口和内容；此前三个选项均关闭的设置会自动保持关闭。移动与拉伸、搜索可分别控制。启用移动与拉伸后，可拖动顶部移动、拖动右下角调整大小，并记忆位置和尺寸。搜索框可按角色名或正文筛选，清空后恢复全部消息。角色名称优先保留 EUI 原有颜色，再通过其他消息中的同一角色颜色和已知职业信息补齐，未知职业保留原色，正文保留频道颜色；染色选项位于 **界面增强 → 聊天复制窗口**。
+
+船与飞艇倒计时默认开启，位于 **界面增强 → 船与飞艇倒计时**。需先开启 EUI 的地图标记和交通图标。图标下白色表示等待抵达，金色表示等待出发；一个图标关联多条航线时显示最近一班，鼠标提示列出各航线及校准时间。无数据时显示 `?`。航行时站定一段时间可自动校准，校准记录按服务器保存。内置时刻表在服务器重启后可能偏移，乘船校准后更新。此开发版仅处理已有船／飞艇航线，不含电车、航线绘制、动态船只或玩家同步。
 
 ## Dependencies and compatibility
 
@@ -64,6 +67,6 @@ When reporting a problem, include the addon/EUI/client versions, steps to reprod
 
 ## License and artwork
 
-Code is licensed under [MIT](LICENSE), copyright © 2026 Bel. The bundled micro-menu artwork is original Bel Toolbox artwork; the project logo was generated for this project. RS/NDui artwork, third-party addon code and user SavedVariables are not bundled. Blizzard assets referenced by in-game paths remain part of the game client.
+Code is licensed under [MIT](LICENSE), copyright © 2026 Bel. The bundled micro-menu artwork is original Bel Toolbox artwork; the project logo was generated for this project. DockWatch ship/zeppelin route data is bundled under its MIT license; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). RS/NDui artwork, DockWatch UI/media/network modules and user SavedVariables are not bundled. Blizzard assets referenced by in-game paths remain part of the game client.
 
 See [CHANGELOG.md](CHANGELOG.md) for the current release notes.

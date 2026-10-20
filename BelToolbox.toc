@@ -1,14 +1,14 @@
 ## Interface: 16001
 ## Title: Bel Toolbox
 ## Notes: Mage tools, tooltips, merchant assistant, offline inventory and mail contacts
-## Version: 0.17.3
+## Version: 0.18.0-dev
 ## IconTexture: Interface\AddOns\BelToolbox\Media\Logo.tga
 ## Author: Bel
 ## License: MIT
 ## Dependencies: EllesmereUI
 ## Group: EllesmereUI
 ## Category: |cff0cd29fEllesmere|rUI
-## OptionalDeps: EllesmereUIBags, EllesmereUIQoL, EllesmereUIUnitFrames, EllesmereUIDataBars, EllesmereUIChat, Auctionator, TradeSkillMaster, CraftProfit
+## OptionalDeps: EllesmereUIBags, EllesmereUIQoL, EllesmereUIUnitFrames, EllesmereUIDataBars, EllesmereUIChat, EllesmereUIForeverEssentials, Auctionator, TradeSkillMaster, CraftProfit
 ## SavedVariables: BelToolboxDB
 
 Locales.lua
@@ -29,6 +29,8 @@ RestIndicator.lua
 LootSparkles.lua
 QuickFocus.lua
 MapResize.lua
+Data\TransportRoutes.lua
+TransportTimers.lua
 MerchantLayout.lua
 KnownRecipes.lua
 ProfessionProfit.lua

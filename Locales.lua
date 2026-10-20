@@ -3,6 +3,13 @@
 local _, ns = ...
 local translations = {
     enUS = {
+        ["Ship and zeppelin timers"] = "Ship and zeppelin timers",
+        ["Show the next arrival or departure below EUI map transport icons. Enable EUI Map Markers and transports first. Stand still aboard a moving boat or zeppelin to calibrate. No DockWatch dependency."] = "Show the next arrival or departure below EUI map transport icons. Enable EUI Map Markers and transports first. Stand still aboard a moving boat or zeppelin to calibrate. No DockWatch dependency.",
+        ["Arrives in %s"] = "Arrives in %s",
+        ["Departs in %s"] = "Departs in %s",
+        ["Last calibrated %d min ago"] = "Last calibrated %d min ago",
+        ["Built-in timetable; ride to calibrate."] = "Built-in timetable; ride to calibrate.",
+        ["No timetable for this dock."] = "No timetable for this dock.",
         ["Chat copy diagnostics enabled. Open the copy window with enhancements on and off, then run /belchatdebug."] = "Chat copy diagnostics enabled. Open the copy window with enhancements on and off, then run /belchatdebug.",
         ["Chat copy diagnostics disabled."] = "Chat copy diagnostics disabled.",
         ["Use /belchatdebug on before opening the copy window."] = "Use /belchatdebug on before opening the copy window.",
@@ -309,6 +316,13 @@ local translations = {
         ["Show DND text in the client language."] = "Show DND text in the client language.",
     },
     zhCN = {
+        ["Ship and zeppelin timers"] = "船与飞艇倒计时",
+        ["Show the next arrival or departure below EUI map transport icons. Enable EUI Map Markers and transports first. Stand still aboard a moving boat or zeppelin to calibrate. No DockWatch dependency."] = "在 EUI 地图交通图标下显示下一次抵达或出发时间。需先开启 EUI 地图标记及交通图标。船或飞艇航行时站定可自动校准，不依赖 DockWatch。",
+        ["Arrives in %s"] = "%s 后抵达",
+        ["Departs in %s"] = "%s 后出发",
+        ["Last calibrated %d min ago"] = "%d 分钟前乘船校准",
+        ["Built-in timetable; ride to calibrate."] = "内置时刻表，乘船后自动校准。",
+        ["No timetable for this dock."] = "此码头暂无时刻表。",
         ["Chat copy diagnostics enabled. Open the copy window with enhancements on and off, then run /belchatdebug."] = "聊天复制诊断已开启。分别在增强开启和关闭时打开复制窗口，再输入 /belchatdebug 输出记录。",
         ["Chat copy diagnostics disabled."] = "聊天复制诊断已关闭。",
         ["Use /belchatdebug on before opening the copy window."] = "请先输入 /belchatdebug on，再打开聊天复制窗口。",
