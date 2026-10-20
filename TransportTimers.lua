@@ -333,6 +333,16 @@ local function Sample()
     end
 end
 local hookedMap,hookedTooltip
+local function EnableMapMarkers()
+    if not Enabled()then return end
+    local travel=EllesmereUI and EllesmereUI._MapTravel
+    if not travel or type(travel.Cfg)~="function"or type(travel.Apply)~="function"then return end
+    local cfg=travel.Cfg()
+    if cfg.enabled~=true or cfg.transports~=true then
+        cfg.enabled=true;cfg.transports=true
+        travel.Apply()
+    end
+end
 local function Install()
     if WorldMapFrame and hookedMap~=WorldMapFrame then
         hookedMap=WorldMapFrame
@@ -352,6 +362,7 @@ function ns.RefreshTransportTimers()
     previous=nil;tracks={}
     Install()
     if Enabled()then
+        EnableMapMarkers()
         ticker=C_Timer.NewTicker(1,function()Sample();Display()end)
         Display()
     else
@@ -364,5 +375,5 @@ local events=CreateFrame("Frame")
 events:RegisterEvent("PLAYER_LOGIN");events:RegisterEvent("ADDON_LOADED")
 events:SetScript("OnEvent",function(_,event,addon)
     if event=="PLAYER_LOGIN"then ns.RefreshTransportTimers()
-    elseif addon=="Blizzard_WorldMap"or addon=="EllesmereUIForeverEssentials"then Install();Display()end
+    elseif addon=="Blizzard_WorldMap"or addon=="EllesmereUIForeverEssentials"then EnableMapMarkers();Install();Display()end
 end)

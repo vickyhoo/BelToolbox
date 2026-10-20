@@ -142,7 +142,7 @@ local registered = EUI.RegisterPlugin(addonName, {
                     "Drag the bottom-right corner to resize. Windowed mode only. The size is saved with EUI window settings.")
                 Toggle("Ship and zeppelin timers",function()return ns.GetTransportSettings().enabled~=false end,
                     function(v)ns.GetTransportSettings().enabled=v;ns.RefreshTransportTimers()end,
-                    "Show the next arrival or departure below EUI map transport icons. Enable EUI Map Markers and transports first. Stand still aboard a moving boat or zeppelin to calibrate. No DockWatch dependency.")
+                    "Show the next arrival or departure below EUI map transport icons. Automatically enables EUI Map Markers and transports. Stand still aboard a moving boat or zeppelin to calibrate.")
                 Header("Chat Copy Window")
                 Toggle("Enable chat copy enhancements",ns.IsChatCopyEnabled,
                     function(v)local db=ns.GetSettings();db.chatCopy=db.chatCopy or {};db.chatCopy.enabled=v;ns.RefreshChatCopy()end,

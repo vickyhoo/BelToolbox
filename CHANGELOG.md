@@ -1,3 +1,9 @@
+# Bel Toolbox 0.18.2-dev
+
+- Enabling transport timers now enables EUI Map Markers and Transports through the existing MapTravel configuration and apply interface. This also runs at login for enabled timers and after late map/module loading.
+- Other map categories are preserved; unchanged settings do not trigger a redundant apply. Disabling timers does not disable EUI's independently useful markers.
+- Simplified the transport option tooltip: describes automatic marker activation and onboard calibration without dependency details.
+- Simulated login, explicit enable, late EUI loading, disabled-state behavior and unrelated category preservation passed, alongside existing transport/tooltip/calibration checks. All addon Lua files compile.
 # Bel Toolbox 0.18.1-dev
 
 - When EUI Merchant Bulk Buy is enabled, the merchant assistant now uses EUI's existing quantity window instead of opening a second toolbox window. Ordinary gold purchases use a one-item step and accurate prorated total cost/affordability, including vendor repaints and repeated openings.
