@@ -5,7 +5,7 @@ import { releaseInfo, packagePaths, selectGameVersion, metadata, publish } from 
 const toc = '## Interface: 16001\n## Version: 1.2.3\nMain.lua\nData/Routes.lua\n';
 const notes = '# Bel Toolbox 1.2.3\n\n- Current fix.\n\n# Bel Toolbox 1.2.2\n\n- Old fix.\n';
 const info = releaseInfo(toc, notes);
-const config = { curseforgeProjectId: 1754497, gameVersionName: '1.60.1', requiredDependency: { slug: 'ellesmereui', projectID: '1477613', type: 'requiredDependency' } };
+const config = { curseforgeProjectId: 1754497, gameVersionName: '1.60.1', requiredDependency: { slug: 'ellesmereui', projectID: 1477613, type: 'requiredDependency' } };
 
 test('only stable matching versions release, with only this version changelog', () => {
   assert.equal(info.tag, 'v1.2.3');
@@ -33,6 +33,7 @@ test('CF receives exact client, EUI required dependency and identical Markdown n
   assert.equal(data.changelogType, 'markdown');
   assert.deepEqual(data.gameVersions, [42]);
   assert.equal(data.relations.projects[0].type, 'requiredDependency');
+  assert.ok(Number.isInteger(data.relations.projects[0].projectID), 'CF rejects string dependency project IDs');
 });
 
 function harness({ cfFailure = false, published = false, receipt = false, uncertain = false, conflict = false } = {}) {
