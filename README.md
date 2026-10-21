@@ -2,7 +2,7 @@
 
 贝尔工具箱 · Quality-of-life extensions for **EllesmereUI on WoW Forever**.
 
-Author: **Bel** · License: **MIT** · Current version: **0.18.7**
+Author: **Bel** · License: **MIT** · Current version: **0.18.8-dev**
 
 ## Features
 

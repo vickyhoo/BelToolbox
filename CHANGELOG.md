@@ -1,3 +1,9 @@
+# Bel Toolbox 0.18.8-dev
+
+- Fixed native quest-object sparkles not appearing with normal or raid outlines enabled. Manage all five relevant graphics CVars, reapply after graphics changes, and defer changes until combat ends.
+- Save and restore each supported setting, migrate the existing loot-effect baseline, and preserve external changes when disabling. No herb/ore soft-target effects are added.
+- Updated the option description to explain the outline tradeoff and full game restart needed to clear cached sparkles. Client verification remains necessary.
+
 # Bel Toolbox 0.18.7
 
 Quality-of-life extensions for EllesmereUI on WoW Forever.

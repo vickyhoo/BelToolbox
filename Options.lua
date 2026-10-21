@@ -173,7 +173,7 @@ local registered = EUI.RegisterPlugin(addonName, {
                 Header("Item Highlights")
                 Toggle("Quest item sparkles",function()return ns.GetEnhancements().lootSparkles~=false end,
                     function(v)ns.GetEnhancements().lootSparkles=v;ns.RefreshLootSparkles()end,
-                    "Enable native loot sparkles for quest objects without changing character outlines. Disabling restores the previous setting. Changes apply after combat.")
+                    "Enable native quest-object sparkles by disabling normal and raid outlines. Disabling restores saved settings; removing visible sparkles may require a full game restart. Changes apply after combat.")
                 return math.abs(y)+12
             end,
         },
