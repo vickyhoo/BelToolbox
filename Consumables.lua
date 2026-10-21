@@ -10,6 +10,9 @@ local categories={
     {key="healing",label="Healing potion",icon=134829},{key="mana",label="Mana potion",icon=134852},
     {key="stone",label="Healthstone",icon=135230},{key="gem",label="Mana gem",icon=134134},
     {key="bandage",label="Bandage",icon=133682},
+    {key="flask",label="Flasks",icon=134828},
+    {key="elixir",label="Elixirs",icon=134842},
+    {key="protection",label="Resistance potions",icon=134804},
 }
 ns.ConsumableCategories=categories
 local C={};ns.Consumables=C
@@ -19,6 +22,11 @@ local function API(name,...)local fn=C_Item and C_Item[name]or _G[name];if fn th
 local specials={}
 for _,id in ipairs({5512,5511,5509,5510,9421,19004,19005,19006,19007,19008,19009,19010,19011,19012,19013})do specials[id]="stone"end
 for _,id in ipairs({5514,5513,8007,8008})do specials[id]="gem"end
+-- Known classic items also cover older client records with a generic subclass.
+for _,id in ipairs({13510,13511,13512,13513,13506})do specials[id]="flask"end
+for _,id in ipairs({13452,13454,9179,20007,13445,9206,9187,8951,9155,6373})do specials[id]="elixir"end
+local resistanceItems={6049,13457,6050,13456,6052,13458,6048,13459,13461,6051,9036}
+for _,id in ipairs(resistanceItems)do specials[id]="protection"end
 -- Quest-reward cooked food can use a different Food spell / generic subclass.
 specials[733]="food" -- Westfall Stew
 local conjured={}
@@ -36,6 +44,16 @@ function C.Classify(id)
     end
     local _,_,_,_,_,class,subclass=API("GetItemInfoInstant",id)
     if Safe(class)and Safe(subclass)and class==0 then
+        if subclass==3 then return "flask"end
+        if subclass==2 then return "elixir"end
+        if subclass==1 and spell then
+            -- Names from the client's own use spells keep this locale-neutral
+            -- and recognize other ranks sharing a known resistance effect.
+            for _,reference in ipairs(resistanceItems)do
+                local name=API("GetItemSpell",reference)
+                if name and Safe(name)and spell==name then return "protection"end
+            end
+        end
         if subclass==7 then return "bandage"end
         -- Drinks are matched by their localized use spell above. Cooked/buff
         -- foods can have different use spells, but still belong in the picker.
@@ -65,7 +83,7 @@ end
 function C.Layout(visible)
     local db=C.Settings();local size=T.Size("consumables")
     local gap=math.max(0,math.min(16,tonumber(db.spacing)or 2))
-    local perLine=math.max(1,math.min(#categories,math.floor(tonumber(db.perLine)or #categories)))
+    local perLine=math.max(1,math.min(#categories,math.floor(tonumber(db.perLine)or 7)))
     local rows,columns=1,1
     for index,button in ipairs(visible)do
         local along=(index-1)%perLine;local across=math.floor((index-1)/perLine)
@@ -108,7 +126,8 @@ function C.Scan()
                         local wellFed=C_Spell.GetSpellName and C_Spell.GetSpellName(19705)
                         local buff=type(description)=="string"and wellFed and description:find(wellFed,1,true)
                         lists[cat][#lists[cat]+1]={id=id,name=name,icon=icon,level=minLevel or 0,rank=itemLevel or 0,
-                            temporary=conjured[id]or false,manual=(cat=="food"or cat=="drink")and (buff or not(conjured[id]or plain[id]))or false}
+                            temporary=conjured[id]or false,manual=cat=="flask"or cat=="elixir"or cat=="protection"
+                                or (cat=="food"or cat=="drink")and (buff or not(conjured[id]or plain[id]))or false}
                     elseif not name and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(id)end
                 elseif C_Item and C_Item.RequestLoadItemDataByID and not API("GetItemInfo",id)then C_Item.RequestLoadItemDataByID(id)end
             end
@@ -159,7 +178,7 @@ local function Tooltip(button)
     if button.flyout then GameTooltip:AddLine(L(button.manual and "Manual selection"or "Automatic selection"),.4,.8,1,true)end
     local available=#(lists[button.category.key]or {})
     if not button.itemID and available>0 then
-        GameTooltip:AddLine(L("%d choices available. Hover to select; buff or unknown food is not chosen automatically.",available),1,.82,.3,true)
+        GameTooltip:AddLine(L("%d choices available. Hover to select; buff consumables require a manual choice.",available),1,.82,.3,true)
     end
     GameTooltip:AddLine(L("Bag changes update the choices after combat; existing choices remain usable."),.7,.7,.7,true)
     if button.flyout then GameTooltip:AddLine(L("Use the Auto button in the flyout to restore automatic selection."),.4,.8,1,true)end

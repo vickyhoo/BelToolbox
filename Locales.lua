@@ -3,6 +3,11 @@
 local _, ns = ...
 local translations = {
     enUS = {
+        ["%d choices available. Hover to select; buff consumables require a manual choice."] = "%d choices available. Hover to select; buff consumables require a manual choice.",
+        ["Elixirs"] = "Elixirs",
+        ["Flasks"] = "Flasks",
+        ["Resistance potions"] = "Resistance potions",
+
         ["Bag changes update the choices after combat; existing choices remain usable."] = "Bag changes update the choices after combat; existing choices remain usable.",
         ["%d choices available. Hover to select; buff or unknown food is not chosen automatically."] = "%d choices available. Hover to select; buff or unknown food is not chosen automatically.",
         ["Auto"] = "Auto",
@@ -360,6 +365,11 @@ local translations = {
         ["Show DND text in the client language."] = "Show DND text in the client language.",
     },
     zhCN = {
+        ["%d choices available. Hover to select; buff consumables require a manual choice."] = "有 %d 种物品可选。移入展开选择；增益消耗品需要手动指定。",
+        ["Elixirs"] = "药剂",
+        ["Flasks"] = "合剂",
+        ["Resistance potions"] = "抗性药水",
+
         ["Bag changes update the choices after combat; existing choices remain usable."] = "背包变化在脱战后更新到选项；已有选项在战斗中仍可使用。",
         ["%d choices available. Hover to select; buff or unknown food is not chosen automatically."] = "有 %d 种物品可选，移入展开选择；增益或未知效果的食物不会自动选用。",
         ["Auto"] = "自动",

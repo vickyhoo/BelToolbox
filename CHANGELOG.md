@@ -1,3 +1,9 @@
+# Bel Toolbox 0.19.3-dev
+
+- Added Flask, Elixir and Resistance Potion categories to the consumables bar, including common classic elemental protection, greater protection and magic resistance potions.
+- New categories use existing hover flyouts, right-click default selection, EUI drag ordering and /kb bindings. Buff consumables require a manual default rather than automatically choosing a class effect or resistance type.
+- Preserve existing category order and the seven-button default row width; new categories append automatically.
+
 # Bel Toolbox 0.19.2-dev
 
 - Removed vertical consumable layouts; configure buttons per row with automatic wrapping.

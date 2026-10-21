@@ -236,7 +236,7 @@ local registered = EUI.RegisterPlugin(addonName, {
                     function(v)ns.Consumables.Settings().hideEmpty=v;ns.RefreshConsumables()end,
                     L("Hide categories with no eligible items. Empty slots remain visible in Quick Keybind Mode (/kb)."));y=y-h
                 _,h=W:Slider(parent,L("Buttons per row"),y,1,#ns.ConsumableCategories,1,
-                    function()return ns.Consumables.Settings().perLine or #ns.ConsumableCategories end,
+                    function()return ns.Consumables.Settings().perLine or 7 end,
                     function(v)ns.Consumables.Settings().perLine=v;ns.RefreshConsumables()end,
                     L("The bar wraps into a new row after this many buttons."));y=y-h
                 _,h=W:Slider(parent,L("Button size"),y,18,64,1,
