@@ -90,6 +90,7 @@ export async function publish(bundle, env = process.env, request = jsonRequest) 
   // Resolve the exact supported client before making any releases or uploads.
   const cfHeaders = { 'X-Api-Token': env.CF_API_TOKEN };
   const versions = await request('https://wow.curseforge.com/api/game/wow/versions', { headers: cfHeaders });
+  requireThat(Array.isArray(versions), 'CurseForge did not return game versions. Check CF_API_TOKEN and API availability.');
   const gameVersionId = selectGameVersion(versions, config.gameVersionName, config.gameVersionTypeId);
   let ref = await gh(`/git/ref/tags/${info.tag}`, 'GET', undefined, true);
   if (ref) {
