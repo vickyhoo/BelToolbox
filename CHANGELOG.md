@@ -1,3 +1,14 @@
+# Bel Toolbox 0.19.3
+
+- Added an optional consumables bar for food, drink, healing potions, mana potions, healthstones, mana gems, bandages, flasks, elixirs and resistance potions. Enable it under EUI > Bel Toolbox > Consumables.
+- Hover a category to expand its items. Left-click an expanded item to use it without changing the default; right-click to make it the default. Click Auto to clear the manual choice. Defaults are remembered per character.
+- Flyouts automatically choose their direction using available screen space. Existing choices can be used or selected through secure buttons during combat; inventory-driven replacements wait until combat ends.
+- Added EUI Quick Keybind Mode (/kb) support for category buttons, including keyboard, mouse side buttons and wheel bindings. Save or cancel using EUI's original binding window.
+- Added EUI Unlock Mode positioning and native drag-reorder category controls, optional empty-category hiding, buttons per row with wrapping, 18–64 button sizes and adjustable spacing. Zero spacing now removes the icon inset as well.
+- Improved cooked-food recognition, including Westfall Stew (733). Buff/unknown food, flasks, elixirs and resistance potions require manual selection to avoid choosing an unwanted effect.
+- Preserved the seven-button default row width and existing saved category order. Empty categories temporarily appear in /kb for binding.
+- Avoided repeated item-data requests for already-cached items above the player's level. Counts and cooldowns update through events rather than continuous polling.
+
 # Bel Toolbox 0.19.3-dev
 
 - Added Flask, Elixir and Resistance Potion categories to the consumables bar, including common classic elemental protection, greater protection and magic resistance potions.
