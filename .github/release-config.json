@@ -5,7 +5,7 @@
   "gameVersionTypeId": 88568,
   "requiredDependency": {
     "slug": "ellesmereui",
-    "projectID": "1477613",
+    "projectID": 1477613,
     "type": "requiredDependency"
   }
 }

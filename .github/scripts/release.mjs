@@ -39,6 +39,7 @@ export function selectGameVersion(versions, name, typeId) {
 }
 
 export function metadata(config, info, gameVersionId) {
+  requireThat(Number.isInteger(config.requiredDependency.projectID), 'CF dependency projectID must be an integer.');
   return {
     displayName: `Bel Toolbox ${info.version}`,
     changelog: info.notes, changelogType: 'markdown', releaseType: 'release',
@@ -76,11 +77,11 @@ async function jsonRequest(url, { allow404 = false, ...options } = {}) {
     let detail = '';
     try {
       const body = await response.json();
-      detail = String(body.errorMessage || body.message || '').slice(0, 1000);
+      detail = String(body.errorMessage || body.message || '');
       for (const secret of [process.env.CF_API_TOKEN, process.env.GH_TOKEN]) {
         if (secret) detail = detail.replaceAll(secret, '[REDACTED]');
       }
-      detail = detail.replace(/[\r\n]/g, ' ');
+      detail = detail.replace(/[\r\n]/g, ' ').slice(0, 1000);
     } catch { /* HTML and other non-JSON errors stay private. */ }
     throw new Error(`HTTP ${response.status} from ${new URL(url).hostname}${new URL(url).pathname}${detail ? `: ${detail}` : ''}`);
   }
