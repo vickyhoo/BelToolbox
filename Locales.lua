@@ -3,6 +3,17 @@
 local _, ns = ...
 local translations = {
     enUS = {
+        ["Bag changes update the choices after combat; existing choices remain usable."] = "Bag changes update the choices after combat; existing choices remain usable.",
+        ["%d choices available. Hover to select; buff or unknown food is not chosen automatically."] = "%d choices available. Hover to select; buff or unknown food is not chosen automatically.",
+        ["Auto"] = "Auto",
+        ["Buttons per row"] = "Buttons per row",
+        ["Categories and order"] = "Categories and order",
+        ["Click to restore automatic selection for this category."] = "Click to restore automatic selection for this category.",
+        ["Drag to reorder categories"] = "Drag to reorder categories",
+        ["Hover to expand. Left-click an item to use it; right-click to set the default."] = "Hover to expand. Left-click an item to use it; right-click to set the default.",
+        ["The bar wraps into a new row after this many buttons."] = "The bar wraps into a new row after this many buttons.",
+        ["Use the Auto button in the flyout to restore automatic selection."] = "Use the Auto button in the flyout to restore automatic selection.",
+
         ["%d choices available. Right-click to select; buff or unknown food is not chosen automatically."] = "%d choices available. Right-click to select; buff or unknown food is not chosen automatically.",
         ["Button spacing"] = "Button spacing",
         ["Buttons per row / column"] = "Buttons per row / column",
@@ -349,6 +360,17 @@ local translations = {
         ["Show DND text in the client language."] = "Show DND text in the client language.",
     },
     zhCN = {
+        ["Bag changes update the choices after combat; existing choices remain usable."] = "背包变化在脱战后更新到选项；已有选项在战斗中仍可使用。",
+        ["%d choices available. Hover to select; buff or unknown food is not chosen automatically."] = "有 %d 种物品可选，移入展开选择；增益或未知效果的食物不会自动选用。",
+        ["Auto"] = "自动",
+        ["Buttons per row"] = "每行按钮个数",
+        ["Categories and order"] = "类别与顺序",
+        ["Click to restore automatic selection for this category."] = "点击后清除手动指定，恢复此类别的自动选择。",
+        ["Drag to reorder categories"] = "拖拽调整类别顺序",
+        ["Hover to expand. Left-click an item to use it; right-click to set the default."] = "鼠标移入展开。左键：使用该物品；右键：设为当前选项。",
+        ["The bar wraps into a new row after this many buttons."] = "达到设定的按钮个数后自动换行。",
+        ["Use the Auto button in the flyout to restore automatic selection."] = "点击展开区的“自动”按钮，恢复自动选择。",
+
         ["%d choices available. Right-click to select; buff or unknown food is not chosen automatically."] = "有 %d 种物品可选。右键选择；增益或未知效果的食物不会自动选用。",
         ["Button spacing"] = "按钮间距",
         ["Buttons per row / column"] = "每行／列按钮个数",

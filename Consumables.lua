@@ -2,7 +2,8 @@
 -- item/spell APIs are used; no third-party implementation or artwork is bundled.
 local _,ns=...
 local L,T=ns.L,ns.Toolbars
-local root,popup,dirty,queued
+local F=ns.ConsumableFlyouts
+local root,dirty,queued
 local buttons,lists={},{}
 local categories={
     {key="food",label="Food",icon=133906},{key="drink",label="Drink",icon=132794},
@@ -68,8 +69,8 @@ function C.Layout(visible)
     local rows,columns=1,1
     for index,button in ipairs(visible)do
         local along=(index-1)%perLine;local across=math.floor((index-1)/perLine)
-        local column=db.vertical and across or along
-        local row=db.vertical and along or across
+        local column=along
+        local row=across
         button:ClearAllPoints();button:SetSize(size,size)
         button:SetPoint("TOPLEFT",root,"TOPLEFT",column*(size+gap),-row*(size+gap));button:Show()
         columns=math.max(columns,column+1);rows=math.max(rows,row+1)
@@ -138,7 +139,7 @@ local function UpdateVisuals()
             end
         end
     end
-    for _,button in pairs(buttons)do
+    F.VisitItems(function(button)
         local count=Count(button.itemID)
         button.count:SetText(count>0 and tostring(count)or "")
         button.icon:SetDesaturated(count==0)
@@ -149,78 +150,34 @@ local function UpdateVisuals()
                 button.cooldown:SetCooldown(start,duration)
             else button.cooldown:Clear()end
         else button.cooldown:Clear()end
-    end
-end
-local function Pick(button)
-    if InCombatLockdown()or ns.IsToolbarBindingMode()then return end
-    C.Scan()
-    if not popup then
-        popup=CreateFrame("Frame",nil,UIParent,"BackdropTemplate");popup:SetFrameStrata("TOOLTIP")
-        popup:SetSize(285,320);popup:SetClampedToScreen(true);popup:EnableMouse(true)
-        popup:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1})
-        popup:SetBackdropColor(.06,.07,.09,.98);popup:SetBackdropBorderColor(.5,.5,.5,1)
-        popup.rows={}
-        for i=1,11 do
-            local row=CreateFrame("Button",nil,popup);row:SetSize(269,24);row:SetPoint("TOPLEFT",8,-8-(i-1)*26)
-            row.icon=row:CreateTexture(nil,"ARTWORK");row.icon:SetSize(20,20);row.icon:SetPoint("LEFT",1,0)
-            row.text=row:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
-            row.text:SetPoint("LEFT",25,0);row.text:SetPoint("RIGHT",-2,0);row.text:SetJustifyH("LEFT")
-            row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
-            row:SetScript("OnClick",function(self)
-                if InCombatLockdown()then return end
-                Choices()[popup.category]=self.itemID;popup:Hide();ns.RefreshConsumables()
-            end)
-            popup.rows[i]=row
-        end
-        local function Nav(text,x,step)
-            local b=CreateFrame("Button",nil,popup,"UIPanelButtonTemplate");b:SetSize(75,22);b:SetPoint("BOTTOMLEFT",x,5);b:SetText(text)
-            b:SetScript("OnClick",function()popup.page=math.max(1,popup.page+step);popup:Paint()end)
-        end
-        Nav("<",8,-1);Nav(">",92,1)
-        local close=CreateFrame("Button",nil,popup,"UIPanelButtonTemplate");close:SetSize(75,22);close:SetPoint("BOTTOMRIGHT",-8,5);close:SetText(CLOSE)
-        close:SetScript("OnClick",function()popup:Hide()end)
-        function popup:Paint()
-            local list=lists[self.category]or {};self.page=math.min(self.page,math.max(1,math.ceil(#list/10)))
-            self.rows[1].itemID=nil;self.rows[1].icon:SetTexture(nil);self.rows[1].text:SetText(L("Automatic selection"));self.rows[1]:Show()
-            for i=2,11 do
-                local entry=list[(self.page-1)*10+i-1];local row=self.rows[i]
-                row:SetShown(entry~=nil)
-                if entry then
-                    row.itemID=entry.id;row.icon:SetTexture(entry.icon)
-                    row.text:SetText((Choices()[self.category]==entry.id and "* "or "")..entry.name.."  x"..Count(entry.id))
-                end
-            end
-        end
-    end
-    popup.category=button.category.key;popup.page=1;popup:ClearAllPoints();popup:SetPoint("BOTTOMLEFT",button,"TOPLEFT",0,5);popup:Paint();popup:Show()
+    end)
 end
 local function Tooltip(button)
     GameTooltip:SetOwner(button,"ANCHOR_TOP")
     if button.itemID then GameTooltip:SetItemByID(button.itemID)else GameTooltip:SetText(L(button.category.label))end
-    GameTooltip:AddLine(L("Left-click to use. Right-click to choose an item."),1,.82,.3,true)
-    GameTooltip:AddLine(L(button.manual and "Manual selection"or "Automatic selection"),.4,.8,1,true)
+    GameTooltip:AddLine(L("Hover to expand. Left-click an item to use it; right-click to set the default."),1,.82,.3,true)
+    if button.flyout then GameTooltip:AddLine(L(button.manual and "Manual selection"or "Automatic selection"),.4,.8,1,true)end
     local available=#(lists[button.category.key]or {})
     if not button.itemID and available>0 then
-        GameTooltip:AddLine(L("%d choices available. Right-click to select; buff or unknown food is not chosen automatically.",available),1,.82,.3,true)
+        GameTooltip:AddLine(L("%d choices available. Hover to select; buff or unknown food is not chosen automatically.",available),1,.82,.3,true)
     end
-    GameTooltip:AddLine(L("In combat, item changes wait until combat ends."),.7,.7,.7,true)
+    GameTooltip:AddLine(L("Bag changes update the choices after combat; existing choices remain usable."),.7,.7,.7,true)
+    if button.flyout then GameTooltip:AddLine(L("Use the Auto button in the flyout to restore automatic selection."),.4,.8,1,true)end
     GameTooltip:Show()
 end
 local function Create()
     root=CreateFrame("Frame","BelToolboxConsumables",UIParent);root:SetFrameStrata("MEDIUM")
+    root._belAfterPosition=F.PositionAll
     T.Mover(root,"consumables","Consumables",955,DefaultPosition)
     for _,category in ipairs(categories)do
-        local button=T.Button(root,"BelToolboxConsume"..category.key,true,nil,category.icon)
+        local button=F.Create(root,"BelToolboxConsume"..category.key,category.icon)
         button.category=category;buttons[category.key]=button
         button:RegisterForClicks("AnyUp","AnyDown")
         button:SetAttribute("type1","item");button:SetAttribute("type2",nil)
-        button.count=button:CreateFontString(nil,"OVERLAY","NumberFontNormalSmall");button.count:SetPoint("BOTTOMRIGHT",-1,1)
         button.hotkey=button:CreateFontString(nil,"OVERLAY","NumberFontNormalSmall");button.hotkey:SetPoint("TOPRIGHT",-1,-1)
         button.arrow=button:CreateTexture(nil,"OVERLAY");button.arrow:SetTexture("Interface\\Buttons\\Arrow-Up-Up")
         button.arrow:SetSize(12,12);button.arrow:SetPoint("BOTTOMLEFT",0,0);button.arrow:SetVertexColor(1,.82,0)
-        button.cooldown=CreateFrame("Cooldown",nil,button,"CooldownFrameTemplate");button.cooldown:SetAllPoints(button)
-        button:SetScript("OnEnter",Tooltip);button:SetScript("OnLeave",function()GameTooltip:Hide()end)
-        button:SetScript("PostClick",function(self,key,down)if key=="RightButton"and not down then Pick(self)end end)
+        button:HookScript("OnEnter",Tooltip);button:HookScript("OnLeave",function()GameTooltip:Hide()end)
         ns.RegisterToolbarBinding(button,L(category.label))
     end
 end
@@ -233,7 +190,7 @@ function ns.RefreshConsumables()
             for _,button in pairs(buttons)do button:SetAttribute("item1",nil);button.itemID=nil end
             root:Hide()
         end
-        if popup then popup:Hide()end
+        F.CloseAll()
         return
     end
     if not root then Create()end
@@ -246,7 +203,18 @@ function ns.RefreshConsumables()
             and (not db.hideEmpty or available>0 or ns.IsToolbarBindingMode())
         button:SetAttribute("item1",enabled and chosen and "item:"..chosen.id or nil)
         button.icon:SetTexture(chosen and chosen.icon or available>0 and lists[category.key][1].icon or category.icon)
-        button.arrow:SetShown(available>1 or available>0 and not chosen)
+        button.arrow:SetShown(available>0)
+        local automatic=C.Resolve(lists[category.key],nil)
+        F.SetItems(button,lists[category.key],automatic,Tooltip,function(id)
+            Choices()[category.key]=id
+            if InCombatLockdown()then
+                button.itemID=id or button.autoItemID;button.manual=id~=nil
+                local icon=button.autoIcon or category.icon
+                for _,entry in ipairs(lists[category.key])do if entry.id==button.itemID then icon=entry.icon;break end end
+                button.icon:SetTexture(icon)
+                UpdateVisuals()
+            else ns.RefreshConsumables()end
+        end,enabled and not ns.IsToolbarBindingMode())
         if enabled then visible[#visible+1]=button else button:Hide()end
     end
     C.Layout(visible);T.Position(root,"consumables",DefaultPosition)
@@ -257,7 +225,7 @@ local events=CreateFrame("Frame")
 for _,event in ipairs({"PLAYER_LOGIN","PLAYER_ENTERING_WORLD","PLAYER_REGEN_ENABLED","PLAYER_REGEN_DISABLED","BAG_UPDATE_DELAYED","SPELL_UPDATE_COOLDOWN","BAG_UPDATE_COOLDOWN","ITEM_DATA_LOAD_RESULT","PLAYER_LEVEL_UP"})do events:RegisterEvent(event)end
 events:SetScript("OnEvent",function(_,event,_,success)
     if event=="SPELL_UPDATE_COOLDOWN"or event=="BAG_UPDATE_COOLDOWN"then if root and root:IsShown()then UpdateVisuals()end;return end
-    if event=="PLAYER_REGEN_DISABLED"then if popup then popup:Hide()end;return end
+    if event=="PLAYER_REGEN_DISABLED"then return end
     if event=="ITEM_DATA_LOAD_RESULT"and not success then return end
     if C.Settings().enabled~=true and not root then return end
     if queued then return end

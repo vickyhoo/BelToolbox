@@ -1,3 +1,11 @@
+# Bel Toolbox 0.19.2-dev
+
+- Removed vertical consumable layouts; configure buttons per row with automatic wrapping.
+- Reused EUI's drag-reorder checkbox dropdown for category visibility and order.
+- Expanded button sizes to 18–64 and removed the 2px icon inset so zero spacing produces touching icon edges.
+- Replaced the right-click picker with secure hover flyouts. Left-click a flyout item to use it without changing the default; right-click to make it the default. The Auto control clears manual selection.
+- Flyouts automatically choose a direction based on available screen space and re-evaluate after movement. Counts and cooldowns include expanded item buttons; binding mode suppresses expansion.
+
 # Bel Toolbox 0.19.1-dev
 
 - Match EUI's Quick Keybind Mode (/kb) naming.
