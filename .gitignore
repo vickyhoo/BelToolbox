@@ -12,3 +12,4 @@ WTF/
 *.zip
 work/
 outputs/
+.release/

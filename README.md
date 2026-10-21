@@ -2,7 +2,7 @@
 
 贝尔工具箱 · Quality-of-life extensions for **EllesmereUI on WoW Forever**.
 
-Author: **Bel** · License: **MIT** · Current version: **0.18.7**
+Author: **Bel** · License: **MIT** · Current version: **0.18.9**
 
 ## Features
 
@@ -21,6 +21,8 @@ Author: **Bel** · License: **MIT** · Current version: **0.18.7**
 `main` is reserved for formal releases. Ongoing development, fixes and beta iterations are maintained on `dev`.
 
 分支约定：`dev` 用于功能开发、修复和测试版本；`main` 仅用于正式发布。
+
+正式版本合并到 `main` 后，GitHub Actions 自动发布相同 ZIP 和本次更新日志到 GitHub Release 与 CurseForge。[发布流程与失败重试说明](docs/RELEASING.md)。
 
 1. Install EllesmereUI for your WoW Forever client.
 2. Download a release ZIP and extract its `BelToolbox` folder into `Interface/AddOns/`.

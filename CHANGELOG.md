@@ -1,3 +1,21 @@
+# Bel Toolbox 0.18.9
+
+- Fixed quest-object sparkles on clients with normal or raid outlines enabled. Save and restore all relevant settings, reapply after graphics changes, and defer changes during combat.
+- Added a persistent notice beside the setting: after disabling, fully exit and relaunch the game to clear existing sparkles; /reload is not enough. Enabling and the full-restart requirement have been confirmed in game.
+- Added automatic releases when a stable version is merged into main. GitHub and CurseForge receive the same addon ZIP and current-version Markdown changelog; EUI is declared a required CF dependency.
+- Added release validation, ZIP checksums and upload receipts to support recovery without duplicate CF uploads. Herb/ore sparkle effects are not included.
+
+# Bel Toolbox 0.18.9-dev
+
+- Added a persistent notice below Quest Item Sparkles: after disabling, fully exit and relaunch the game to clear existing sparkles; /reload is not enough. The hover tooltip now gives the same explicit guidance.
+- In-game feedback confirms enabling the corrected sparkle feature works and that clearing it requires a full restart.
+
+# Bel Toolbox 0.18.8-dev
+
+- Fixed native quest-object sparkles not appearing with normal or raid outlines enabled. Manage all five relevant graphics CVars, reapply after graphics changes, and defer changes until combat ends.
+- Save and restore each supported setting, migrate the existing loot-effect baseline, and preserve external changes when disabling. No herb/ore soft-target effects are added.
+- Updated the option description to explain the outline tradeoff and full game restart needed to clear cached sparkles. Client verification remains necessary.
+
 # Bel Toolbox 0.18.7
 
 Quality-of-life extensions for EllesmereUI on WoW Forever.
