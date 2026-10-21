@@ -1,3 +1,43 @@
+# Bel Toolbox 0.19.3
+
+- Added an optional consumables bar for food, drink, healing potions, mana potions, healthstones, mana gems, bandages, flasks, elixirs and resistance potions. Enable it under EUI > Bel Toolbox > Consumables.
+- Hover a category to expand its items. Left-click an expanded item to use it without changing the default; right-click to make it the default. Click Auto to clear the manual choice. Defaults are remembered per character.
+- Flyouts automatically choose their direction using available screen space. Existing choices can be used or selected through secure buttons during combat; inventory-driven replacements wait until combat ends.
+- Added EUI Quick Keybind Mode (/kb) support for category buttons, including keyboard, mouse side buttons and wheel bindings. Save or cancel using EUI's original binding window.
+- Added EUI Unlock Mode positioning and native drag-reorder category controls, optional empty-category hiding, buttons per row with wrapping, 18–64 button sizes and adjustable spacing. Zero spacing now removes the icon inset as well.
+- Improved cooked-food recognition, including Westfall Stew (733). Buff/unknown food, flasks, elixirs and resistance potions require manual selection to avoid choosing an unwanted effect.
+- Preserved the seven-button default row width and existing saved category order. Empty categories temporarily appear in /kb for binding.
+- Avoided repeated item-data requests for already-cached items above the player's level. Counts and cooldowns update through events rather than continuous polling.
+
+# Bel Toolbox 0.19.3-dev
+
+- Added Flask, Elixir and Resistance Potion categories to the consumables bar, including common classic elemental protection, greater protection and magic resistance potions.
+- New categories use existing hover flyouts, right-click default selection, EUI drag ordering and /kb bindings. Buff consumables require a manual default rather than automatically choosing a class effect or resistance type.
+- Preserve existing category order and the seven-button default row width; new categories append automatically.
+
+# Bel Toolbox 0.19.2-dev
+
+- Removed vertical consumable layouts; configure buttons per row with automatic wrapping.
+- Reused EUI's drag-reorder checkbox dropdown for category visibility and order.
+- Expanded button sizes to 18–64 and removed the 2px icon inset so zero spacing produces touching icon edges.
+- Replaced the right-click picker with secure hover flyouts. Left-click a flyout item to use it without changing the default; right-click to make it the default. The Auto control clears manual selection.
+- Flyouts automatically choose a direction based on available screen space and re-evaluate after movement. Counts and cooldowns include expanded item buttons; binding mode suppresses expansion.
+
+# Bel Toolbox 0.19.1-dev
+
+- Match EUI's Quick Keybind Mode (/kb) naming.
+- Added hide-empty categories, configurable buttons per row/column with wrapping, button spacing, and category ordering. Empty slots can still be bound while /kb is open.
+- Fixed cooked/quest-reward food recognition, including Westfall Stew (733), and show unselected manual food as an available category with a choice indicator. Buff and unknown food remain manual choices.
+- Choice lists now include icons, counts and the selected-item indicator. Multiple items remain accessible through the right-click picker.
+- Avoid repeatedly requesting already-cached item data for items above the player's level.
+
+# Bel Toolbox 0.19.0-dev
+
+- Added an opt-in consumables bar for food, drink, healing/mana potions, healthstones, mana gems and bandages. Stable empty slots, counts, cooldowns, per-character item choices, automatic fallback and EUI Unlock Mode integration.
+- Added an adapter for EUI's native quick keybinding mode. Hover a consumable button to bind keys, mouse buttons or the wheel; Escape clears its keys. The original window owns Save/Cancel. No secure actions or layout changes are made in combat.
+- Uses conservative automatic food selection: unknown or buff food requires manual selection. Spell names are resolved in the client's language; no external addon or proprietary assets are bundled.
+- Prototype remains on dev for in-game verification; no formal release is triggered.
+
 # Bel Toolbox 0.18.9
 
 - Fixed quest-object sparkles on clients with normal or raid outlines enabled. Save and restore all relevant settings, reapply after graphics changes, and defer changes during combat.

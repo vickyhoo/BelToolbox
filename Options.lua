@@ -222,6 +222,59 @@ local registered = EUI.RegisterPlugin(addonName, {
             end,
         },
         {
+            key="Consumables",title=L("Consumables"),pages={L("Consumables")},
+            description=L("Quick-use consumables with per-character choices and EUI quick keybindings."),
+            buildPage=function(_,parent,yOffset)
+                local W=EUI.Widgets;local y=yOffset;local _,h
+                _,h=W:SectionHeader(parent,L("Consumables"),y);y=y-h
+                _,h=W:Toggle(parent,L("Enable consumables bar"),y,
+                    function()return ns.Consumables.Settings().enabled==true end,
+                    function(v)ns.Consumables.Settings().enabled=v;ns.RefreshConsumables()end,
+                    L("Hover to expand. Left-click an item to use it; right-click to set the default."));y=y-h
+                _,h=W:Toggle(parent,L("Hide empty categories"),y,
+                    function()return ns.Consumables.Settings().hideEmpty==true end,
+                    function(v)ns.Consumables.Settings().hideEmpty=v;ns.RefreshConsumables()end,
+                    L("Hide categories with no eligible items. Empty slots remain visible in Quick Keybind Mode (/kb)."));y=y-h
+                _,h=W:Slider(parent,L("Buttons per row"),y,1,#ns.ConsumableCategories,1,
+                    function()return ns.Consumables.Settings().perLine or 7 end,
+                    function(v)ns.Consumables.Settings().perLine=v;ns.RefreshConsumables()end,
+                    L("The bar wraps into a new row after this many buttons."));y=y-h
+                _,h=W:Slider(parent,L("Button size"),y,18,64,1,
+                    function()return ns.Toolbars.Size("consumables")end,
+                    function(v)ns.Consumables.Settings().size=v;ns.RefreshConsumables()end);y=y-h
+                _,h=W:Slider(parent,L("Button spacing"),y,0,16,1,
+                    function()return ns.Consumables.Settings().spacing or 2 end,
+                    function(v)ns.Consumables.Settings().spacing=v;ns.RefreshConsumables()end);y=y-h
+                local orderRow
+                orderRow,h=W:DualRow(parent,y,{type="label",text=L("Categories and order")},nil);y=y-h
+                if EUI.BuildReorderCBDropdown then
+                    local items={}
+                    for _,category in ipairs(ns.Consumables.Ordered())do items[#items+1]={key=category.key,label=L(category.label)}end
+                    local dropdown,refresh=EUI.BuildReorderCBDropdown(orderRow,240,orderRow:GetFrameLevel()+2,items,
+                        function(key)local db=ns.Consumables.Settings();return not db.categories or db.categories[key]~=false end,
+                        function(key,value)
+                            local db=ns.Consumables.Settings();db.categories=db.categories or {};db.categories[key]=value
+                            ns.RefreshConsumables()
+                        end,{
+                            grip=true,hint=L("Drag to reorder categories"),canReorder=function()return not InCombatLockdown()end,
+                            setOrder=function(keys)
+                                local order={};for i,key in ipairs(keys)do order[i]=key end
+                                ns.Consumables.Settings().order=order;ns.RefreshConsumables()
+                            end,
+                            openOrder=function()local keys={};for _,category in ipairs(ns.Consumables.Ordered())do keys[#keys+1]=category.key end;return keys end,
+                            summaryLabel=function()return L("Drag to reorder categories")end,
+                        })
+                    dropdown:SetPoint("RIGHT",orderRow,"RIGHT",-20,0)
+                    if refresh and EUI.RegisterWidgetRefresh then EUI.RegisterWidgetRefresh(refresh)end
+                end
+                _,h=W:SectionHeader(parent,L("Quick Keybind Mode (/kb)"),y,
+                    L("Open EUI's quick keybinding mode, hover a consumable button and press a key. Save or cancel in that window. Move the bar with EUI Unlock Mode."));y=y-h
+                _,h=W:Button(parent,L("Reset position"),y,
+                    function()ns.Consumables.Settings().position=nil;ns.RefreshConsumables()end);y=y-h
+                return math.abs(y)+12
+            end,
+        },
+        {
             key = "MageBar",
             title = L("Mage Bar"),
             description = L("Teleports, portals, mana gems, water and food. Hover to expand; click to cast the last selected spell."),

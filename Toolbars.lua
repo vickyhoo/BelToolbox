@@ -10,7 +10,7 @@ function T.Settings(key)
 end
 function T.Size(key)
     local n=tonumber(T.Settings(key).size) or 22
-    return math.max(18,math.min(32,n))
+    return math.max(18,math.min(key=="consumables"and 64 or 32,n))
 end
 function T.Tooltip(button,title,body)
     button:SetScript("OnEnter",function(self)
@@ -42,6 +42,7 @@ function T.Position(root,key,default)
     if InCombatLockdown() then return end
     local p=T.Settings(key).position or default()
     root:ClearAllPoints();root:SetPoint(p.point,UIParent,p.relPoint,p.x,p.y)
+    if root._belAfterPosition then root._belAfterPosition()end
 end
 function T.Mover(root,key,title,order,default)
     root:SetSize(T.Size(key),T.Size(key))
