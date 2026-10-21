@@ -1,0 +1,11 @@
+{
+  "curseforgeProjectId": 1754497,
+  "interface": "16001",
+  "gameVersionName": "1.60.1",
+  "gameVersionTypeId": 88568,
+  "requiredDependency": {
+    "slug": "ellesmereui",
+    "projectID": "1477613",
+    "type": "requiredDependency"
+  }
+}
