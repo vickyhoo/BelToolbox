@@ -71,8 +71,19 @@ export function build() {
 async function jsonRequest(url, { allow404 = false, ...options } = {}) {
   const response = await fetch(url, { ...options, redirect: 'error', signal: AbortSignal.timeout(120000) });
   if (allow404 && response.status === 404) return null;
-  // Never log remote response bodies or request headers: they can contain credentials.
-  requireThat(response.ok, `HTTP ${response.status} from ${new URL(url).hostname}${new URL(url).pathname}`);
+  // Only expose the API's error message, with tokens redacted; never print headers or raw bodies.
+  if (!response.ok) {
+    let detail = '';
+    try {
+      const body = await response.json();
+      detail = String(body.errorMessage || body.message || '').slice(0, 1000);
+      for (const secret of [process.env.CF_API_TOKEN, process.env.GH_TOKEN]) {
+        if (secret) detail = detail.replaceAll(secret, '[REDACTED]');
+      }
+      detail = detail.replace(/[\r\n]/g, ' ');
+    } catch { /* HTML and other non-JSON errors stay private. */ }
+    throw new Error(`HTTP ${response.status} from ${new URL(url).hostname}${new URL(url).pathname}${detail ? `: ${detail}` : ''}`);
+  }
   return response.status === 204 ? null : response.json();
 }
 
