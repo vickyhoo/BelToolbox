@@ -222,6 +222,36 @@ local registered = EUI.RegisterPlugin(addonName, {
             end,
         },
         {
+            key="Consumables",title=L("Consumables"),pages={L("Consumables")},
+            description=L("Quick-use consumables with per-character choices and EUI quick keybindings."),
+            buildPage=function(_,parent,yOffset)
+                local W=EUI.Widgets;local y=yOffset;local _,h
+                _,h=W:SectionHeader(parent,L("Consumables"),y);y=y-h
+                _,h=W:Toggle(parent,L("Enable consumables bar"),y,
+                    function()return ns.Consumables.Settings().enabled==true end,
+                    function(v)ns.Consumables.Settings().enabled=v;ns.RefreshConsumables()end,
+                    L("Left-click to use. Right-click to choose an item."));y=y-h
+                _,h=W:Toggle(parent,L("Vertical layout"),y,
+                    function()return ns.Consumables.Settings().vertical==true end,
+                    function(v)ns.Consumables.Settings().vertical=v;ns.RefreshConsumables()end);y=y-h
+                _,h=W:Slider(parent,L("Button size"),y,18,32,1,
+                    function()return ns.Toolbars.Size("consumables")end,
+                    function(v)ns.Consumables.Settings().size=v;ns.RefreshConsumables()end);y=y-h
+                _,h=W:SectionHeader(parent,L("Toolbar buttons"),y);y=y-h
+                for _,category in ipairs(ns.ConsumableCategories)do
+                    local key=category.key
+                    _,h=W:Toggle(parent,L(category.label),y,
+                        function()local db=ns.Consumables.Settings();return not db.categories or db.categories[key]~=false end,
+                        function(v)local db=ns.Consumables.Settings();db.categories=db.categories or {};db.categories[key]=v;ns.RefreshConsumables()end);y=y-h
+                end
+                _,h=W:SectionHeader(parent,L("Quick keybindings"),y,
+                    L("Open EUI's quick keybinding mode, hover a consumable button and press a key. Save or cancel in that window. Move the bar with EUI Unlock Mode."));y=y-h
+                _,h=W:Button(parent,L("Reset position"),y,
+                    function()ns.Consumables.Settings().position=nil;ns.RefreshConsumables()end);y=y-h
+                return math.abs(y)+12
+            end,
+        },
+        {
             key = "MageBar",
             title = L("Mage Bar"),
             description = L("Teleports, portals, mana gems, water and food. Hover to expand; click to cast the last selected spell."),

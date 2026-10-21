@@ -2,7 +2,9 @@
 
 贝尔工具箱 · Quality-of-life extensions for **EllesmereUI on WoW Forever**.
 
-Author: **Bel** · License: **MIT** · Current version: **0.18.9**
+Author: **Bel** · License: **MIT** · Current version: **0.19.0-dev**
+
+消耗品条测试版：在 EUI → 贝尔工具箱 → 消耗品条开启（默认关闭）。左键使用，右键选择；支持食物、饮水、红药、蓝药、治疗石、法力宝石、绷带。空类别保留灰色按钮以保持位置稳定。未知或增益食物需手动指定，已知普通食物与魔法制造食物可自动选择。战斗中保持当前物品，脱战后重新选择。位置使用 EUI 解锁模式；按键使用 EUI 即时按键模式，并在原窗口保存或取消。
 
 ## Features
 

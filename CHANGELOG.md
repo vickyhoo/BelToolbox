@@ -1,3 +1,10 @@
+# Bel Toolbox 0.19.0-dev
+
+- Added an opt-in consumables bar for food, drink, healing/mana potions, healthstones, mana gems and bandages. Stable empty slots, counts, cooldowns, per-character item choices, automatic fallback and EUI Unlock Mode integration.
+- Added an adapter for EUI's native quick keybinding mode. Hover a consumable button to bind keys, mouse buttons or the wheel; Escape clears its keys. The original window owns Save/Cancel. No secure actions or layout changes are made in combat.
+- Uses conservative automatic food selection: unknown or buff food requires manual selection. Spell names are resolved in the client's language; no external addon or proprietary assets are bundled.
+- Prototype remains on dev for in-game verification; no formal release is triggered.
+
 # Bel Toolbox 0.18.9
 
 - Fixed quest-object sparkles on clients with normal or raid outlines enabled. Save and restore all relevant settings, reapply after graphics changes, and defer changes during combat.
