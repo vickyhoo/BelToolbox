@@ -133,6 +133,7 @@ local registered = EUI.RegisterPlugin(addonName, {
                 local function Header(key)_,h=W:SectionHeader(parent,L(key),y);y=y-h end
                 local function Toggle(text,get,set,tip)
                     _,h=W:Toggle(parent,L(text),y,get,set,tip and L(tip));y=y-h
+                    return _
                 end
                 Header("Map and Blizzard windows")
                 Toggle("Enable map and window movement",ns.IsWindowMovementEnabled,ns.SetWindowMovement,
@@ -171,9 +172,16 @@ local registered = EUI.RegisterPlugin(addonName, {
                     function(v)ns.GetEnhancements().knownRecipes=v;ns.RefreshKnownRecipes()end,
                     "Learned recipes have a green tint and check mark in supported item slots. Unknown recipes keep their normal appearance.")
                 Header("Item Highlights")
-                Toggle("Quest item sparkles",function()return ns.GetEnhancements().lootSparkles~=false end,
+                local sparkleRow=Toggle("Quest item sparkles",function()return ns.GetEnhancements().lootSparkles~=false end,
                     function(v)ns.GetEnhancements().lootSparkles=v;ns.RefreshLootSparkles()end,
-                    "Enable native quest-object sparkles by disabling normal and raid outlines. Disabling restores saved settings; removing visible sparkles may require a full game restart. Changes apply after combat.")
+                    "Enable native quest-object sparkles by disabling normal and raid outlines. Disabling restores saved settings. Fully exit and relaunch the game to clear existing sparkles; /reload is not enough. Changes apply after combat.")
+                local sparkleHint=EUI.MakeFont(sparkleRow,12,nil,1,.78,.35,1)
+                sparkleHint:SetPoint("TOPLEFT",sparkleRow,"BOTTOMLEFT",20,-8)
+                sparkleHint:SetPoint("TOPRIGHT",sparkleRow,"BOTTOMRIGHT",-20,-8)
+                sparkleHint:SetJustifyH("LEFT")
+                sparkleHint:SetWordWrap(true)
+                sparkleHint:SetText(L("After disabling, fully exit and relaunch the game to clear existing sparkles. /reload is not enough."))
+                y=y-math.max(32,sparkleHint:GetStringHeight())-16
                 return math.abs(y)+12
             end,
         },

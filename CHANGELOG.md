@@ -1,3 +1,8 @@
+# Bel Toolbox 0.18.9-dev
+
+- Added a persistent notice below Quest Item Sparkles: after disabling, fully exit and relaunch the game to clear existing sparkles; /reload is not enough. The hover tooltip now gives the same explicit guidance.
+- In-game feedback confirms enabling the corrected sparkle feature works and that clearing it requires a full restart.
+
 # Bel Toolbox 0.18.8-dev
 
 - Fixed native quest-object sparkles not appearing with normal or raid outlines enabled. Manage all five relevant graphics CVars, reapply after graphics changes, and defer changes until combat ends.
