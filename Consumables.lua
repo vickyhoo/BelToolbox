@@ -18,6 +18,8 @@ local function API(name,...)local fn=C_Item and C_Item[name]or _G[name];if fn th
 local specials={}
 for _,id in ipairs({5512,5511,5509,5510,9421,19004,19005,19006,19007,19008,19009,19010,19011,19012,19013})do specials[id]="stone"end
 for _,id in ipairs({5514,5513,8007,8008})do specials[id]="gem"end
+-- Quest-reward cooked food can use a different Food spell / generic subclass.
+specials[733]="food" -- Westfall Stew
 local conjured={}
 for _,id in ipairs({5349,1113,1114,1487,8075,8076,22895,5350,2288,2136,3772,8077,8078,8079})do conjured[id]=true end
 local plain={}
@@ -32,7 +34,47 @@ function C.Classify(id)
         if name and spell==name then return entry[2]end
     end
     local _,_,_,_,_,class,subclass=API("GetItemInfoInstant",id)
-    if Safe(class)and Safe(subclass)and class==0 and subclass==7 then return "bandage"end
+    if Safe(class)and Safe(subclass)and class==0 then
+        if subclass==7 then return "bandage"end
+        -- Drinks are matched by their localized use spell above. Cooked/buff
+        -- foods can have different use spells, but still belong in the picker.
+        if subclass==5 then return "food"end
+    end
+end
+function C.Ordered()
+    local result,seen={},{}
+    local byKey={};for _,category in ipairs(categories)do byKey[category.key]=category end
+    for _,key in ipairs(C.Settings().order or {})do
+        if byKey[key]and not seen[key]then result[#result+1]=byKey[key];seen[key]=true end
+    end
+    for _,category in ipairs(categories)do if not seen[category.key]then result[#result+1]=category end end
+    return result
+end
+function C.GetOrder(key)
+    for index,category in ipairs(C.Ordered())do if category.key==key then return index end end
+end
+function C.SetOrder(key,index)
+    local ordered=C.Ordered();local previous=C.GetOrder(key)
+    if not previous then return end
+    local category=table.remove(ordered,previous)
+    table.insert(ordered,math.max(1,math.min(#ordered+1,tonumber(index)or previous)),category)
+    local order={};for _,entry in ipairs(ordered)do order[#order+1]=entry.key end
+    C.Settings().order=order;ns.RefreshConsumables()
+end
+function C.Layout(visible)
+    local db=C.Settings();local size=T.Size("consumables")
+    local gap=math.max(0,math.min(16,tonumber(db.spacing)or 2))
+    local perLine=math.max(1,math.min(#categories,math.floor(tonumber(db.perLine)or #categories)))
+    local rows,columns=1,1
+    for index,button in ipairs(visible)do
+        local along=(index-1)%perLine;local across=math.floor((index-1)/perLine)
+        local column=db.vertical and across or along
+        local row=db.vertical and along or across
+        button:ClearAllPoints();button:SetSize(size,size)
+        button:SetPoint("TOPLEFT",root,"TOPLEFT",column*(size+gap),-row*(size+gap));button:Show()
+        columns=math.max(columns,column+1);rows=math.max(rows,row+1)
+    end
+    root:SetSize(columns*(size+gap)-gap,rows*(size+gap)-gap)
 end
 local function Character()
     local name,realm=UnitFullName("player")
@@ -57,7 +99,7 @@ function C.Scan()
             if Safe(id)and id and not seen[id]then
                 seen[id]=true
                 local cat=C.Classify(id)
-                if cat then
+                if cat and Count(id)>0 then
                     local name,_,_,itemLevel,minLevel,_,_,_,_,icon=API("GetItemInfo",id)
                     if name and Safe(minLevel)and Safe(itemLevel)and (minLevel or 0)<=level then
                         local _,spellID=API("GetItemSpell",id)
@@ -66,7 +108,7 @@ function C.Scan()
                         local buff=type(description)=="string"and wellFed and description:find(wellFed,1,true)
                         lists[cat][#lists[cat]+1]={id=id,name=name,icon=icon,level=minLevel or 0,rank=itemLevel or 0,
                             temporary=conjured[id]or false,manual=(cat=="food"or cat=="drink")and (buff or not(conjured[id]or plain[id]))or false}
-                    elseif C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(id)end
+                    elseif not name and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(id)end
                 elseif C_Item and C_Item.RequestLoadItemDataByID and not API("GetItemInfo",id)then C_Item.RequestLoadItemDataByID(id)end
             end
         end
@@ -120,7 +162,9 @@ local function Pick(button)
         popup.rows={}
         for i=1,11 do
             local row=CreateFrame("Button",nil,popup);row:SetSize(269,24);row:SetPoint("TOPLEFT",8,-8-(i-1)*26)
-            row.text=row:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");row.text:SetAllPoints();row.text:SetJustifyH("LEFT")
+            row.icon=row:CreateTexture(nil,"ARTWORK");row.icon:SetSize(20,20);row.icon:SetPoint("LEFT",1,0)
+            row.text=row:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+            row.text:SetPoint("LEFT",25,0);row.text:SetPoint("RIGHT",-2,0);row.text:SetJustifyH("LEFT")
             row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
             row:SetScript("OnClick",function(self)
                 if InCombatLockdown()then return end
@@ -137,11 +181,14 @@ local function Pick(button)
         close:SetScript("OnClick",function()popup:Hide()end)
         function popup:Paint()
             local list=lists[self.category]or {};self.page=math.min(self.page,math.max(1,math.ceil(#list/10)))
-            self.rows[1].itemID=nil;self.rows[1].text:SetText(L("Automatic selection"));self.rows[1]:Show()
+            self.rows[1].itemID=nil;self.rows[1].icon:SetTexture(nil);self.rows[1].text:SetText(L("Automatic selection"));self.rows[1]:Show()
             for i=2,11 do
                 local entry=list[(self.page-1)*10+i-1];local row=self.rows[i]
                 row:SetShown(entry~=nil)
-                if entry then row.itemID=entry.id;row.text:SetText(entry.name.."  x"..Count(entry.id))end
+                if entry then
+                    row.itemID=entry.id;row.icon:SetTexture(entry.icon)
+                    row.text:SetText((Choices()[self.category]==entry.id and "* "or "")..entry.name.."  x"..Count(entry.id))
+                end
             end
         end
     end
@@ -152,6 +199,10 @@ local function Tooltip(button)
     if button.itemID then GameTooltip:SetItemByID(button.itemID)else GameTooltip:SetText(L(button.category.label))end
     GameTooltip:AddLine(L("Left-click to use. Right-click to choose an item."),1,.82,.3,true)
     GameTooltip:AddLine(L(button.manual and "Manual selection"or "Automatic selection"),.4,.8,1,true)
+    local available=#(lists[button.category.key]or {})
+    if not button.itemID and available>0 then
+        GameTooltip:AddLine(L("%d choices available. Right-click to select; buff or unknown food is not chosen automatically.",available),1,.82,.3,true)
+    end
     GameTooltip:AddLine(L("In combat, item changes wait until combat ends."),.7,.7,.7,true)
     GameTooltip:Show()
 end
@@ -165,6 +216,8 @@ local function Create()
         button:SetAttribute("type1","item");button:SetAttribute("type2",nil)
         button.count=button:CreateFontString(nil,"OVERLAY","NumberFontNormalSmall");button.count:SetPoint("BOTTOMRIGHT",-1,1)
         button.hotkey=button:CreateFontString(nil,"OVERLAY","NumberFontNormalSmall");button.hotkey:SetPoint("TOPRIGHT",-1,-1)
+        button.arrow=button:CreateTexture(nil,"OVERLAY");button.arrow:SetTexture("Interface\\Buttons\\Arrow-Up-Up")
+        button.arrow:SetSize(12,12);button.arrow:SetPoint("BOTTOMLEFT",0,0);button.arrow:SetVertexColor(1,.82,0)
         button.cooldown=CreateFrame("Cooldown",nil,button,"CooldownFrameTemplate");button.cooldown:SetAllPoints(button)
         button:SetScript("OnEnter",Tooltip);button:SetScript("OnLeave",function()GameTooltip:Hide()end)
         button:SetScript("PostClick",function(self,key,down)if key=="RightButton"and not down then Pick(self)end end)
@@ -185,15 +238,18 @@ function ns.RefreshConsumables()
     end
     if not root then Create()end
     C.Scan();local choices=Choices();local visible={}
-    for _,category in ipairs(categories)do
+    for _,category in ipairs(C.Ordered())do
         local button=buttons[category.key];local chosen,manual=C.Resolve(lists[category.key],choices[category.key])
         button.itemID=chosen and chosen.id;button.manual=manual
-        local enabled=not db.categories or db.categories[category.key]~=false
+        local available=#lists[category.key]
+        local enabled=(not db.categories or db.categories[category.key]~=false)
+            and (not db.hideEmpty or available>0 or ns.IsToolbarBindingMode())
         button:SetAttribute("item1",enabled and chosen and "item:"..chosen.id or nil)
-        button.icon:SetTexture(chosen and chosen.icon or category.icon)
+        button.icon:SetTexture(chosen and chosen.icon or available>0 and lists[category.key][1].icon or category.icon)
+        button.arrow:SetShown(available>1 or available>0 and not chosen)
         if enabled then visible[#visible+1]=button else button:Hide()end
     end
-    T.Layout(root,visible,"consumables");T.Position(root,"consumables",DefaultPosition)
+    C.Layout(visible);T.Position(root,"consumables",DefaultPosition)
     root:SetFrameStrata(ns.IsToolbarBindingMode()and "DIALOG"or "MEDIUM")
     root:SetShown(#visible>0);root.RegisterBelMover();UpdateVisuals();ns.UpdateToolbarBindings()
 end

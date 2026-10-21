@@ -1,3 +1,11 @@
+# Bel Toolbox 0.19.1-dev
+
+- Match EUI's Quick Keybind Mode (/kb) naming.
+- Added hide-empty categories, configurable buttons per row/column with wrapping, button spacing, and category ordering. Empty slots can still be bound while /kb is open.
+- Fixed cooked/quest-reward food recognition, including Westfall Stew (733), and show unselected manual food as an available category with a choice indicator. Buff and unknown food remain manual choices.
+- Choice lists now include icons, counts and the selected-item indicator. Multiple items remain accessible through the right-click picker.
+- Avoid repeatedly requesting already-cached item data for items above the player's level.
+
 # Bel Toolbox 0.19.0-dev
 
 - Added an opt-in consumables bar for food, drink, healing/mana potions, healthstones, mana gems and bandages. Stable empty slots, counts, cooldowns, per-character item choices, automatic fallback and EUI Unlock Mode integration.

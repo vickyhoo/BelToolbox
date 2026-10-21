@@ -3,6 +3,15 @@
 local _, ns = ...
 local translations = {
     enUS = {
+        ["%d choices available. Right-click to select; buff or unknown food is not chosen automatically."] = "%d choices available. Right-click to select; buff or unknown food is not chosen automatically.",
+        ["Button spacing"] = "Button spacing",
+        ["Buttons per row / column"] = "Buttons per row / column",
+        ["Category order"] = "Category order",
+        ["Hide categories with no eligible items. Empty slots remain visible in Quick Keybind Mode (/kb)."] = "Hide categories with no eligible items. Empty slots remain visible in Quick Keybind Mode (/kb).",
+        ["Hide empty categories"] = "Hide empty categories",
+        ["Horizontal bars wrap into rows; vertical bars wrap into columns."] = "Horizontal bars wrap into rows; vertical bars wrap into columns.",
+        ["Quick Keybind Mode (/kb)"] = "Quick Keybind Mode (/kb)",
+
         ["Automatic selection"] = "Automatic selection",
         ["Bandage"] = "Bandage",
         ["Consumable binding changed. Use the binding window to save or cancel."] = "Consumable binding changed. Use the binding window to save or cancel.",
@@ -340,6 +349,15 @@ local translations = {
         ["Show DND text in the client language."] = "Show DND text in the client language.",
     },
     zhCN = {
+        ["%d choices available. Right-click to select; buff or unknown food is not chosen automatically."] = "有 %d 种物品可选。右键选择；增益或未知效果的食物不会自动选用。",
+        ["Button spacing"] = "按钮间距",
+        ["Buttons per row / column"] = "每行／列按钮个数",
+        ["Category order"] = "类别顺序",
+        ["Hide categories with no eligible items. Empty slots remain visible in Quick Keybind Mode (/kb)."] = "隐藏背包中没有可用物品的类别；快速键位绑定模式（/kb）中仍显示空类别，便于设置按键。",
+        ["Hide empty categories"] = "隐藏空类别",
+        ["Horizontal bars wrap into rows; vertical bars wrap into columns."] = "横向排列达到设定个数后换行；纵向排列达到设定个数后换列。",
+        ["Quick Keybind Mode (/kb)"] = "快速键位绑定模式（/kb）",
+
         ["Automatic selection"] = "自动选择",
         ["Bandage"] = "绷带",
         ["Consumable binding changed. Use the binding window to save or cancel."] = "消耗品按键已修改，请在按键窗口保存或取消。",
@@ -354,10 +372,10 @@ local translations = {
         ["Mana gem"] = "法力宝石",
         ["Mana potion"] = "法力药水",
         ["Manual selection"] = "手动指定",
-        ["Open EUI's quick keybinding mode, hover a consumable button and press a key. Save or cancel in that window. Move the bar with EUI Unlock Mode."] = "开启 EUI 即时按键设置模式，鼠标移到消耗品按钮上按键，在原窗口保存或取消。位置通过 EUI 解锁模式调整。",
+        ["Open EUI's quick keybinding mode, hover a consumable button and press a key. Save or cancel in that window. Move the bar with EUI Unlock Mode."] = "开启 EUI 快速键位绑定模式（/kb），鼠标移到消耗品按钮上按键，在原窗口保存或取消。位置通过 EUI 解锁模式调整。",
         ["Press a key or mouse wheel to bind. Escape clears this button. Save or cancel in EUI's binding window."] = "按下按键或滚动鼠标滚轮进行绑定。Esc 清除此按钮的绑定；在 EUI 按键窗口保存或取消。",
-        ["Quick keybindings"] = "即时按键设置",
-        ["Quick-use consumables with per-character choices and EUI quick keybindings."] = "快捷使用消耗品，按角色记忆选择，支持 EUI 即时按键设置。",
+        ["Quick keybindings"] = "快速键位绑定模式（/kb）",
+        ["Quick-use consumables with per-character choices and EUI quick keybindings."] = "快捷使用消耗品，按角色记忆选择，支持 EUI 快速键位绑定模式（/kb）。",
 
         ["%d copper"] = "%d 铜",
         ["Shift-left-click a vendor item. When EUI Bulk Buy is enabled, use its window with individual item quantities for ordinary gold purchases. Currency-cost and unique items keep EUI's behavior."] = "Shift 左键点击商品。开启 EUI 批量购买后，复用其窗口，普通金币商品按实际件数购买；货币兑换和唯一物品保留 EUI 原有流程。",

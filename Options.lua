@@ -234,9 +234,20 @@ local registered = EUI.RegisterPlugin(addonName, {
                 _,h=W:Toggle(parent,L("Vertical layout"),y,
                     function()return ns.Consumables.Settings().vertical==true end,
                     function(v)ns.Consumables.Settings().vertical=v;ns.RefreshConsumables()end);y=y-h
+                _,h=W:Toggle(parent,L("Hide empty categories"),y,
+                    function()return ns.Consumables.Settings().hideEmpty==true end,
+                    function(v)ns.Consumables.Settings().hideEmpty=v;ns.RefreshConsumables()end,
+                    L("Hide categories with no eligible items. Empty slots remain visible in Quick Keybind Mode (/kb)."));y=y-h
+                _,h=W:Slider(parent,L("Buttons per row / column"),y,1,#ns.ConsumableCategories,1,
+                    function()return ns.Consumables.Settings().perLine or #ns.ConsumableCategories end,
+                    function(v)ns.Consumables.Settings().perLine=v;ns.RefreshConsumables()end,
+                    L("Horizontal bars wrap into rows; vertical bars wrap into columns."));y=y-h
                 _,h=W:Slider(parent,L("Button size"),y,18,32,1,
                     function()return ns.Toolbars.Size("consumables")end,
                     function(v)ns.Consumables.Settings().size=v;ns.RefreshConsumables()end);y=y-h
+                _,h=W:Slider(parent,L("Button spacing"),y,0,16,1,
+                    function()return ns.Consumables.Settings().spacing or 2 end,
+                    function(v)ns.Consumables.Settings().spacing=v;ns.RefreshConsumables()end);y=y-h
                 _,h=W:SectionHeader(parent,L("Toolbar buttons"),y);y=y-h
                 for _,category in ipairs(ns.ConsumableCategories)do
                     local key=category.key
@@ -244,7 +255,18 @@ local registered = EUI.RegisterPlugin(addonName, {
                         function()local db=ns.Consumables.Settings();return not db.categories or db.categories[key]~=false end,
                         function(v)local db=ns.Consumables.Settings();db.categories=db.categories or {};db.categories[key]=v;ns.RefreshConsumables()end);y=y-h
                 end
-                _,h=W:SectionHeader(parent,L("Quick keybindings"),y,
+                _,h=W:SectionHeader(parent,L("Category order"),y);y=y-h
+                local positions={};for i=1,#ns.ConsumableCategories do positions[i]=tostring(i)end
+                for _,category in ipairs(ns.ConsumableCategories)do
+                    local key=category.key
+                    _,h=W:Dropdown(parent,L(category.label),y,positions,
+                        function()return ns.Consumables.GetOrder(key)end,
+                        function(v)
+                            ns.Consumables.SetOrder(key,v)
+                            if EUI.RefreshPage then EUI:RefreshPage()end
+                        end);y=y-h
+                end
+                _,h=W:SectionHeader(parent,L("Quick Keybind Mode (/kb)"),y,
                     L("Open EUI's quick keybinding mode, hover a consumable button and press a key. Save or cancel in that window. Move the bar with EUI Unlock Mode."));y=y-h
                 _,h=W:Button(parent,L("Reset position"),y,
                     function()ns.Consumables.Settings().position=nil;ns.RefreshConsumables()end);y=y-h
