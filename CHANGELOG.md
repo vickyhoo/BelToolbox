@@ -1,3 +1,9 @@
+# Bel Toolbox 0.19.11-dev
+
+- Added native EUI inline color-setting cogs beside individual chat button toggles: independent block and font colors, live preview and restore defaults. Defaults continue to follow channel colors without changing chat's own settings.
+- Replaced the separate Mage/Consumables editor box with compact action links inside the native mover's hover area. EUI retains the background, centered name, coordinate readout and position cog; layout controls open native EUI settings popups.
+- Preserved hover-only visibility, combat suppression and Unlock Mode save/discard behavior.
+
 # Bel Toolbox 0.19.10-dev
 
 - Mage and Consumables quick-edit controls now appear only while hovering their bar or native EUI mover in Unlock Mode. Short enter/leave delays keep controls usable while crossing to the editor or growth menu.

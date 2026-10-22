@@ -100,10 +100,27 @@ function ns.GetChatBarStyle()
     local style=Settings().style
     return(style=="blocks"or style=="labeled")and style or "text"
 end
+function ns.GetChatButtonColor(key,kind)
+    local saved=Settings().colors
+    local custom=saved and saved[key]and saved[key][kind]
+    if custom then return custom[1],custom[2],custom[3]end
+    if kind=="text"and ns.GetChatBarStyle()~="text"then return 1,1,1 end
+    for _,data in ipairs(definitions)do if data.key==key then return Color(data)end end
+    return 1,1,1
+end
+function ns.SetChatButtonColor(key,kind,r,g,b)
+    local db=Settings();db.colors=db.colors or {};db.colors[key]=db.colors[key]or {}
+    db.colors[key][kind]={math.max(0,math.min(1,r)),math.max(0,math.min(1,g)),math.max(0,math.min(1,b))}
+    ns.RefreshChatBar()
+end
+function ns.ResetChatButtonColors(key)
+    local db=Settings();if db.colors then db.colors[key]=nil end
+    ns.RefreshChatBar()
+end
 local function Style(button,data)
     local style=ns.GetChatBarStyle()
     local colored=style~="text"
-    local r,g,b=Color(data)
+    local r,g,b=ns.GetChatButtonColor(data.key,"block")
     if not button.block then
         button.border=button:CreateTexture(nil,"BACKGROUND")
         button.border:SetAllPoints()
@@ -117,7 +134,7 @@ local function Style(button,data)
     button.block:SetColorTexture(r,g,b,1)
     button.border:SetShown(colored);button.block:SetShown(colored);button.shine:SetShown(colored)
     button.label:SetShown(style~="blocks")
-    if colored then button.label:SetTextColor(1,1,1)else button.label:SetTextColor(r,g,b)end
+    button.label:SetTextColor(ns.GetChatButtonColor(data.key,"text"))
 end
 local function Layout(visible)
     local db=Settings();local style=ns.GetChatBarStyle();local size=T.Size("chatBar")

@@ -33,9 +33,26 @@ local function BuildToolbarPage(parent,yOffset,key,title,refresh)
     Row("SectionHeader",L("Toolbar buttons"),y)
     for _,data in ipairs(ns.ChatBarButtons)do
         local field=data.key
-        Row("Toggle",L(data.title),y,
+        local row
+        row,h=W:Toggle(parent,L(data.title),y,
             function()local db=ns.Toolbars.Settings(key);return not db.buttons or db.buttons[field]~=false end,
             function(v)local db=ns.Toolbars.Settings(key);db.buttons=db.buttons or {};db.buttons[field]=v;refresh()end)
+        y=y-h
+        if EUI.BuildInlineCog and not EUI._prebuilding then
+            EUI.BuildInlineCog(row,{
+                title=L(data.title).." — "..L("Chat button colors"),minWidth=280,
+                anchorTo=row,relPoint="RIGHT",gap=70,chain=false,
+                rows={
+                    {type="colorpicker",label=L("Color block color"),
+                        get=function()return ns.GetChatButtonColor(field,"block")end,
+                        set=function(r,g,b)ns.SetChatButtonColor(field,"block",r,g,b)end},
+                    {type="colorpicker",label=L("Font color"),
+                        get=function()return ns.GetChatButtonColor(field,"text")end,
+                        set=function(r,g,b)ns.SetChatButtonColor(field,"text",r,g,b)end},
+                    {type="button",label=L("Restore default colors"),action=function()ns.ResetChatButtonColors(field)end},
+                },
+            })
+        end
     end
     Row("Button",L("Reset position"),y,function()ns.Toolbars.Settings(key).position=nil;refresh()end)
     return math.abs(y)+12

@@ -34,103 +34,108 @@ function T.RegisterBarEditor(root,key,title,getSettings,refresh,getSize,getGap,r
     local EUI=_G.EllesmereUI
     if editors[key]or not EUI or not EUI.RegisterUnlockModeListener then return end
     defaultRow=defaultRow or maxRow
-    local panel=CreateFrame("Frame",nil,UIParent,"BackdropTemplate")
+    -- The native mover owns the background, name, coordinates and position cog.
+    -- Our compact action row shares its hover box instead of adding a second box.
+    local panel=CreateFrame("Frame",nil,UIParent)
     editors[key]=panel;root.belQuickEdit=panel
-    panel:SetSize(300,62);panel:SetFrameStrata("FULLSCREEN_DIALOG");panel:SetClampedToScreen(true)
-    panel:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1})
-    panel:SetBackdropColor(.08,.09,.1,.96);panel:SetBackdropBorderColor(.55,.43,.3,1)
-    panel:SetPoint("BOTTOM",root,"TOP",0,6);panel:Hide()
-    local heading=panel:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
-    heading:SetPoint("TOPLEFT",8,-7);heading:SetText(L(title))
-    local function Button(parent,text,x,y,width,action)
-        local button=CreateFrame("Button",nil,parent)
-        button:SetSize(width,20);button:SetPoint("TOPLEFT",x,y)
-        button:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
-        button.label=button:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
-        button.label:SetPoint("CENTER");button.label:SetText(text)
-        button:SetScript("OnClick",function()if not InCombatLockdown()then action()end end)
-        return button
-    end
-    local menu=CreateFrame("Frame",nil,panel,"BackdropTemplate")
-    menu:SetSize(140,72);menu:SetPoint("TOPRIGHT",panel,"BOTTOMRIGHT",0,-2)
-    menu:SetFrameLevel(panel:GetFrameLevel()+10);menu:SetClampedToScreen(true)
-    menu:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1})
-    menu:SetBackdropColor(.08,.09,.1,1);menu:SetBackdropBorderColor(.55,.43,.3,1);menu:Hide()
-    local names={CENTER="Grow centered",LEFT="Grow left",RIGHT="Grow right"}
-    local growth
+    panel:SetSize(264,20);panel:SetFrameStrata("FULLSCREEN_DIALOG");panel:Hide()
+    local actions={};local mover
     local function Update()
-        if panel.sizeLabel then
-            panel.sizeLabel:SetText(L("Button size")..": "..getSize())
-            panel.gapLabel:SetText(L("Button spacing")..": "..getGap())
-            panel.rowLabel:SetText(L("Buttons per row")..": "..(getSettings()[rowKey]or defaultRow))
-            growth.label:SetText(L(names[T.Growth(getSettings())]).." ▾")
-        end
+        local labels={L("Button size").." "..getSize(),L("Button spacing").." "..getGap(),
+            L("Buttons per row").." "..(getSettings()[rowKey]or defaultRow),L("Bar growth direction")}
+        for i,button in ipairs(actions)do button.label:SetText(labels[i])end
     end
-    local function Step(label,x,field,get,low,high)
-        local text=panel:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
-        text:SetPoint("TOPLEFT",x,-26)
-        for i,delta in ipairs({-1,1})do
-            Button(panel,delta<0 and "−"or "+",x+(i-1)*42,-42,36,function()
-                getSettings()[field]=math.max(low,math.min(high,get()+delta));refresh();Update()
-            end)
-        end
-        return text
+    local function Set(field,value)
+        if InCombatLockdown()then return end
+        getSettings()[field]=value;refresh();Update()
     end
-    panel.sizeLabel=Step("size",8,"size",getSize,18,64)
-    panel.gapLabel=Step("spacing",105,"spacing",getGap,0,16)
-    panel.rowLabel=Step("rows",202,rowKey,function()return getSettings()[rowKey]or defaultRow end,1,maxRow)
-    growth=Button(panel,"",151,-3,140,function()menu:SetShown(not menu:IsShown())end)
-    for i,value in ipairs({"CENTER","LEFT","RIGHT"})do
-        Button(menu,L(names[value]),4,-4-(i-1)*22,132,function()
-            menu:Hide();T.SetGrowth(root,getSettings(),value,refresh);Update()
+    local rows={
+        {type="slider",label=L("Button size"),min=18,max=64,step=1,get=getSize,set=function(v)Set("size",v)end},
+        {type="slider",label=L("Button spacing"),min=0,max=16,step=1,get=getGap,set=function(v)Set("spacing",v)end},
+        {type="slider",label=L("Buttons per row"),min=1,max=maxRow,step=1,
+            get=function()return getSettings()[rowKey]or defaultRow end,set=function(v)Set(rowKey,v)end},
+        {type="dropdown",label=L("Bar growth direction"),
+            values={CENTER=L("Grow centered"),LEFT=L("Grow left"),RIGHT=L("Grow right")},order={"CENTER","LEFT","RIGHT"},
+            get=function()return T.Growth(getSettings())end,
+            set=function(v)T.SetGrowth(root,getSettings(),v,refresh);Update()end},
+    }
+    for i,row in ipairs(rows)do
+        local button=CreateFrame("Button",nil,panel)
+        actions[i]=button;button:SetSize(66,20);button:SetPoint("LEFT",panel,"LEFT",(i-1)*66,0)
+        button.label=button:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
+        button.label:SetFont(STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF",9,"")
+        button.label:SetTextColor(.82,.63,.43);button.label:SetPoint("CENTER")
+        button:SetScript("OnEnter",function()button.label:SetTextColor(1,1,1)end)
+        button:SetScript("OnLeave",function()button.label:SetTextColor(.82,.63,.43)end)
+        button:SetScript("OnClick",function()
+            if InCombatLockdown()or not EUI.BuildCogPopup then return end
+            if not button.showPopup then
+                local _,show=EUI.BuildCogPopup({title=L(title),minWidth=280,rows=rows})
+                button.showPopup=show
+            end
+            button.showPopup(button)
         end)
+        if i>1 then
+            local divider=button:CreateTexture(nil,"ARTWORK")
+            divider:SetColorTexture(1,1,1,.25);divider:SetSize(1,9);divider:SetPoint("LEFT",0,0)
+        end
     end
-    -- Reuse EUI's session notifications so Discard also restores these settings.
+    panel.belActions=actions
     local snapshot,active
-    local watcher=CreateFrame("Frame",nil,UIParent)
-    watcher:Hide()
+    local watcher=CreateFrame("Frame",nil,UIParent);watcher:Hide()
+    panel.belHoverWatcher=watcher
     local elapsed,overTime,awayTime=0,0,0
     local moverKey=key=="mage"and "BelToolboxMageBar"or "BelToolboxConsumables"
-    local function Hide()
-        panel:Hide();menu:Hide();overTime=0;awayTime=0
+    local function Hide(closePopups)
+        panel:Hide();overTime=0;awayTime=0
+        if closePopups then
+            for _,button in ipairs(actions)do
+                local popup=button.showPopup and button.showPopup._popupFrame
+                if popup then popup:Hide()end
+            end
+        end
     end
     local function Hovered()
-        if panel:IsShown()and(panel:IsMouseOver()or(menu:IsShown()and menu:IsMouseOver()))then return true end
-        -- Native EUI overlays intercept mouse events. Inspect the current focus's
-        -- parent chain to include the expanded mover, its links and its cog.
         local foci=GetMouseFoci and GetMouseFoci()or(GetMouseFocus and {GetMouseFocus()}or {})
         for _,focus in ipairs(foci)do
             for _=1,12 do
                 if not focus then break end
-                if focus._barKey==moverKey then return not focus._dragging end
+                if focus._barKey==moverKey then mover=focus;return not focus._dragging end
                 focus=focus.GetParent and focus:GetParent()
             end
         end
-        return root:IsMouseOver()
+        for _,button in ipairs(actions)do
+            local popup=button.showPopup and button.showPopup._popupFrame
+            if popup and popup:IsShown()then return true end
+        end
+        return panel:IsShown()and panel:IsMouseOver()or root:IsMouseOver()
     end
-    -- Only watch while Unlock Mode is open, throttled to 20 checks/second.
-    -- Intent and leave delays mirror EUI's hover interaction without hooking it.
     watcher:SetScript("OnUpdate",function(_,dt)
         elapsed=elapsed+dt;if elapsed<.05 then return end
         local step=elapsed;elapsed=0
-        if not active or InCombatLockdown()or not root:IsShown()then Hide();return end
+        if not active or InCombatLockdown()or not root:IsShown()then Hide(true);return end
         if Hovered()then
             awayTime=0;overTime=overTime+step
-            if overTime>=.15 and not panel:IsShown()then Update();panel:Show()end
+            if mover and mover:IsShown()then
+                -- Extend EUI's own animated hover bounds to fit our action row.
+                if mover._cachedHoverW then mover._cachedHoverW=math.max(mover._cachedHoverW,280)end
+                if mover._cachedHoverH then mover._cachedHoverH=math.max(mover._cachedHoverH,48)end
+                panel:ClearAllPoints();panel:SetPoint("CENTER",mover,"CENTER",0,-12)
+            else panel:ClearAllPoints();panel:SetPoint("CENTER",root,"CENTER",0,-12)end
+            if overTime>=.2 then Update();panel:Show()end
         else
             overTime=0;awayTime=awayTime+step
-            if awayTime>=.25 then Hide()end
+            if awayTime>=.25 then Hide(false)end
         end
     end)
-    panel.belHoverWatcher=watcher
     EUI:RegisterUnlockModeListener("BelToolboxEdit"..key,function(open,action)
         active=open
         if open then
             snapshot={}
             for _,field in ipairs({"size","spacing",rowKey,"growth"})do snapshot[field]={getSettings()[field]}end
-            Hide();elapsed=0;watcher:Show()
+            Hide(true);elapsed=0;mover=nil;watcher:Show()
         else
-            watcher:Hide();Hide()
+            watcher:Hide();Hide(true)
             if action=="discard"and snapshot then
                 for field,value in pairs(snapshot)do getSettings()[field]=value[1]end
                 refresh()
@@ -138,9 +143,7 @@ function T.RegisterBarEditor(root,key,title,getSettings,refresh,getSize,getGap,r
             snapshot=nil
         end
     end)
-    root:HookScript("OnHide",Hide)
-    panel:RegisterEvent("PLAYER_REGEN_DISABLED");panel:RegisterEvent("PLAYER_REGEN_ENABLED")
-    panel:SetScript("OnEvent",function(_,event)
-        Hide()
-    end)
+    root:HookScript("OnHide",function()Hide(true)end)
+    watcher:RegisterEvent("PLAYER_REGEN_DISABLED");watcher:RegisterEvent("PLAYER_REGEN_ENABLED")
+    watcher:SetScript("OnEvent",function()Hide(true)end)
 end
