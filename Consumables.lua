@@ -4,6 +4,7 @@ local _,ns=...
 local L,T=ns.L,ns.Toolbars
 local F=ns.ConsumableFlyouts
 local root,dirty,queued
+local DefaultPosition
 local buttons,lists={},{}
 local categories={
     {key="food",label="Food",icon=133906},{key="drink",label="Drink",icon=132794},
@@ -84,16 +85,14 @@ function C.Layout(visible)
     local db=C.Settings();local size=T.Size("consumables")
     local gap=math.max(0,math.min(16,tonumber(db.spacing)or 2))
     local perLine=math.max(1,math.min(#categories,math.floor(tonumber(db.perLine)or 7)))
-    local rows,columns=1,1
-    for index,button in ipairs(visible)do
-        local along=(index-1)%perLine;local across=math.floor((index-1)/perLine)
-        local column=along
-        local row=across
-        button:ClearAllPoints();button:SetSize(size,size)
-        button:SetPoint("TOPLEFT",root,"TOPLEFT",column*(size+gap),-row*(size+gap));button:Show()
-        columns=math.max(columns,column+1);rows=math.max(rows,row+1)
-    end
+    local columns=math.max(1,math.min(perLine,#visible))
+    local rows=math.max(1,math.ceil(#visible/perLine))
     root:SetSize(columns*(size+gap)-gap,rows*(size+gap)-gap)
+    T.Position(root,"consumables",DefaultPosition)
+    for index,button in ipairs(visible)do
+        button:SetSize(size,size)
+        T.AnchorBarButton(button,root,db,index,#visible,perLine,size,gap);button:Show()
+    end
 end
 local function Character()
     local name,realm=UnitFullName("player")
@@ -107,7 +106,11 @@ local function Count(id)
     local n=id and API("GetItemCount",id,false,false,false)or 0
     return Safe(n)and type(n)=="number"and n or 0
 end
-local function DefaultPosition()return {point="CENTER",relPoint="CENTER",x=0,y=-205}end
+DefaultPosition=function()return {point="CENTER",relPoint="CENTER",x=0,y=-205}end
+function C.SetGrowth(value)
+    if root then T.SetGrowth(root,C.Settings(),value,ns.RefreshConsumables)
+    else C.Settings().growth=value end
+end
 function C.Scan()
     lists={};for _,category in ipairs(categories)do lists[category.key]={}end
     local seen={}
@@ -188,6 +191,8 @@ local function Create()
     root=CreateFrame("Frame","BelToolboxConsumables",UIParent);root:SetFrameStrata("MEDIUM")
     root._belAfterPosition=F.PositionAll
     T.Mover(root,"consumables","Consumables",955,DefaultPosition)
+    T.RegisterBarEditor(root,"consumables","Consumables",C.Settings,ns.RefreshConsumables,
+        function()return T.Size("consumables")end,function()return C.Settings().spacing or 2 end,"perLine",#categories,7)
     for _,category in ipairs(categories)do
         local button=F.Create(root,"BelToolboxConsume"..category.key,category.icon)
         button.category=category;buttons[category.key]=button
@@ -236,7 +241,8 @@ function ns.RefreshConsumables()
         end,enabled and not ns.IsToolbarBindingMode())
         if enabled then visible[#visible+1]=button else button:Hide()end
     end
-    C.Layout(visible);T.Position(root,"consumables",DefaultPosition)
+    C.Layout(visible)
+    F.PositionAll()
     root:SetFrameStrata(ns.IsToolbarBindingMode()and "DIALOG"or "MEDIUM")
     root:SetShown(#visible>0);root.RegisterBelMover();UpdateVisuals();ns.UpdateToolbarBindings()
 end

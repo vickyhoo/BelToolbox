@@ -253,6 +253,10 @@ local registered = EUI.RegisterPlugin(addonName, {
                 _,h=W:Slider(parent,L("Button spacing"),y,0,16,1,
                     function()return ns.Consumables.Settings().spacing or 2 end,
                     function(v)ns.Consumables.Settings().spacing=v;ns.RefreshConsumables()end);y=y-h
+                _,h=W:Dropdown(parent,L("Bar growth direction"),y,
+                    {CENTER=L("Grow centered"),LEFT=L("Grow left"),RIGHT=L("Grow right")},
+                    function()return ns.Toolbars.Growth(ns.Consumables.Settings())end,ns.Consumables.SetGrowth,
+                    {"CENTER","LEFT","RIGHT"});y=y-h
                 local orderRow
                 orderRow,h=W:DualRow(parent,y,{type="label",text=L("Categories and order")},nil);y=y-h
                 if EUI.BuildReorderCBDropdown then
@@ -306,6 +310,10 @@ local registered = EUI.RegisterPlugin(addonName, {
                 _,h=W:Slider(parent,L("Buttons per row"),y,1,#ns.MageCategories,1,
                     function()return ns.GetMageSettings().perRow or #ns.MageCategories end,
                     function(value)ns.GetMageSettings().perRow=value;ns.RefreshMageBar()end);y=y-h
+                _,h=W:Dropdown(parent,L("Bar growth direction"),y,
+                    {CENTER=L("Grow centered"),LEFT=L("Grow left"),RIGHT=L("Grow right")},
+                    function()return ns.Toolbars.Growth(ns.GetMageSettings())end,ns.SetMageGrowth,
+                    {"CENTER","LEFT","RIGHT"});y=y-h
                 _, h = W:Dropdown(parent, L("Expansion direction"), y,
                     { AUTO=L("Automatic"), UP=L("Up"), DOWN=L("Down"), LEFT=L("Left"), RIGHT=L("Right") },
                     ns.GetMageDirection,

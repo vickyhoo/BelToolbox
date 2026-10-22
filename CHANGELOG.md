@@ -1,3 +1,9 @@
+# Bel Toolbox 0.19.9-dev
+
+- Added quick-edit panels beside Mage and Consumables bars during EUI Unlock Mode: button size, spacing, buttons per row and centered/left/right growth. Discard restores layout settings; combat hides the controls.
+- Added main-bar growth direction settings independently of flyout expansion. Explicit growth changes preserve the current screen rectangle and pin future resizing to the selected edge or center; incomplete rows align to that direction.
+- Existing bars retain their layout until growth is changed. Consumable root positioning now runs before child placement.
+
 # Bel Toolbox 0.19.8-dev
 
 - Added text, color-block and color-block-with-label styles for the chat bar. Existing settings retain text mode by default.
