@@ -38,6 +38,8 @@ function T.RegisterBarEditor(root,key,title,getSettings,refresh,getSize,getGap,r
     -- Our compact action row shares its hover box instead of adding a second box.
     local panel=CreateFrame("Frame",nil,UIParent)
     editors[key]=panel;root.belQuickEdit=panel
+    local diagnostic={ticks=0,reason="registered"}
+    panel.belDebug=diagnostic;panel.belRoot=root
     panel:SetSize(264,20);panel:SetFrameStrata("FULLSCREEN_DIALOG");panel:Hide()
     local actions={};local mover
     local function Update()
@@ -45,9 +47,9 @@ function T.RegisterBarEditor(root,key,title,getSettings,refresh,getSize,getGap,r
         for i,button in ipairs(actions)do button.label:SetText(labels[i])end
     end
     local function Fit()
-        if not mover or not mover:IsShown()then return false end
+        if not mover or not mover:IsShown()then diagnostic.reason="mover-unavailable";return false end
         local width,height=mover:GetWidth(),mover:GetHeight()
-        if not width or not height or width<42 or height<32 then return false end
+        if not width or not height or width<42 or height<32 then diagnostic.reason="mover-bounds";return false end
         local available=width-16
         local compact=available<144
         -- EUI's unlock frame uses FULLSCREEN_DIALOG too, but its movers are
@@ -113,6 +115,16 @@ function T.RegisterBarEditor(root,key,title,getSettings,refresh,getSize,getGap,r
     panel.belHoverWatcher=watcher
     local elapsed,overTime,awayTime=0,0,0
     local moverKey=key=="mage"and "BelToolboxMageBar"or "BelToolboxConsumables"
+    local searchElapsed=1
+    local function FindMover()
+        -- Movers are direct children of EUI's named unlock frame. Discover
+        -- them even when another overlay prevents them becoming mouse focus.
+        local host=_G.EllesmereUnlockMode
+        if not host or not host.GetChildren then return end
+        for _,child in ipairs({host:GetChildren()})do
+            if child._barKey==moverKey then mover=child;panel.belMover=child;return end
+        end
+    end
     local function Hide(closePopups)
         panel:Hide();overTime=0;awayTime=0
         if closePopups then
@@ -127,7 +139,7 @@ function T.RegisterBarEditor(root,key,title,getSettings,refresh,getSize,getGap,r
         for _,focus in ipairs(foci)do
             for _=1,12 do
                 if not focus then break end
-                if focus._barKey==moverKey then mover=focus;return not focus._dragging end
+                if focus._barKey==moverKey then mover=focus;panel.belMover=focus;return not focus._dragging end
                 focus=focus.GetParent and focus:GetParent()
             end
         end
@@ -135,29 +147,43 @@ function T.RegisterBarEditor(root,key,title,getSettings,refresh,getSize,getGap,r
             local popup=button.showPopup and button.showPopup._popupFrame
             if popup and popup:IsShown()then return true end
         end
-        return panel:IsShown()and panel:IsMouseOver()or root:IsMouseOver()
+        if mover and mover:IsShown()then
+            return not mover._dragging and(mover:IsMouseOver()or(panel:IsShown()and panel:IsMouseOver()))
+        end
+        return root:IsMouseOver()
     end
-    watcher:SetScript("OnUpdate",function(_,dt)
+    local function Tick(_,dt)
         elapsed=elapsed+dt;if elapsed<.05 then return end
         local step=elapsed;elapsed=0
-        if not active or InCombatLockdown()or not root:IsShown()then Hide(true);return end
+        diagnostic.ticks=diagnostic.ticks+1
+        if not mover then searchElapsed=searchElapsed+step;if searchElapsed>=1 then searchElapsed=0;FindMover()end end
+        if not active or InCombatLockdown()or not root:IsShown()then
+            diagnostic.reason=not active and "inactive"or(InCombatLockdown()and "combat"or "root-hidden")
+            Hide(true);return
+        end
         if Hovered()then
             awayTime=0;overTime=overTime+step
             if overTime>=.2 then
                 Update()
-                if Fit()then panel:Show()else panel:Hide()end
+                if Fit()then panel:Show();diagnostic.reason="shown"else panel:Hide()end
             end
         else
             overTime=0;awayTime=awayTime+step
+            diagnostic.reason="waiting-hover"
             if awayTime>=.25 then Hide(false)end
         end
+    end
+    watcher:SetScript("OnUpdate",function(...)
+        local ok,err=pcall(Tick,...)
+        if not ok then diagnostic.reason="runtime-error";diagnostic.error=tostring(err);panel:Hide()end
     end)
     EUI:RegisterUnlockModeListener("BelToolboxEdit"..key,function(open,action)
         active=open
+        diagnostic.active=open
         if open then
             snapshot={}
             for _,field in ipairs({"size","spacing",rowKey,"growth"})do snapshot[field]={getSettings()[field]}end
-            Hide(true);elapsed=0;mover=nil;watcher:Show()
+            Hide(true);elapsed=0;mover=nil;panel.belMover=nil;searchElapsed=1;watcher:Show()
         else
             watcher:Hide();Hide(true)
             if action=="discard"and snapshot then
@@ -170,4 +196,25 @@ function T.RegisterBarEditor(root,key,title,getSettings,refresh,getSize,getGap,r
     root:HookScript("OnHide",function()Hide(true)end)
     watcher:RegisterEvent("PLAYER_REGEN_DISABLED");watcher:RegisterEvent("PLAYER_REGEN_ENABLED")
     watcher:SetScript("OnEvent",function()Hide(true)end)
+end
+if _G.SlashCmdList then
+    _G.SLASH_BELBAREDITDEBUG1="/belbareditdebug"
+    SlashCmdList.BELBAREDITDEBUG=function()
+        local prefix=L("Bel Toolbox")..": "
+        local function Info(frame)
+            if not frame then return "nil"end
+            return "shown="..tostring(frame:IsShown()).." visible="..tostring(frame:IsVisible())
+                .." alpha="..tostring(frame:GetAlpha()).." size="..tostring(frame:GetWidth()).."x"..tostring(frame:GetHeight())
+                .." level="..tostring(frame:GetFrameLevel()).." strata="..tostring(frame:GetFrameStrata())
+        end
+        print(prefix.."bar-edit debug 0.19.14-dev")
+        for key,panel in pairs(editors)do
+            local d=panel.belDebug
+            print(prefix..key.." active="..tostring(d.active).." ticks="..d.ticks.." reason="..d.reason.." error="..tostring(d.error))
+            print(prefix.."watcher "..Info(panel.belHoverWatcher))
+            print(prefix.."root "..Info(panel.belRoot))
+            print(prefix.."mover "..Info(panel.belMover))
+            print(prefix.."controls "..Info(panel).." parent="..tostring(panel:GetParent()))
+        end
+    end
 end

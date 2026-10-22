@@ -1,3 +1,8 @@
+# Bel Toolbox 0.19.14-dev
+
+- Discover Mage/Consumables movers from the native EllesmereUnlockMode host as well as mouse focus, so overlaid mouse focus cannot prevent editor attachment.
+- Added read-only /belbareditdebug diagnostics: session state, watcher ticks, visibility gate, captured runtime error and root/mover/control geometry and layers. Live client diagnostics are needed if controls remain invisible.
+
 # Bel Toolbox 0.19.13-dev
 
 - Fixed Mage/Consumables unlock controls being covered by the native mover's opaque background. Parent the action row directly to its EUI mover and keep it above the mover's frame level, including hover/selection raises.
