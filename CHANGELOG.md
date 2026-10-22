@@ -1,3 +1,8 @@
+# Bel Toolbox 0.19.15-dev
+
+- Fixed the confirmed Consumables editor lookup mismatch: its registered key is BelToolboxconsumables, not BelToolboxConsumables. Editor discovery now reads the exact key saved by mover registration instead of maintaining a separate spelling.
+- Mage registration shares the same key handoff. Diagnostics include the expected key; regression coverage uses the actual shared registration path.
+
 # Bel Toolbox 0.19.14-dev
 
 - Discover Mage/Consumables movers from the native EllesmereUnlockMode host as well as mouse focus, so overlaid mouse focus cannot prevent editor attachment.

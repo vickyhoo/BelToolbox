@@ -351,8 +351,9 @@ local unlockRegistered
 RegisterMageUnlock=function()
     local EUI=_G.EllesmereUI
     if unlockRegistered or not root or not EUI or not EUI.MakeUnlockElement or not EUI.RegisterUnlockElements then return end
+    root.belMoverKey="BelToolboxMageBar"
     local element=EUI.MakeUnlockElement({
-        key="BelToolboxMageBar",label=L("Mage Bar"),group=L("Bel Toolbox"),order=950,
+        key=root.belMoverKey,label=L("Mage Bar"),group=L("Bel Toolbox"),order=950,
         noResize=true,ownsPosition=true,noAnchorTarget=true,noAnchorTo=true,noSizeMatchTarget=true,
         getFrame=function()return root end,
         getSize=function()return root:GetWidth(),root:GetHeight()end,

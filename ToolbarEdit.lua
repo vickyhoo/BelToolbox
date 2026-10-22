@@ -114,7 +114,8 @@ function T.RegisterBarEditor(root,key,title,getSettings,refresh,getSize,getGap,r
     local watcher=CreateFrame("Frame",nil,UIParent);watcher:Hide()
     panel.belHoverWatcher=watcher
     local elapsed,overTime,awayTime=0,0,0
-    local moverKey=key=="mage"and "BelToolboxMageBar"or "BelToolboxConsumables"
+    local moverKey=root.belMoverKey or(key=="mage"and "BelToolboxMageBar"or "BelToolbox"..key)
+    diagnostic.moverKey=moverKey
     local searchElapsed=1
     local function FindMover()
         -- Movers are direct children of EUI's named unlock frame. Discover
@@ -207,10 +208,10 @@ if _G.SlashCmdList then
                 .." alpha="..tostring(frame:GetAlpha()).." size="..tostring(frame:GetWidth()).."x"..tostring(frame:GetHeight())
                 .." level="..tostring(frame:GetFrameLevel()).." strata="..tostring(frame:GetFrameStrata())
         end
-        print(prefix.."bar-edit debug 0.19.14-dev")
+        print(prefix.."bar-edit debug 0.19.15-dev")
         for key,panel in pairs(editors)do
             local d=panel.belDebug
-            print(prefix..key.." active="..tostring(d.active).." ticks="..d.ticks.." reason="..d.reason.." error="..tostring(d.error))
+            print(prefix..key.." key="..tostring(d.moverKey).." active="..tostring(d.active).." ticks="..d.ticks.." reason="..d.reason.." error="..tostring(d.error))
             print(prefix.."watcher "..Info(panel.belHoverWatcher))
             print(prefix.."root "..Info(panel.belRoot))
             print(prefix.."mover "..Info(panel.belMover))

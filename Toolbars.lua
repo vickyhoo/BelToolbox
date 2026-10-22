@@ -45,6 +45,7 @@ function T.Position(root,key,default)
     if root._belAfterPosition then root._belAfterPosition()end
 end
 function T.Mover(root,key,title,order,default)
+    root.belMoverKey="BelToolbox"..key
     root:SetSize(T.Size(key),T.Size(key))
     root:SetMovable(true);root:SetClampedToScreen(true)
     local function Apply()T.Position(root,key,default)end
@@ -53,7 +54,7 @@ function T.Mover(root,key,title,order,default)
         local EUI=_G.EllesmereUI
         if registered or not EUI or not EUI.MakeUnlockElement or not EUI.RegisterUnlockElements then return end
         local e=EUI.MakeUnlockElement({
-            key="BelToolbox"..key,label=L(title),group=L("Bel Toolbox"),order=order,
+            key=root.belMoverKey,label=L(title),group=L("Bel Toolbox"),order=order,
             noResize=true,ownsPosition=true,noAnchorTarget=true,noAnchorTo=true,noSizeMatchTarget=true,
             getFrame=function()return root end,
             getSize=function()return root:GetWidth(),root:GetHeight()end,
