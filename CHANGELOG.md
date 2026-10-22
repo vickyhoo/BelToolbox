@@ -1,3 +1,8 @@
+# Bel Toolbox 0.19.13-dev
+
+- Fixed Mage/Consumables unlock controls being covered by the native mover's opaque background. Parent the action row directly to its EUI mover and keep it above the mover's frame level, including hover/selection raises.
+- Keep the compact bounds-aware layout, native settings popups and Unlock Mode save/discard behavior.
+
 # Bel Toolbox 0.19.12-dev
 
 - Fixed unlock quick-edit links extending outside native EUI mover borders. Size the action row from the mover's actual bounds and use short labels; narrow movers show a single Bar settings entry with all controls.

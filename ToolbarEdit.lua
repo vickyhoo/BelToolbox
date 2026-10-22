@@ -50,7 +50,14 @@ function T.RegisterBarEditor(root,key,title,getSettings,refresh,getSize,getGap,r
         if not width or not height or width<42 or height<32 then return false end
         local available=width-16
         local compact=available<144
-        panel:SetScale(mover:GetEffectiveScale()/UIParent:GetEffectiveScale())
+        -- EUI's unlock frame uses FULLSCREEN_DIALOG too, but its movers are
+        -- raised above UIParent-level siblings. A sibling panel gets covered
+        -- by the mover's opaque background even when its geometry is correct.
+        -- Parent the action row to the mover, above its background/name layers.
+        if panel:GetParent()~=mover then panel:SetParent(mover)end
+        panel:SetFrameStrata(mover:GetFrameStrata())
+        panel:SetFrameLevel(mover:GetFrameLevel()+10)
+        panel:SetScale(1)
         panel:SetSize(available,18)
         panel:ClearAllPoints()
         panel:SetPoint("CENTER",mover,"CENTER",0,-math.min(12,math.max(0,height/2-11)))
