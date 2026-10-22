@@ -64,6 +64,9 @@ function F.Position(main)
     end
     main.flyoutDirection=direction
     if main.arrow then
+        local edges={UP="TOP",DOWN="BOTTOM",LEFT="LEFT",RIGHT="RIGHT"}
+        main.arrow:ClearAllPoints()
+        main.arrow:SetPoint("CENTER",main,edges[direction],0,0)
         main.arrow:SetRotation(direction=="DOWN"and math.pi or direction=="LEFT"and math.pi/2 or direction=="RIGHT"and -math.pi/2 or 0)
     end
 end
@@ -85,6 +88,26 @@ function F.Create(parent,name,icon)
     main:HookScript("OnEnter",function()F.Position(main)end)
     mains[#mains+1]=main
     return main
+end
+function F.ShowTooltip(button)
+    GameTooltip:Show()
+    local main=button.belMain or button
+    local popup=main.flyout
+    if not popup or not popup:IsShown()then return end
+    local left,right,bottom,top=popup:GetLeft(),popup:GetRight(),popup:GetBottom(),popup:GetTop()
+    if not left or not right or not bottom or not top then return end
+    local scale=popup:GetEffectiveScale()/UIParent:GetEffectiveScale()
+    local width,height=UIParent:GetWidth()/scale,UIParent:GetHeight()/scale
+    local direction=main.flyoutDirection
+    GameTooltip:ClearAllPoints()
+    if direction=="UP"or direction=="DOWN"then
+        -- Stay beside the entire expanded grid, including any extra columns.
+        if width-right>=left then GameTooltip:SetPoint("TOPLEFT",popup,"TOPRIGHT",8,0)
+        else GameTooltip:SetPoint("TOPRIGHT",popup,"TOPLEFT",-8,0)end
+    else
+        if height-top>=bottom then GameTooltip:SetPoint("BOTTOMLEFT",popup,"TOPLEFT",0,8)
+        else GameTooltip:SetPoint("TOPLEFT",popup,"BOTTOMLEFT",0,-8)end
+    end
 end
 function F.SetItems(main,list,automatic,tooltip,onSelect,enabled)
     if InCombatLockdown()then return end
@@ -120,7 +143,7 @@ function F.SetItems(main,list,automatic,tooltip,onSelect,enabled)
             button:HookScript("OnEnter",function(self)
                 if self.automatic then
                     GameTooltip:SetOwner(self,"ANCHOR_RIGHT");GameTooltip:SetText(ns.L("Automatic selection"))
-                    GameTooltip:AddLine(ns.L("Click to restore automatic selection for this category."),1,.82,.3,true);GameTooltip:Show()
+                    GameTooltip:AddLine(ns.L("Click to restore automatic selection for this category."),1,.82,.3,true);F.ShowTooltip(self)
                 else tooltip(self)end
             end)
             button:HookScript("OnLeave",function()GameTooltip:Hide()end)
@@ -128,7 +151,7 @@ function F.SetItems(main,list,automatic,tooltip,onSelect,enabled)
         end
         local entry=list[index-1]
         button.automatic=index==1;button:SetAttribute("automatic",button.automatic)
-        button.category=main.category;button.itemID=entry and entry.id
+        button.belMain=main;button.category=main.category;button.itemID=entry and entry.id
         button:SetAttribute("type1",entry and "item"or nil)
         button:SetAttribute("item1",entry and "item:"..entry.id or nil)
         button.icon:SetTexture(entry and entry.icon or "Interface\\Buttons\\UI-RefreshButton")

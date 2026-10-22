@@ -1,3 +1,8 @@
+# Bel Toolbox 0.19.4-dev
+
+- Changed consumable tooltips to use the Mage Bar's right-side owner anchor. While expanded, position tooltips beside the full flyout grid so they do not cover its item buttons; horizontal flyouts use the space above or below.
+- Matched Mage Bar expansion arrows: 14px, centered on the edge corresponding to the actual expansion direction.
+
 # Bel Toolbox 0.19.3
 
 - Added an optional consumables bar for food, drink, healing potions, mana potions, healthstones, mana gems, bandages, flasks, elixirs and resistance potions. Enable it under EUI > Bel Toolbox > Consumables.
