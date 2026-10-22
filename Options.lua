@@ -18,16 +18,41 @@ local function BuildToolbarPage(parent,yOffset,key,title,refresh)
     end
     Row("SectionHeader",L(title),y)
     Toggle("enabled","Enable chat bar",true)
+    Row("Dropdown",L("Chat bar style"),y,{text=L("Text"),blocks=L("Color blocks"),labeled=L("Color blocks with labels")},
+        ns.GetChatBarStyle,function(v)ns.Toolbars.Settings(key).style=v;refresh()end,{"text","blocks","labeled"})
     Row("Dropdown",L("Button size"),y,{[18]="18",[22]="22",[26]="26",[30]="30"},
         function()return ns.Toolbars.Size(key)end,
         function(v)ns.Toolbars.Settings(key).size=v;refresh()end,{18,22,26,30})
     Toggle("vertical","Vertical layout",false)
+    Row("Slider",L("Color block width"),y,24,100,1,
+        function()return ns.Toolbars.Settings(key).blockWidth or 48 end,
+        function(v)ns.Toolbars.Settings(key).blockWidth=v;refresh()end)
+    Row("Slider",L("Button spacing"),y,0,16,1,
+        function()local db=ns.Toolbars.Settings(key);return db.spacing or(ns.GetChatBarStyle()=="text"and 2 or 6)end,
+        function(v)ns.Toolbars.Settings(key).spacing=v;refresh()end)
     Row("SectionHeader",L("Toolbar buttons"),y)
     for _,data in ipairs(ns.ChatBarButtons)do
         local field=data.key
-        Row("Toggle",L(data.title),y,
+        local row
+        row,h=W:Toggle(parent,L(data.title),y,
             function()local db=ns.Toolbars.Settings(key);return not db.buttons or db.buttons[field]~=false end,
             function(v)local db=ns.Toolbars.Settings(key);db.buttons=db.buttons or {};db.buttons[field]=v;refresh()end)
+        y=y-h
+        if EUI.BuildInlineCog and not EUI._prebuilding then
+            EUI.BuildInlineCog(row,{
+                title=L(data.title).." — "..L("Chat button colors"),minWidth=280,
+                anchorTo=row,relPoint="RIGHT",gap=70,chain=false,
+                rows={
+                    {type="colorpicker",label=L("Color block color"),
+                        get=function()return ns.GetChatButtonColor(field,"block")end,
+                        set=function(r,g,b)ns.SetChatButtonColor(field,"block",r,g,b)end},
+                    {type="colorpicker",label=L("Font color"),
+                        get=function()return ns.GetChatButtonColor(field,"text")end,
+                        set=function(r,g,b)ns.SetChatButtonColor(field,"text",r,g,b)end},
+                    {type="button",label=L("Restore default colors"),action=function()ns.ResetChatButtonColors(field)end},
+                },
+            })
+        end
     end
     Row("Button",L("Reset position"),y,function()ns.Toolbars.Settings(key).position=nil;refresh()end)
     return math.abs(y)+12
@@ -245,6 +270,10 @@ local registered = EUI.RegisterPlugin(addonName, {
                 _,h=W:Slider(parent,L("Button spacing"),y,0,16,1,
                     function()return ns.Consumables.Settings().spacing or 2 end,
                     function(v)ns.Consumables.Settings().spacing=v;ns.RefreshConsumables()end);y=y-h
+                _,h=W:Dropdown(parent,L("Bar growth direction"),y,
+                    {CENTER=L("Grow centered"),LEFT=L("Grow left"),RIGHT=L("Grow right")},
+                    function()return ns.Toolbars.Growth(ns.Consumables.Settings())end,ns.Consumables.SetGrowth,
+                    {"CENTER","LEFT","RIGHT"});y=y-h
                 local orderRow
                 orderRow,h=W:DualRow(parent,y,{type="label",text=L("Categories and order")},nil);y=y-h
                 if EUI.BuildReorderCBDropdown then
@@ -298,6 +327,10 @@ local registered = EUI.RegisterPlugin(addonName, {
                 _,h=W:Slider(parent,L("Buttons per row"),y,1,#ns.MageCategories,1,
                     function()return ns.GetMageSettings().perRow or #ns.MageCategories end,
                     function(value)ns.GetMageSettings().perRow=value;ns.RefreshMageBar()end);y=y-h
+                _,h=W:Dropdown(parent,L("Bar growth direction"),y,
+                    {CENTER=L("Grow centered"),LEFT=L("Grow left"),RIGHT=L("Grow right")},
+                    function()return ns.Toolbars.Growth(ns.GetMageSettings())end,ns.SetMageGrowth,
+                    {"CENTER","LEFT","RIGHT"});y=y-h
                 _, h = W:Dropdown(parent, L("Expansion direction"), y,
                     { AUTO=L("Automatic"), UP=L("Up"), DOWN=L("Down"), LEFT=L("Left"), RIGHT=L("Right") },
                     ns.GetMageDirection,

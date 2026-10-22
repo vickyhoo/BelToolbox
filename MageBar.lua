@@ -12,6 +12,10 @@ local function Settings()
     return db.mage
 end
 ns.GetMageSettings = Settings
+function ns.SetMageGrowth(value)
+    if root then ns.Toolbars.SetGrowth(root,Settings(),value,ns.RefreshMageBar)
+    else Settings().growth=value end
+end
 function ns.GetMageDirection()
     local db = Settings()
     if db.direction == "AUTO" or db.direction == "UP" or db.direction == "DOWN" or db.direction == "LEFT" or db.direction == "RIGHT" then return db.direction end
@@ -305,9 +309,8 @@ function ns.RefreshMageBar(rescanSpells)
     -- unresolved while a dropdown or slider is changing the layout.
     ApplyPosition(true)
     for index,group in ipairs(visible)do
-        local column,row=(index-1)%perRow,math.floor((index-1)/perRow)
         group.main:SetSize(size,size)
-        SetAnchor(group.main,"TOPLEFT",root,"TOPLEFT",column*(size+gap),-row*(size+gap))
+        ns.Toolbars.AnchorBarButton(group.main,root,db,index,visibleGroups,perRow,size,gap,SetAnchor)
         group.main:Show()
     end
     UpdateCounts()
@@ -325,12 +328,15 @@ function ns.RefreshMageBar(rescanSpells)
             local size,gap=ns.GetMageSize(),ns.GetMageSpacing()
             local perRow=math.max(1,math.min(#categories,math.floor(tonumber(current.perRow)or #categories)))
             local byKey={};for _,group in ipairs(groups)do byKey[group.data.key]=group end
+            local count=0
+            for _,group in ipairs(groups)do
+                if group.main.activeSpell and(not current.categories or current.categories[group.data.key]~=false)then count=count+1 end
+            end
             for _,data in ipairs(ns.GetMageOrder())do
                 local group=byKey[data.key]
                 if group.main.activeSpell and(not current.categories or current.categories[data.key]~=false)then
                     if not group.main:GetLeft()or not group.main:GetBottom()then
-                        group.main:ClearAllPoints()
-                        group.main:SetPoint("TOPLEFT",root,"TOPLEFT",(index%perRow)*(size+gap),-math.floor(index/perRow)*(size+gap))
+                        ns.Toolbars.AnchorBarButton(group.main,root,current,index+1,count,perRow,size,gap)
                         group.main:Show();PositionGroup(group)
                     end
                     index=index+1
@@ -339,13 +345,15 @@ function ns.RefreshMageBar(rescanSpells)
         end)
     end
     RegisterMageUnlock()
+    ns.Toolbars.RegisterBarEditor(root,"mage","Mage Bar",Settings,ns.RefreshMageBar,ns.GetMageSize,ns.GetMageSpacing,"perRow",#categories)
 end
 local unlockRegistered
 RegisterMageUnlock=function()
     local EUI=_G.EllesmereUI
     if unlockRegistered or not root or not EUI or not EUI.MakeUnlockElement or not EUI.RegisterUnlockElements then return end
+    root.belMoverKey="BelToolboxMageBar"
     local element=EUI.MakeUnlockElement({
-        key="BelToolboxMageBar",label=L("Mage Bar"),group=L("Bel Toolbox"),order=950,
+        key=root.belMoverKey,label=L("Mage Bar"),group=L("Bel Toolbox"),order=950,
         noResize=true,ownsPosition=true,noAnchorTarget=true,noAnchorTo=true,noSizeMatchTarget=true,
         getFrame=function()return root end,
         getSize=function()return root:GetWidth(),root:GetHeight()end,

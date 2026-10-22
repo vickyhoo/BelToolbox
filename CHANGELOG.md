@@ -1,3 +1,60 @@
+# Bel Toolbox 0.19.16
+
+- Added text, color-block and color-block-with-label styles for the chat bar, with configurable block width and spacing. Existing settings retain text mode by default.
+- Added native EUI color-setting cogs for each chat button: independent block and font colors, immediate preview and restore defaults. Default colors follow channel settings without changing chat itself.
+- Added centered, left and right main-bar growth for Mage and Consumables bars, independently of flyout expansion. Incomplete rows align to the selected direction.
+- Added hover-only layout controls inside native EUI movers for button size, spacing, buttons per row and growth. Each link opens its corresponding setting; narrow movers show one combined Bar settings entry.
+- Improved mover identification, control placement and rendering layers. Fixed clicked links becoming faded after closing settings popups.
+- Unlock edits support Save/Discard and hide during combat. Added /belbareditdebug for in-game diagnostics.
+
+# Bel Toolbox 0.19.16-dev
+
+- Unlock action links now open only their corresponding size, spacing, row-count or growth control. The compact Bar settings entry still exposes all controls.
+- Disabled EUI's cog-owner dimming for these text links so clicking/closing settings does not leave them faded. Separate compact/single-control popup caches preserve the correct contents after mover width changes.
+
+# Bel Toolbox 0.19.15-dev
+
+- Fixed the confirmed Consumables editor lookup mismatch: its registered key is BelToolboxconsumables, not BelToolboxConsumables. Editor discovery now reads the exact key saved by mover registration instead of maintaining a separate spelling.
+- Mage registration shares the same key handoff. Diagnostics include the expected key; regression coverage uses the actual shared registration path.
+
+# Bel Toolbox 0.19.14-dev
+
+- Discover Mage/Consumables movers from the native EllesmereUnlockMode host as well as mouse focus, so overlaid mouse focus cannot prevent editor attachment.
+- Added read-only /belbareditdebug diagnostics: session state, watcher ticks, visibility gate, captured runtime error and root/mover/control geometry and layers. Live client diagnostics are needed if controls remain invisible.
+
+# Bel Toolbox 0.19.13-dev
+
+- Fixed Mage/Consumables unlock controls being covered by the native mover's opaque background. Parent the action row directly to its EUI mover and keep it above the mover's frame level, including hover/selection raises.
+- Keep the compact bounds-aware layout, native settings popups and Unlock Mode save/discard behavior.
+
+# Bel Toolbox 0.19.12-dev
+
+- Fixed unlock quick-edit links extending outside native EUI mover borders. Size the action row from the mover's actual bounds and use short labels; narrow movers show a single Bar settings entry with all controls.
+- Removed writes to EUI's private hover-size cache. Native mover sizing and animation remain under EUI's control.
+
+# Bel Toolbox 0.19.11-dev
+
+- Added native EUI inline color-setting cogs beside individual chat button toggles: independent block and font colors, live preview and restore defaults. Defaults continue to follow channel colors without changing chat's own settings.
+- Replaced the separate Mage/Consumables editor box with compact action links inside the native mover's hover area. EUI retains the background, centered name, coordinate readout and position cog; layout controls open native EUI settings popups.
+- Preserved hover-only visibility, combat suppression and Unlock Mode save/discard behavior.
+
+# Bel Toolbox 0.19.10-dev
+
+- Mage and Consumables quick-edit controls now appear only while hovering their bar or native EUI mover in Unlock Mode. Short enter/leave delays keep controls usable while crossing to the editor or growth menu.
+- Controls hide when the pointer leaves, the bar hides, combat begins or Unlock Mode closes. Hover checks run only during Unlock Mode.
+
+# Bel Toolbox 0.19.9-dev
+
+- Added quick-edit panels beside Mage and Consumables bars during EUI Unlock Mode: button size, spacing, buttons per row and centered/left/right growth. Discard restores layout settings; combat hides the controls.
+- Added main-bar growth direction settings independently of flyout expansion. Explicit growth changes preserve the current screen rectangle and pin future resizing to the selected edge or center; incomplete rows align to that direction.
+- Existing bars retain their layout until growth is changed. Consumable root positioning now runs before child placement.
+
+# Bel Toolbox 0.19.8-dev
+
+- Added text, color-block and color-block-with-label styles for the chat bar. Existing settings retain text mode by default.
+- Color blocks use configured chat channel colors, with channel names and shortcuts available on hover. Click actions remain unchanged.
+- Added adjustable color-block width and button spacing; both horizontal and vertical layouts support the new styles.
+
 # Bel Toolbox 0.19.7
 
 - Added Mage Bar category visibility and drag sorting, buttons per row, 18–64 button sizes and 0–16 spacing. Zero spacing removes icon gaps.
