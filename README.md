@@ -2,7 +2,7 @@
 
 贝尔工具箱 · Quality-of-life extensions for **EllesmereUI on WoW Forever**.
 
-Author: **Bel** · License: **MIT** · Current version: **0.19.6-dev**
+Author: **Bel** · License: **MIT** · Current version: **0.19.7-dev**
 
 消耗品条：在 EUI → 贝尔工具箱 → 消耗品条开启（默认关闭）。鼠标移入展开，左键使用，展开项右键设为当前选项；支持食物、饮水、红药、蓝药、治疗石、法力宝石、绷带、合剂、药剂、抗性药水。空类别保留灰色按钮以保持位置稳定。未知或增益食物需手动指定，已知普通食物与魔法制造食物可自动选择。战斗中不根据背包变化自动切换物品，脱战后更新。位置使用 EUI 解锁模式；按键使用 EUI 快速键位绑定模式（/kb），并在原窗口保存或取消。
 
@@ -66,7 +66,7 @@ Settings are in **EUI → Bel Toolbox**, or enter `/bel` / `/beltoolbox`.
 
 ## Diagnostics and verification
 
-- /belmagedebug: read-only Mage Bar visibility, icon, geometry and cached/live spell-count diagnostics. Run while a button appears missing; no settings or frames are changed.
+- /belmagedebug: read-only Mage Bar visibility, icon, geometry and cached/live spell-count and anchor diagnostics. Run while a button appears missing; no settings or frames are changed.
 
 - `/belchatdebug on`, `/belchatdebug`, `/belchatdebug off`: opt-in chat-copy color diagnostics. Open the copy window with enhancements on and off, then dump the last four snapshots. Reports color tokens and player-link labels without message bodies; nothing is saved or polled.
 - `/belmerchantdebug`: one-shot native/override amount text, font, geometry and visibility diagnostics while Bulk Buy is open. Read-only; no purchases or rendering changes.

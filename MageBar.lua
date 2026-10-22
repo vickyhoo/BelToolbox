@@ -1,7 +1,7 @@
 local _, ns = ...
 local L = ns.L
 local _, class = UnitClass("player")
-local root, dirty, pendingRescan
+local root, dirty, pendingRescan, geometryQueued
 local SavePosition
 local RegisterMageUnlock
 local PositionGroup
@@ -214,16 +214,24 @@ PositionGroup=function(group)
     local edges={UP="TOP",DOWN="BOTTOM",LEFT="LEFT",RIGHT="RIGHT"}
     main.arrow:ClearAllPoints();main.arrow:SetPoint("CENTER",main,edges[direction],0,0);main.arrow:SetRotation(rotations[direction])
 end
-local function ApplyPosition()
+local function SetAnchor(frame,point,relative,relativePoint,x,y)
+    local count=frame:GetNumPoints()
+    local oldPoint,oldRelative,oldRelativePoint,oldX,oldY=frame:GetPoint(1)
+    if count==1 and oldPoint==point and oldRelative==relative and oldRelativePoint==relativePoint
+        and math.abs((oldX or 0)-x)<.01 and math.abs((oldY or 0)-y)<.01 and frame:GetLeft()and frame:GetBottom()then return end
+    -- Updating the same anchor does not need an intermediate unanchored frame.
+    if count>1 or count==1 and(oldPoint~=point or oldRelative~=relative or oldRelativePoint~=relativePoint)then frame:ClearAllPoints()end
+    frame:SetPoint(point,relative,relativePoint,x,y)
+end
+local function ApplyPosition(skipFlyouts)
     if not root or InCombatLockdown() then return end
     local db=Settings()
-    root:ClearAllPoints()
     if db.position then
         local p=db.position
-        root:SetPoint(p.point,UIParent,p.relPoint,p.x,p.y)
-    elseif db.x and db.y then root:SetPoint("BOTTOMLEFT",UIParent,"BOTTOMLEFT",db.x,db.y)
-    else root:SetPoint("CENTER",UIParent,"CENTER",0,-160)end
-    for _,group in ipairs(groups)do PositionGroup(group)end
+        SetAnchor(root,p.point,UIParent,p.relPoint,p.x,p.y)
+    elseif db.x and db.y then SetAnchor(root,"BOTTOMLEFT",UIParent,"BOTTOMLEFT",db.x,db.y)
+    else SetAnchor(root,"CENTER",UIParent,"CENTER",0,-160)end
+    if skipFlyouts~=true then for _,group in ipairs(groups)do PositionGroup(group)end end
 end
 SavePosition = function()
     root:StopMovingOrSizing()
@@ -285,21 +293,51 @@ function ns.RefreshMageBar(rescanSpells)
             if texture then group.main.icon:SetTexture(texture)end
         end
         local shown=activeSpell~=nil and(not db.categories or db.categories[data.key]~=false)
-        group.main:SetShown(shown)
+        if not shown then group.main:Hide()end
         if shown then visible[#visible+1]=group end
     end
     local visibleGroups=#visible
     local columns=math.max(1,math.min(perRow,visibleGroups))
     local rows=math.max(1,math.ceil(visibleGroups/perRow))
     root:SetSize(columns*(size+gap)-gap,rows*(size+gap)-gap)
+    -- Resolve the parent before placing or showing its secure child buttons.
+    -- Re-anchoring the clamped root after its children can leave their geometry
+    -- unresolved while a dropdown or slider is changing the layout.
+    ApplyPosition(true)
     for index,group in ipairs(visible)do
         local column,row=(index-1)%perRow,math.floor((index-1)/perRow)
-        group.main:SetSize(size,size);group.main:ClearAllPoints()
-        group.main:SetPoint("TOPLEFT",root,"TOPLEFT",column*(size+gap),-row*(size+gap))
+        group.main:SetSize(size,size)
+        SetAnchor(group.main,"TOPLEFT",root,"TOPLEFT",column*(size+gap),-row*(size+gap))
+        group.main:Show()
     end
-    ApplyPosition()
     UpdateCounts()
     root:SetShown(db.enabled ~= false and visibleGroups>0)
+    for _,group in ipairs(groups)do PositionGroup(group)end
+    -- One deferred check per burst, not a polling loop. Only repair categories
+    -- which are enabled and still have learned spells but no resolved position.
+    if not geometryQueued then
+        geometryQueued=true
+        C_Timer.After(0,function()
+            geometryQueued=nil
+            if InCombatLockdown()then dirty=true;return end
+            if not root:IsShown()then return end
+            local current=Settings();local index=0
+            local size,gap=ns.GetMageSize(),ns.GetMageSpacing()
+            local perRow=math.max(1,math.min(#categories,math.floor(tonumber(current.perRow)or #categories)))
+            local byKey={};for _,group in ipairs(groups)do byKey[group.data.key]=group end
+            for _,data in ipairs(ns.GetMageOrder())do
+                local group=byKey[data.key]
+                if group.main.activeSpell and(not current.categories or current.categories[data.key]~=false)then
+                    if not group.main:GetLeft()or not group.main:GetBottom()then
+                        group.main:ClearAllPoints()
+                        group.main:SetPoint("TOPLEFT",root,"TOPLEFT",(index%perRow)*(size+gap),-math.floor(index/perRow)*(size+gap))
+                        group.main:Show();PositionGroup(group)
+                    end
+                    index=index+1
+                end
+            end
+        end)
+    end
     RegisterMageUnlock()
 end
 local unlockRegistered
@@ -358,11 +396,20 @@ if _G.SlashCmdList then
             return ok and tostring(value)or "?"
         end
         local prefix=L("Bel Toolbox")..": "
+        local function Anchors(frame)
+            if not frame then return end
+            for i=1,frame:GetNumPoints()do
+                local point,relative,relativePoint,x,y=frame:GetPoint(i)
+                local name=relative and relative.GetName and relative:GetName()
+                print(prefix.."anchor"..i.."="..tostring(point)..","..tostring(name or relative)..","..tostring(relativePoint)..","..tostring(x)..","..tostring(y))
+            end
+        end
         local db=Settings()
         print(prefix.."mage debug: enabled="..tostring(db.enabled~=false).." size="..ns.GetMageSize().." spacing="..ns.GetMageSpacing()
             .." perRow="..tostring(db.perRow or #categories).." direction="..ns.GetMageDirection())
         print(prefix.."root shown="..Value(root,"IsShown").." visible="..Value(root,"IsVisible").." alpha="..Value(root,"GetAlpha")
             .." width="..Value(root,"GetWidth").." height="..Value(root,"GetHeight").." left="..Value(root,"GetLeft").." bottom="..Value(root,"GetBottom"))
+        Anchors(root)
         for _,group in ipairs(groups)do
             local live=0
             for _,id in ipairs(group.data.spells)do local ok,value=pcall(Known,id);if ok and value then live=live+1 end end
@@ -371,6 +418,7 @@ if _G.SlashCmdList then
                 .." active="..tostring(main.activeSpell).." icon="..Value(main.icon,"GetTexture").." cached="..tostring(#(group.visibleSpells or {}))
                 .." live="..live.." checked="..tostring(not db.categories or db.categories[group.data.key]~=false)
                 .." left="..Value(main,"GetLeft").." bottom="..Value(main,"GetBottom").." direction="..tostring(main.flyoutDirection))
+            Anchors(main)
         end
     end
 end

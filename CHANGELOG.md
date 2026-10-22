@@ -1,3 +1,10 @@
+# Bel Toolbox 0.19.7-dev
+
+- Addressed Mage Bar buttons reporting shown/visible with nil screen coordinates after category toggles. Position the clamped root before anchoring/showing its buttons, and avoid clearing valid, unchanged anchors during layout updates.
+- Add a single deferred geometry check per refresh burst to repair enabled, learned categories with unresolved positions. No continuous polling; combat changes remain deferred.
+- Expanded /belmagedebug with root/button anchor tuples to diagnose any remaining client-specific layout issue.
+- Simulated all 32 category visibility combinations across repeated sweeps, the reported two-button state, missing geometry recovery and parent position changes.
+
 # Bel Toolbox 0.19.6-dev
 
 - Separated Mage Bar layout changes from spellbook scans: adjusting size, spacing, row count or category order reuses the last known spell list rather than hiding/rebuilding spells at every slider tick.
