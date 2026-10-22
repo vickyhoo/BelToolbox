@@ -18,10 +18,18 @@ local function BuildToolbarPage(parent,yOffset,key,title,refresh)
     end
     Row("SectionHeader",L(title),y)
     Toggle("enabled","Enable chat bar",true)
+    Row("Dropdown",L("Chat bar style"),y,{text=L("Text"),blocks=L("Color blocks"),labeled=L("Color blocks with labels")},
+        ns.GetChatBarStyle,function(v)ns.Toolbars.Settings(key).style=v;refresh()end,{"text","blocks","labeled"})
     Row("Dropdown",L("Button size"),y,{[18]="18",[22]="22",[26]="26",[30]="30"},
         function()return ns.Toolbars.Size(key)end,
         function(v)ns.Toolbars.Settings(key).size=v;refresh()end,{18,22,26,30})
     Toggle("vertical","Vertical layout",false)
+    Row("Slider",L("Color block width"),y,24,100,1,
+        function()return ns.Toolbars.Settings(key).blockWidth or 48 end,
+        function(v)ns.Toolbars.Settings(key).blockWidth=v;refresh()end)
+    Row("Slider",L("Button spacing"),y,0,16,1,
+        function()local db=ns.Toolbars.Settings(key);return db.spacing or(ns.GetChatBarStyle()=="text"and 2 or 6)end,
+        function(v)ns.Toolbars.Settings(key).spacing=v;refresh()end)
     Row("SectionHeader",L("Toolbar buttons"),y)
     for _,data in ipairs(ns.ChatBarButtons)do
         local field=data.key

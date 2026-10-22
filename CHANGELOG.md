@@ -1,3 +1,9 @@
+# Bel Toolbox 0.19.8-dev
+
+- Added text, color-block and color-block-with-label styles for the chat bar. Existing settings retain text mode by default.
+- Color blocks use configured chat channel colors, with channel names and shortcuts available on hover. Click actions remain unchanged.
+- Added adjustable color-block width and button spacing; both horizontal and vertical layouts support the new styles.
+
 # Bel Toolbox 0.19.7
 
 - Added Mage Bar category visibility and drag sorting, buttons per row, 18–64 button sizes and 0–16 spacing. Zero spacing removes icon gaps.

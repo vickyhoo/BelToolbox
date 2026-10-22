@@ -85,6 +85,57 @@ local function Channel(key,right)
     else print(L("Bel Toolbox")..": "..L("You are not in %s. Right-click to join.",name))end
 end
 ns.FindChatChannel=FindChannel
+local chatTypes={say="SAY",yell="YELL",guild="GUILD",party="PARTY",raid="RAID"}
+local function Color(data)
+    local key=chatTypes[data.key]
+    if data.channel then
+        local id=FindChannel(data.channel)
+        if id then key="CHANNEL"..id end
+    end
+    local info=key and ChatTypeInfo and ChatTypeInfo[key]
+    if info and info.r and info.g and info.b then return info.r,info.g,info.b end
+    return unpack(data.color or {.8,.65,.45})
+end
+function ns.GetChatBarStyle()
+    local style=Settings().style
+    return(style=="blocks"or style=="labeled")and style or "text"
+end
+local function Style(button,data)
+    local style=ns.GetChatBarStyle()
+    local colored=style~="text"
+    local r,g,b=Color(data)
+    if not button.block then
+        button.border=button:CreateTexture(nil,"BACKGROUND")
+        button.border:SetAllPoints()
+        button.border:SetColorTexture(0,0,0,.9)
+        button.block=button:CreateTexture(nil,"ARTWORK")
+        button.block:SetPoint("TOPLEFT",1,-1);button.block:SetPoint("BOTTOMRIGHT",-1,1)
+        button.shine=button:CreateTexture(nil,"ARTWORK",nil,1)
+        button.shine:SetPoint("TOPLEFT",1,-1);button.shine:SetPoint("TOPRIGHT",-1,-1)
+        button.shine:SetColorTexture(1,1,1,.16)
+    end
+    button.block:SetColorTexture(r,g,b,1)
+    button.border:SetShown(colored);button.block:SetShown(colored);button.shine:SetShown(colored)
+    button.label:SetShown(style~="blocks")
+    if colored then button.label:SetTextColor(1,1,1)else button.label:SetTextColor(r,g,b)end
+end
+local function Layout(visible)
+    local db=Settings();local style=ns.GetChatBarStyle();local size=T.Size("chatBar")
+    local colored=style~="text"
+    local width=colored and math.max(24,math.min(100,tonumber(db.blockWidth)or 48))or size
+    local height=style=="blocks"and math.max(10,math.floor(size*.6))or size
+    local gap=math.max(0,math.min(16,tonumber(db.spacing)or(colored and 6 or 2)))
+    local vertical=db.vertical==true;local offset=0
+    for _,button in ipairs(visible)do
+        button:ClearAllPoints();button:SetSize(width,height)
+        button.label:SetFont(STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF",math.max(12,size-6),"OUTLINE")
+        button.shine:SetHeight(math.max(2,math.floor(height*.35)))
+        if vertical then button:SetPoint("TOPLEFT",root,"TOPLEFT",0,-offset)
+        else button:SetPoint("TOPLEFT",root,"TOPLEFT",offset,0)end
+        offset=offset+(vertical and height or width)+gap;button:Show()
+    end
+    root:SetSize(vertical and width or math.max(width,offset-gap),vertical and math.max(height,offset-gap)or height)
+end
 local function DefaultPosition()
     local chat=ChatFrame1
     if chat and chat:GetLeft()and chat:GetTop()then
@@ -120,15 +171,16 @@ function ns.RefreshChatBar()
                 if d.channel then Channel(d.channel,right)else Open(right and d.right or d.chat)end
             end
             local tip=d.channel and "Left-click: chat. Right-click: join or leave this channel."or d.tip
-            visible[#visible+1]=Button(d.key,L(d.title),L(d.label),d.color,action,tip)
+            local button=Button(d.key,L(d.title),L(d.label),d.color,action,tip)
+            Style(button,d);visible[#visible+1]=button
         end
     end
-    T.Layout(root,visible,"chatBar");T.Position(root,"chatBar",DefaultPosition)
+    Layout(visible);T.Position(root,"chatBar",DefaultPosition)
     root:SetShown(db.enabled~=false);root.RegisterBelMover()
 
 end
 local events=CreateFrame("Frame")
-for _,event in ipairs({"PLAYER_LOGIN","PLAYER_ENTERING_WORLD","GROUP_ROSTER_UPDATE","CHANNEL_UI_UPDATE","CHAT_MSG_CHANNEL_NOTICE","PLAYER_REGEN_ENABLED"})do events:RegisterEvent(event)end
+for _,event in ipairs({"PLAYER_LOGIN","PLAYER_ENTERING_WORLD","GROUP_ROSTER_UPDATE","CHANNEL_UI_UPDATE","CHAT_MSG_CHANNEL_NOTICE","UPDATE_CHAT_COLOR","PLAYER_REGEN_ENABLED"})do events:RegisterEvent(event)end
 local queued
 -- Channel notices can arrive in bursts; refresh the toolbar once per frame.
 events:SetScript("OnEvent",function()
