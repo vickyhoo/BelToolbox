@@ -1,9 +1,10 @@
 local _, ns = ...
 local L = ns.L
 local _, class = UnitClass("player")
-local root, dirty
+local root, dirty, pendingRescan, geometryQueued
 local SavePosition
 local RegisterMageUnlock
+local PositionGroup
 local groups = {}
 local function Settings()
     local db = ns.GetSettings()
@@ -13,9 +14,14 @@ end
 ns.GetMageSettings = Settings
 function ns.GetMageDirection()
     local db = Settings()
-    if db.direction == "UP" or db.direction == "DOWN" or db.direction == "LEFT" or db.direction == "RIGHT" then return db.direction end
-    return db.horizontal and (db.reverse and "LEFT" or "RIGHT") or (db.reverse and "DOWN" or "UP")
+    if db.direction == "AUTO" or db.direction == "UP" or db.direction == "DOWN" or db.direction == "LEFT" or db.direction == "RIGHT" then return db.direction end
+    if db.horizontal~=nil or db.reverse~=nil then
+        return db.horizontal and (db.reverse and "LEFT" or "RIGHT") or (db.reverse and "DOWN" or "UP")
+    end
+    return "AUTO"
 end
+function ns.GetMageSize()local db=Settings();return math.max(18,math.min(64,tonumber(db.size)or(db.large and 40 or 32)))end
+function ns.GetMageSpacing()return math.max(0,math.min(16,tonumber(Settings().spacing)or 4))end
 local categories = {
     { key="teleport", label="Teleports", rune=17031, icon=135744,
       spells={3561,3562,3565,3567,3563,3566,32271,32272,33690,35715,49359,49358,53140} },
@@ -25,6 +31,20 @@ local categories = {
 categories[#categories+1] = { key="gem", label="Mana Gems", icon=134132, highest=true, spells={759,3552,10053,10054,27101} }
 categories[#categories+1] = { key="water", label="Conjure Water", icon=132794, highest=true, spells={5504,5505,5506,6127,10138,10139,10140,37420,27090} }
 categories[#categories+1] = { key="food", label="Conjure Food", icon=133968, highest=true, spells={587,597,990,6129,10144,10145,28612,33717} }
+ns.MageCategories=categories
+function ns.GetMageOrder()
+    local result,seen={},{}
+    local byKey={};for _,data in ipairs(categories)do byKey[data.key]=data end
+    for _,key in ipairs(Settings().order or {})do
+        if byKey[key]and not seen[key]then result[#result+1]=byKey[key];seen[key]=true end
+    end
+    for _,data in ipairs(categories)do if not seen[data.key]then result[#result+1]=data end end
+    return result
+end
+function ns.SetMageOrder(keys)
+    local order={};for index,key in ipairs(keys)do order[index]=key end
+    Settings().order=order;ns.RefreshMageBar()
+end
 local function Known(id)
     if C_SpellBook and C_SpellBook.IsSpellKnown then return C_SpellBook.IsSpellKnown(id) end
     return IsSpellKnown and IsSpellKnown(id)
@@ -54,7 +74,7 @@ local function Style(button, icon)
     background:SetAllPoints(); background:SetColorTexture(0.12, 0.14, 0.17, 1)
     button:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
     button.icon = button:CreateTexture(nil, "ARTWORK")
-    button.icon:SetPoint("TOPLEFT", 1, -1); button.icon:SetPoint("BOTTOMRIGHT", -1, 1)
+    button.icon:SetAllPoints()
     button.icon:SetTexture(icon)
     button.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     button.count = button:CreateFontString(nil, "OVERLAY", "NumberFontNormalSmall")
@@ -73,7 +93,8 @@ local function MakeGroup(index, data)
     arrow:SetVertexColor(1, 0.82, 0)
     main.arrow = arrow
     local popup = CreateFrame("Frame", nil, main, "SecureHandlerEnterLeaveTemplate")
-    popup:SetFrameStrata("DIALOG"); popup:EnableMouse(true); popup:Hide()
+    popup:SetFrameStrata("DIALOG"); popup:SetClampedToScreen(true);popup:EnableMouse(true); popup:Hide()
+    main.flyout=popup
     main:SetFrameRef("flyout", popup)
     popup:SetFrameRef("main", main)
     popup:SetFrameRef("flyout", popup)
@@ -94,6 +115,7 @@ local function MakeGroup(index, data)
     main:SetAttribute("_onleave", leave)
     popup:SetAttribute("_onleave", leave)
     main:HookScript("OnEnter", function(self)
+        if PositionGroup and groups[index]then PositionGroup(groups[index])end
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         if self.activeSpell then GameTooltip:SetSpellByID(self.activeSpell) else GameTooltip:SetText(L(data.label)) end
         if data.rune then
@@ -101,7 +123,7 @@ local function MakeGroup(index, data)
             GameTooltip:AddLine(L("Reagents: %s", count == nil and "?" or tostring(count)), 1, 1, 1)
         end
         GameTooltip:AddLine(L("Hover to expand. Click to cast. Shift-drag to move."), 0.7, 0.7, 0.7, true)
-        GameTooltip:Show()
+        if ns.ConsumableFlyouts then ns.ConsumableFlyouts.ShowTooltip(self)else GameTooltip:Show()end
     end)
     main:HookScript("OnLeave", function() GameTooltip:Hide() end)
     local function EnableDrag(button)
@@ -130,8 +152,10 @@ local function MakeGroup(index, data)
         Style(button, C_Spell.GetSpellTexture(id))
         button:SetAttribute("type", "spell"); button:SetAttribute("spell", SpellBinding(id))
         button:HookScript("OnEnter", function(self)
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT"); GameTooltip:SetSpellByID(id); GameTooltip:Show()
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT"); GameTooltip:SetSpellByID(id)
+            if ns.ConsumableFlyouts then ns.ConsumableFlyouts.ShowTooltip(self)else GameTooltip:Show()end
         end)
+        button.belMain=main
         button:HookScript("OnLeave", function() GameTooltip:Hide() end)
         main:WrapScript(button, "OnClick", "return nil, true", [[
             if not IsShiftKeyDown() then
@@ -150,15 +174,64 @@ local function MakeGroup(index, data)
     end
     groups[index] = group
 end
-local function ApplyPosition()
+PositionGroup=function(group)
+    if InCombatLockdown()or not group.visibleButtons then return end
+    local size,gap=ns.GetMageSize(),ns.GetMageSpacing()
+    local count=#group.visibleButtons
+    if count==0 then return end
+    local direction=ns.GetMageDirection()
+    local columns,rows
+    if direction=="AUTO"then
+        local main=group.main
+        local left,bottom=main:GetLeft(),main:GetBottom()
+        if not left or not bottom then return end
+        local scale=main:GetEffectiveScale()/UIParent:GetEffectiveScale()
+        local geometry=ns.ConsumableFlyouts and ns.ConsumableFlyouts.Geometry
+        if geometry then
+            direction,columns,rows=geometry(left,left+size,bottom,bottom+size,UIParent:GetWidth()/scale,UIParent:GetHeight()/scale,count,size,gap)
+        else direction="UP"end
+    end
+    local horizontal=direction=="LEFT"or direction=="RIGHT"
+    columns=columns or(horizontal and count or 1);rows=rows or(horizontal and 1 or count)
+    local popup,main=group.popup,group.main
+    popup:ClearAllPoints()
+    if direction=="UP"then popup:SetPoint("BOTTOMLEFT",main,"TOPLEFT",0,0)
+    elseif direction=="DOWN"then popup:SetPoint("TOPLEFT",main,"BOTTOMLEFT",0,0)
+    elseif direction=="LEFT"then popup:SetPoint("TOPRIGHT",main,"TOPLEFT",0,0)
+    else popup:SetPoint("TOPLEFT",main,"TOPRIGHT",0,0)end
+    popup:SetSize(columns*(size+gap)-gap,rows*(size+gap)-gap)
+    for index,button in ipairs(group.visibleButtons)do
+        local column,row
+        if horizontal then column=(index-1)%columns;row=math.floor((index-1)/columns)
+        else column=math.floor((index-1)/rows);row=(index-1)%rows end
+        button:ClearAllPoints();button:SetSize(size,size)
+        if direction=="UP"then button:SetPoint("BOTTOMLEFT",popup,"BOTTOMLEFT",column*(size+gap),row*(size+gap))
+        elseif direction=="LEFT"then button:SetPoint("TOPRIGHT",popup,"TOPRIGHT",-column*(size+gap),-row*(size+gap))
+        else button:SetPoint("TOPLEFT",popup,"TOPLEFT",column*(size+gap),-row*(size+gap))end
+    end
+    main.flyoutDirection=direction
+    local rotations={UP=0,DOWN=math.pi,LEFT=math.pi/2,RIGHT=-math.pi/2}
+    local edges={UP="TOP",DOWN="BOTTOM",LEFT="LEFT",RIGHT="RIGHT"}
+    main.arrow:ClearAllPoints();main.arrow:SetPoint("CENTER",main,edges[direction],0,0);main.arrow:SetRotation(rotations[direction])
+end
+local function SetAnchor(frame,point,relative,relativePoint,x,y)
+    local count=frame:GetNumPoints()
+    local oldPoint,oldRelative,oldRelativePoint,oldX,oldY=frame:GetPoint(1)
+    if count==1 and oldPoint==point and oldRelative==relative and oldRelativePoint==relativePoint
+        and math.abs((oldX or 0)-x)<.01 and math.abs((oldY or 0)-y)<.01 and frame:GetLeft()and frame:GetBottom()then return end
+    -- Updating the same anchor does not need an intermediate unanchored frame.
+    if count>1 or count==1 and(oldPoint~=point or oldRelative~=relative or oldRelativePoint~=relativePoint)then frame:ClearAllPoints()end
+    frame:SetPoint(point,relative,relativePoint,x,y)
+end
+local function ApplyPosition(skipFlyouts)
     if not root or InCombatLockdown() then return end
     local db=Settings()
-    root:ClearAllPoints()
     if db.position then
         local p=db.position
-        root:SetPoint(p.point,UIParent,p.relPoint,p.x,p.y)
-    elseif db.x and db.y then root:SetPoint("BOTTOMLEFT",UIParent,"BOTTOMLEFT",db.x,db.y)
-    else root:SetPoint("CENTER",UIParent,"CENTER",0,-160)end
+        SetAnchor(root,p.point,UIParent,p.relPoint,p.x,p.y)
+    elseif db.x and db.y then SetAnchor(root,"BOTTOMLEFT",UIParent,"BOTTOMLEFT",db.x,db.y)
+    else SetAnchor(root,"CENTER",UIParent,"CENTER",0,-160)end
+    if skipFlyouts~=true then for _,group in ipairs(groups)do PositionGroup(group)end end
 end
 SavePosition = function()
     root:StopMovingOrSizing()
@@ -166,68 +239,105 @@ SavePosition = function()
     local scale = root:GetEffectiveScale() / UIParent:GetEffectiveScale()
     Settings().x = root:GetLeft() * scale
     Settings().y = root:GetBottom() * scale
+    for _,group in ipairs(groups)do PositionGroup(group)end
 end
-function ns.RefreshMageBar()
+function ns.RefreshMageBar(rescanSpells)
     if class ~= "MAGE" then return end
+    if rescanSpells then pendingRescan=true end
     if InCombatLockdown() then dirty=true; return end
+    rescanSpells=pendingRescan;pendingRescan=nil
     dirty = nil
     local db = Settings()
     if not root then
         root = CreateFrame("Frame", "BelToolboxMageBar", UIParent)
         root:SetClampedToScreen(true); root:SetMovable(true)
         for index, data in ipairs(categories) do MakeGroup(index, data) end
+        rescanSpells=true
     end
-    local size = db.large and 40 or 32
-    ApplyPosition()
-    local visibleGroups = 0
-    for index, group in ipairs(groups) do
-        group.main:SetSize(size,size); group.main:ClearAllPoints()
-        group.main:SetPoint("LEFT", root, "LEFT", visibleGroups*(size+4), 0)
-        group.popup:Hide(); group.popup:ClearAllPoints()
-        local direction = ns.GetMageDirection()
-        local horizontal = direction == "LEFT" or direction == "RIGHT"
-        local reverse = direction == "LEFT" or direction == "DOWN"
-        local arrow = group.main.arrow
-        arrow:ClearAllPoints()
-        local rotations = { UP=0, DOWN=math.pi, LEFT=math.pi/2, RIGHT=-math.pi/2 }
-        local edges = { UP="TOP", DOWN="BOTTOM", LEFT="LEFT", RIGHT="RIGHT" }
-        arrow:SetPoint("CENTER", group.main, edges[direction], 0, 0)
-        arrow:SetRotation(rotations[direction])
-        if horizontal then
-            group.popup:SetPoint(reverse and "TOPRIGHT" or "TOPLEFT", group.main, reverse and "TOPLEFT" or "TOPRIGHT", 0, 0)
-        else
-            group.popup:SetPoint(reverse and "TOPLEFT" or "BOTTOMLEFT", group.main, reverse and "BOTTOMLEFT" or "TOPLEFT", 0, 0)
-        end
-        local count = 0
-        local defaultSpell
-        local lastSpell = db.lastSpells and db.lastSpells[group.data.key]
-        local remembered
-        for i, id in ipairs(group.data.spells) do
-            local button = group.buttons[i]
-            button:Hide(); button:ClearAllPoints(); button:SetSize(size,size)
-            if Known(id) then
-                button:SetAttribute("spell", SpellBinding(id))
-                if not defaultSpell or group.data.highest then defaultSpell=id end
-                if id == lastSpell then remembered=id end
-                -- Put the 2px visual gap INSIDE the popup's mouse region so
-                -- leaving main for the first spell never closes the flyout.
-                local offset = 2+count*(size+2)
-                if horizontal then button:SetPoint(reverse and "TOPRIGHT" or "TOPLEFT",group.popup,reverse and "TOPRIGHT" or "TOPLEFT",reverse and -offset or offset,0)
-                else button:SetPoint(reverse and "TOPLEFT" or "BOTTOMLEFT",group.popup,reverse and "TOPLEFT" or "BOTTOMLEFT",0,reverse and -offset or offset) end
-                button:Show(); count=count+1
+    local size,gap=ns.GetMageSize(),ns.GetMageSpacing()
+    local perRow=math.max(1,math.min(#categories,math.floor(tonumber(db.perRow)or #categories)))
+    local byKey={};for _,group in ipairs(groups)do byKey[group.data.key]=group end
+    local visible={}
+    for _,data in ipairs(ns.GetMageOrder())do
+        local group=byKey[data.key]
+        group.popup:Hide()
+        -- Layout sliders must not re-query or rebuild the spellbook on every
+        -- tick. A transient spell-data result must not remove a category.
+        if rescanSpells or not group.visibleSpells then
+            group.visibleSpells={};group.visibleButtons={}
+            for index,id in ipairs(group.data.spells)do
+                local button=group.buttons[index]
+                local known=Known(id)
+                button:SetShown(known and true or false)
+                if known then
+                    local binding=SpellBinding(id)
+                    if button:GetAttribute("spell")~=binding then button:SetAttribute("spell",binding)end
+                    group.visibleSpells[#group.visibleSpells+1]=id
+                    group.visibleButtons[#group.visibleButtons+1]=button
+                end
             end
         end
-        group.popup:SetSize(horizontal and math.max(1,count*(size+2)) or size, horizontal and size or math.max(1,count*(size+2)))
-        local activeSpell = remembered or defaultSpell
-        group.main.activeSpell = activeSpell
-        group.main:SetAttribute("spell", activeSpell and SpellBinding(activeSpell))
-        if activeSpell then group.main.icon:SetTexture(C_Spell.GetSpellTexture(activeSpell)) end
-        group.main:SetShown(count>0)
-        if count>0 then visibleGroups=visibleGroups+1 end
+        local defaultSpell,remembered
+        local lastSpell=db.lastSpells and db.lastSpells[group.data.key]
+        for _,id in ipairs(group.visibleSpells)do
+            if not defaultSpell or group.data.highest then defaultSpell=id end
+            if id==lastSpell then remembered=id end
+        end
+        local activeSpell=remembered or defaultSpell
+        group.main.activeSpell=activeSpell
+        local binding=activeSpell and SpellBinding(activeSpell)
+        if group.main:GetAttribute("spell")~=binding then group.main:SetAttribute("spell",binding)end
+        if activeSpell then
+            local texture=C_Spell.GetSpellTexture(activeSpell)
+            -- Keep the last resolved icon if item/spell data is briefly absent.
+            if texture then group.main.icon:SetTexture(texture)end
+        end
+        local shown=activeSpell~=nil and(not db.categories or db.categories[data.key]~=false)
+        if not shown then group.main:Hide()end
+        if shown then visible[#visible+1]=group end
     end
-    root:SetSize(math.max(size, visibleGroups*(size+4)-4), size)
+    local visibleGroups=#visible
+    local columns=math.max(1,math.min(perRow,visibleGroups))
+    local rows=math.max(1,math.ceil(visibleGroups/perRow))
+    root:SetSize(columns*(size+gap)-gap,rows*(size+gap)-gap)
+    -- Resolve the parent before placing or showing its secure child buttons.
+    -- Re-anchoring the clamped root after its children can leave their geometry
+    -- unresolved while a dropdown or slider is changing the layout.
+    ApplyPosition(true)
+    for index,group in ipairs(visible)do
+        local column,row=(index-1)%perRow,math.floor((index-1)/perRow)
+        group.main:SetSize(size,size)
+        SetAnchor(group.main,"TOPLEFT",root,"TOPLEFT",column*(size+gap),-row*(size+gap))
+        group.main:Show()
+    end
     UpdateCounts()
     root:SetShown(db.enabled ~= false and visibleGroups>0)
+    for _,group in ipairs(groups)do PositionGroup(group)end
+    -- One deferred check per burst, not a polling loop. Only repair categories
+    -- which are enabled and still have learned spells but no resolved position.
+    if not geometryQueued then
+        geometryQueued=true
+        C_Timer.After(0,function()
+            geometryQueued=nil
+            if InCombatLockdown()then dirty=true;return end
+            if not root:IsShown()then return end
+            local current=Settings();local index=0
+            local size,gap=ns.GetMageSize(),ns.GetMageSpacing()
+            local perRow=math.max(1,math.min(#categories,math.floor(tonumber(current.perRow)or #categories)))
+            local byKey={};for _,group in ipairs(groups)do byKey[group.data.key]=group end
+            for _,data in ipairs(ns.GetMageOrder())do
+                local group=byKey[data.key]
+                if group.main.activeSpell and(not current.categories or current.categories[data.key]~=false)then
+                    if not group.main:GetLeft()or not group.main:GetBottom()then
+                        group.main:ClearAllPoints()
+                        group.main:SetPoint("TOPLEFT",root,"TOPLEFT",(index%perRow)*(size+gap),-math.floor(index/perRow)*(size+gap))
+                        group.main:Show();PositionGroup(group)
+                    end
+                    index=index+1
+                end
+            end
+        end)
+    end
     RegisterMageUnlock()
 end
 local unlockRegistered
@@ -274,5 +384,41 @@ events:SetScript("OnEvent",function(_,event,unit,castGUID,spellID)
         end
     elseif event=="BAG_UPDATE_DELAYED" then UpdateCounts()
     elseif event=="PLAYER_REGEN_ENABLED" then if dirty then ns.RefreshMageBar() end
-    else ns.RefreshMageBar() end
+    else ns.RefreshMageBar(true) end
 end)
+if _G.SlashCmdList then
+    SLASH_BELMAGEDEBUG1="/belmagedebug"
+    SlashCmdList.BELMAGEDEBUG=function()
+        local function Value(frame,method)
+            local fn=frame and frame[method]
+            if type(fn)~="function"then return "-"end
+            local ok,value=pcall(fn,frame)
+            return ok and tostring(value)or "?"
+        end
+        local prefix=L("Bel Toolbox")..": "
+        local function Anchors(frame)
+            if not frame then return end
+            for i=1,frame:GetNumPoints()do
+                local point,relative,relativePoint,x,y=frame:GetPoint(i)
+                local name=relative and relative.GetName and relative:GetName()
+                print(prefix.."anchor"..i.."="..tostring(point)..","..tostring(name or relative)..","..tostring(relativePoint)..","..tostring(x)..","..tostring(y))
+            end
+        end
+        local db=Settings()
+        print(prefix.."mage debug: enabled="..tostring(db.enabled~=false).." size="..ns.GetMageSize().." spacing="..ns.GetMageSpacing()
+            .." perRow="..tostring(db.perRow or #categories).." direction="..ns.GetMageDirection())
+        print(prefix.."root shown="..Value(root,"IsShown").." visible="..Value(root,"IsVisible").." alpha="..Value(root,"GetAlpha")
+            .." width="..Value(root,"GetWidth").." height="..Value(root,"GetHeight").." left="..Value(root,"GetLeft").." bottom="..Value(root,"GetBottom"))
+        Anchors(root)
+        for _,group in ipairs(groups)do
+            local live=0
+            for _,id in ipairs(group.data.spells)do local ok,value=pcall(Known,id);if ok and value then live=live+1 end end
+            local main=group.main
+            print(prefix..group.data.key.." shown="..Value(main,"IsShown").." visible="..Value(main,"IsVisible").." alpha="..Value(main,"GetAlpha")
+                .." active="..tostring(main.activeSpell).." icon="..Value(main.icon,"GetTexture").." cached="..tostring(#(group.visibleSpells or {}))
+                .." live="..live.." checked="..tostring(not db.categories or db.categories[group.data.key]~=false)
+                .." left="..Value(main,"GetLeft").." bottom="..Value(main,"GetBottom").." direction="..tostring(main.flyoutDirection))
+            Anchors(main)
+        end
+    end
+end

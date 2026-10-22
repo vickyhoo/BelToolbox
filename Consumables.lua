@@ -172,7 +172,7 @@ local function UpdateVisuals()
     end)
 end
 local function Tooltip(button)
-    GameTooltip:SetOwner(button,"ANCHOR_TOP")
+    GameTooltip:SetOwner(button,"ANCHOR_RIGHT")
     if button.itemID then GameTooltip:SetItemByID(button.itemID)else GameTooltip:SetText(L(button.category.label))end
     GameTooltip:AddLine(L("Hover to expand. Left-click an item to use it; right-click to set the default."),1,.82,.3,true)
     if button.flyout then GameTooltip:AddLine(L(button.manual and "Manual selection"or "Automatic selection"),.4,.8,1,true)end
@@ -182,7 +182,7 @@ local function Tooltip(button)
     end
     GameTooltip:AddLine(L("Bag changes update the choices after combat; existing choices remain usable."),.7,.7,.7,true)
     if button.flyout then GameTooltip:AddLine(L("Use the Auto button in the flyout to restore automatic selection."),.4,.8,1,true)end
-    GameTooltip:Show()
+    F.ShowTooltip(button)
 end
 local function Create()
     root=CreateFrame("Frame","BelToolboxConsumables",UIParent);root:SetFrameStrata("MEDIUM")
@@ -195,7 +195,7 @@ local function Create()
         button:SetAttribute("type1","item");button:SetAttribute("type2",nil)
         button.hotkey=button:CreateFontString(nil,"OVERLAY","NumberFontNormalSmall");button.hotkey:SetPoint("TOPRIGHT",-1,-1)
         button.arrow=button:CreateTexture(nil,"OVERLAY");button.arrow:SetTexture("Interface\\Buttons\\Arrow-Up-Up")
-        button.arrow:SetSize(12,12);button.arrow:SetPoint("BOTTOMLEFT",0,0);button.arrow:SetVertexColor(1,.82,0)
+        button.arrow:SetSize(14,14);button.arrow:SetVertexColor(1,.82,0)
         button:HookScript("OnEnter",Tooltip);button:HookScript("OnLeave",function()GameTooltip:Hide()end)
         ns.RegisterToolbarBinding(button,L(category.label))
     end

@@ -1,3 +1,36 @@
+# Bel Toolbox 0.19.7
+
+- Added Mage Bar category visibility and drag sorting, buttons per row, 18–64 button sizes and 0–16 spacing. Zero spacing removes icon gaps.
+- Added automatic Mage flyout direction based on available screen space while preserving manual direction, legacy settings and remembered spell ranks.
+- Improved Mage and consumable flyout tooltip placement to avoid covering expanded buttons; aligned consumable arrows with the actual expansion edge.
+- Improved Mage Bar stability when changing spacing or categories: reuse cached spells for layout updates, preserve temporarily unavailable icons, position the root before its buttons and repair unresolved button coordinates with one deferred check.
+- Layout and spell changes requested during combat are applied after combat ends. Expanded /belmagedebug diagnostics with button geometry and anchors.
+
+# Bel Toolbox 0.19.7-dev
+
+- Addressed Mage Bar buttons reporting shown/visible with nil screen coordinates after category toggles. Position the clamped root before anchoring/showing its buttons, and avoid clearing valid, unchanged anchors during layout updates.
+- Add a single deferred geometry check per refresh burst to repair enabled, learned categories with unresolved positions. No continuous polling; combat changes remain deferred.
+- Expanded /belmagedebug with root/button anchor tuples to diagnose any remaining client-specific layout issue.
+- Simulated all 32 category visibility combinations across repeated sweeps, the reported two-button state, missing geometry recovery and parent position changes.
+
+# Bel Toolbox 0.19.6-dev
+
+- Separated Mage Bar layout changes from spellbook scans: adjusting size, spacing, row count or category order reuses the last known spell list rather than hiding/rebuilding spells at every slider tick.
+- Preserve the last resolved icon if spell texture data is temporarily unavailable, and update root bounds before child layout. Deferred spell rescans survive combat.
+- Added read-only /belmagedebug output for unresolved in-game disappearance reports: visibility, alpha, icons, positions and cached/live spell counts. This targets plausible refresh causes; client verification remains necessary.
+
+# Bel Toolbox 0.19.5-dev
+
+- Added native EUI drag-reorder/category controls to Mage Bar settings, configurable buttons per row, 18–64 button sizes and 0–16 spacing. Removed icon insets so zero spacing produces touching edges.
+- Added automatic flyout direction using screen space, preserving explicit manual and legacy direction settings. Re-evaluate positions after movement and hover outside combat.
+- Preserved legacy large-button sizes and rank-specific remembered spells. Layout changes during combat wait until combat ends.
+- Mage flyout tooltips share the consumable flyout avoidance helper so automatic expansion does not put the tooltip over expanded spells.
+
+# Bel Toolbox 0.19.4-dev
+
+- Changed consumable tooltips to use the Mage Bar's right-side owner anchor. While expanded, position tooltips beside the full flyout grid so they do not cover its item buttons; horizontal flyouts use the space above or below.
+- Matched Mage Bar expansion arrows: 14px, centered on the edge corresponding to the actual expansion direction.
+
 # Bel Toolbox 0.19.3
 
 - Added an optional consumables bar for food, drink, healing potions, mana potions, healthstones, mana gems, bandages, flasks, elixirs and resistance potions. Enable it under EUI > Bel Toolbox > Consumables.
