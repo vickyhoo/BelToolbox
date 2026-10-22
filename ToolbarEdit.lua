@@ -52,6 +52,7 @@ function T.RegisterBarEditor(root,key,title,getSettings,refresh,getSize,getGap,r
         if not width or not height or width<42 or height<32 then diagnostic.reason="mover-bounds";return false end
         local available=width-16
         local compact=available<144
+        panel.belCompact=compact
         -- EUI's unlock frame uses FULLSCREEN_DIALOG too, but its movers are
         -- raised above UIParent-level siblings. A sibling panel gets covered
         -- by the mover's opaque background even when its geometry is correct.
@@ -93,14 +94,22 @@ function T.RegisterBarEditor(root,key,title,getSettings,refresh,getSize,getGap,r
         button.label=button:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
         button.label:SetFont(STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF",9,"")
         button.label:SetTextColor(.82,.63,.43);button.label:SetPoint("CENTER")
-        button:SetScript("OnEnter",function()button.label:SetTextColor(1,1,1)end)
+        button:SetScript("OnEnter",function()button:SetAlpha(1);button.label:SetTextColor(1,1,1)end)
         button:SetScript("OnLeave",function()button.label:SetTextColor(.82,.63,.43)end)
         button:SetScript("OnClick",function()
             if InCombatLockdown()or not EUI.BuildCogPopup then return end
-            if not button.showPopup then
-                local _,show=EUI.BuildCogPopup({title=L(title),minWidth=280,rows=rows})
-                button.showPopup=show
+            button:SetAlpha(1)
+            local cache=panel.belCompact and "showAllPopup"or "showSinglePopup"
+            if not button[cache]then
+                local _,show=EUI.BuildCogPopup({title=panel.belCompact and L(title)or row.label,
+                    minWidth=280,rows=panel.belCompact and rows or {row},noOwnerDim=true})
+                button[cache]=show
             end
+            for _,other in ipairs(actions)do
+                local popup=other.showPopup and other.showPopup._popupFrame
+                if other.showPopup~=button[cache]and popup then popup:Hide()end
+            end
+            button.showPopup=button[cache]
             button.showPopup(button)
         end)
         if i>1 then
@@ -208,7 +217,7 @@ if _G.SlashCmdList then
                 .." alpha="..tostring(frame:GetAlpha()).." size="..tostring(frame:GetWidth()).."x"..tostring(frame:GetHeight())
                 .." level="..tostring(frame:GetFrameLevel()).." strata="..tostring(frame:GetFrameStrata())
         end
-        print(prefix.."bar-edit debug 0.19.15-dev")
+        print(prefix.."bar-edit debug 0.19.16-dev")
         for key,panel in pairs(editors)do
             local d=panel.belDebug
             print(prefix..key.." key="..tostring(d.moverKey).." active="..tostring(d.active).." ticks="..d.ticks.." reason="..d.reason.." error="..tostring(d.error))

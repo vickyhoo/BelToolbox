@@ -1,3 +1,8 @@
+# Bel Toolbox 0.19.16-dev
+
+- Unlock action links now open only their corresponding size, spacing, row-count or growth control. The compact Bar settings entry still exposes all controls.
+- Disabled EUI's cog-owner dimming for these text links so clicking/closing settings does not leave them faded. Separate compact/single-control popup caches preserve the correct contents after mover width changes.
+
 # Bel Toolbox 0.19.15-dev
 
 - Fixed the confirmed Consumables editor lookup mismatch: its registered key is BelToolboxconsumables, not BelToolboxConsumables. Editor discovery now reads the exact key saved by mover registration instead of maintaining a separate spelling.
