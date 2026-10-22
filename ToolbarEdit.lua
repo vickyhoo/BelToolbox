@@ -39,7 +39,7 @@ function T.RegisterBarEditor(root,key,title,getSettings,refresh,getSize,getGap,r
     panel:SetSize(300,62);panel:SetFrameStrata("FULLSCREEN_DIALOG");panel:SetClampedToScreen(true)
     panel:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1})
     panel:SetBackdropColor(.08,.09,.1,.96);panel:SetBackdropBorderColor(.55,.43,.3,1)
-    panel:SetPoint("BOTTOM",root,"TOP",0,24);panel:Hide()
+    panel:SetPoint("BOTTOM",root,"TOP",0,6);panel:Hide()
     local heading=panel:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
     heading:SetPoint("TOPLEFT",8,-7);heading:SetText(L(title))
     local function Button(parent,text,x,y,width,action)
@@ -87,14 +87,50 @@ function T.RegisterBarEditor(root,key,title,getSettings,refresh,getSize,getGap,r
     end
     -- Reuse EUI's session notifications so Discard also restores these settings.
     local snapshot,active
+    local watcher=CreateFrame("Frame",nil,UIParent)
+    watcher:Hide()
+    local elapsed,overTime,awayTime=0,0,0
+    local moverKey=key=="mage"and "BelToolboxMageBar"or "BelToolboxConsumables"
+    local function Hide()
+        panel:Hide();menu:Hide();overTime=0;awayTime=0
+    end
+    local function Hovered()
+        if panel:IsShown()and(panel:IsMouseOver()or(menu:IsShown()and menu:IsMouseOver()))then return true end
+        -- Native EUI overlays intercept mouse events. Inspect the current focus's
+        -- parent chain to include the expanded mover, its links and its cog.
+        local foci=GetMouseFoci and GetMouseFoci()or(GetMouseFocus and {GetMouseFocus()}or {})
+        for _,focus in ipairs(foci)do
+            for _=1,12 do
+                if not focus then break end
+                if focus._barKey==moverKey then return not focus._dragging end
+                focus=focus.GetParent and focus:GetParent()
+            end
+        end
+        return root:IsMouseOver()
+    end
+    -- Only watch while Unlock Mode is open, throttled to 20 checks/second.
+    -- Intent and leave delays mirror EUI's hover interaction without hooking it.
+    watcher:SetScript("OnUpdate",function(_,dt)
+        elapsed=elapsed+dt;if elapsed<.05 then return end
+        local step=elapsed;elapsed=0
+        if not active or InCombatLockdown()or not root:IsShown()then Hide();return end
+        if Hovered()then
+            awayTime=0;overTime=overTime+step
+            if overTime>=.15 and not panel:IsShown()then Update();panel:Show()end
+        else
+            overTime=0;awayTime=awayTime+step
+            if awayTime>=.25 then Hide()end
+        end
+    end)
+    panel.belHoverWatcher=watcher
     EUI:RegisterUnlockModeListener("BelToolboxEdit"..key,function(open,action)
         active=open
         if open then
             snapshot={}
             for _,field in ipairs({"size","spacing",rowKey,"growth"})do snapshot[field]={getSettings()[field]}end
-            Update();panel:SetShown(root:IsShown()and not InCombatLockdown())
+            Hide();elapsed=0;watcher:Show()
         else
-            panel:Hide();menu:Hide()
+            watcher:Hide();Hide()
             if action=="discard"and snapshot then
                 for field,value in pairs(snapshot)do getSettings()[field]=value[1]end
                 refresh()
@@ -102,11 +138,9 @@ function T.RegisterBarEditor(root,key,title,getSettings,refresh,getSize,getGap,r
             snapshot=nil
         end
     end)
-    root:HookScript("OnHide",function()panel:Hide();menu:Hide()end)
-    root:HookScript("OnShow",function()if active and not InCombatLockdown()then Update();panel:Show()end end)
+    root:HookScript("OnHide",Hide)
     panel:RegisterEvent("PLAYER_REGEN_DISABLED");panel:RegisterEvent("PLAYER_REGEN_ENABLED")
     panel:SetScript("OnEvent",function(_,event)
-        if event=="PLAYER_REGEN_DISABLED"then panel:Hide();menu:Hide()
-        elseif active and root:IsShown()then Update();panel:Show()end
+        Hide()
     end)
 end

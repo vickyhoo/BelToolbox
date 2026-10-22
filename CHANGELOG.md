@@ -1,3 +1,8 @@
+# Bel Toolbox 0.19.10-dev
+
+- Mage and Consumables quick-edit controls now appear only while hovering their bar or native EUI mover in Unlock Mode. Short enter/leave delays keep controls usable while crossing to the editor or growth menu.
+- Controls hide when the pointer leaves, the bar hides, combat begins or Unlock Mode closes. Hover checks run only during Unlock Mode.
+
 # Bel Toolbox 0.19.9-dev
 
 - Added quick-edit panels beside Mage and Consumables bars during EUI Unlock Mode: button size, spacing, buttons per row and centered/left/right growth. Discard restores layout settings; combat hides the controls.
