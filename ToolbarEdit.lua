@@ -41,9 +41,28 @@ function T.RegisterBarEditor(root,key,title,getSettings,refresh,getSize,getGap,r
     panel:SetSize(264,20);panel:SetFrameStrata("FULLSCREEN_DIALOG");panel:Hide()
     local actions={};local mover
     local function Update()
-        local labels={L("Button size").." "..getSize(),L("Button spacing").." "..getGap(),
-            L("Buttons per row").." "..(getSettings()[rowKey]or defaultRow),L("Bar growth direction")}
+        local labels={L("Size short"),L("Spacing short"),L("Row short"),L("Growth short")}
         for i,button in ipairs(actions)do button.label:SetText(labels[i])end
+    end
+    local function Fit()
+        if not mover or not mover:IsShown()then return false end
+        local width,height=mover:GetWidth(),mover:GetHeight()
+        if not width or not height or width<42 or height<32 then return false end
+        local available=width-16
+        local compact=available<144
+        panel:SetScale(mover:GetEffectiveScale()/UIParent:GetEffectiveScale())
+        panel:SetSize(available,18)
+        panel:ClearAllPoints()
+        panel:SetPoint("CENTER",mover,"CENTER",0,-math.min(12,math.max(0,height/2-11)))
+        for i,button in ipairs(actions)do
+            button:ClearAllPoints()
+            button:SetSize(compact and available or available/4,18)
+            button:SetPoint("LEFT",panel,"LEFT",compact and 0 or(i-1)*available/4,0)
+            button:SetShown(not compact or i==1)
+            if button.divider then button.divider:SetShown(not compact)end
+        end
+        if compact then actions[1].label:SetText(L("Bar settings"))end
+        return true
     end
     local function Set(field,value)
         if InCombatLockdown()then return end
@@ -77,6 +96,7 @@ function T.RegisterBarEditor(root,key,title,getSettings,refresh,getSize,getGap,r
         end)
         if i>1 then
             local divider=button:CreateTexture(nil,"ARTWORK")
+            button.divider=divider
             divider:SetColorTexture(1,1,1,.25);divider:SetSize(1,9);divider:SetPoint("LEFT",0,0)
         end
     end
@@ -116,13 +136,10 @@ function T.RegisterBarEditor(root,key,title,getSettings,refresh,getSize,getGap,r
         if not active or InCombatLockdown()or not root:IsShown()then Hide(true);return end
         if Hovered()then
             awayTime=0;overTime=overTime+step
-            if mover and mover:IsShown()then
-                -- Extend EUI's own animated hover bounds to fit our action row.
-                if mover._cachedHoverW then mover._cachedHoverW=math.max(mover._cachedHoverW,280)end
-                if mover._cachedHoverH then mover._cachedHoverH=math.max(mover._cachedHoverH,48)end
-                panel:ClearAllPoints();panel:SetPoint("CENTER",mover,"CENTER",0,-12)
-            else panel:ClearAllPoints();panel:SetPoint("CENTER",root,"CENTER",0,-12)end
-            if overTime>=.2 then Update();panel:Show()end
+            if overTime>=.2 then
+                Update()
+                if Fit()then panel:Show()else panel:Hide()end
+            end
         else
             overTime=0;awayTime=awayTime+step
             if awayTime>=.25 then Hide(false)end

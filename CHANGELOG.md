@@ -1,3 +1,8 @@
+# Bel Toolbox 0.19.12-dev
+
+- Fixed unlock quick-edit links extending outside native EUI mover borders. Size the action row from the mover's actual bounds and use short labels; narrow movers show a single Bar settings entry with all controls.
+- Removed writes to EUI's private hover-size cache. Native mover sizing and animation remain under EUI's control.
+
 # Bel Toolbox 0.19.11-dev
 
 - Added native EUI inline color-setting cogs beside individual chat button toggles: independent block and font colors, live preview and restore defaults. Defaults continue to follow channel colors without changing chat's own settings.
