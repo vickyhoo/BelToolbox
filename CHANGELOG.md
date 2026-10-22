@@ -1,3 +1,12 @@
+# Bel Toolbox 0.19.16
+
+- Added text, color-block and color-block-with-label styles for the chat bar, with configurable block width and spacing. Existing settings retain text mode by default.
+- Added native EUI color-setting cogs for each chat button: independent block and font colors, immediate preview and restore defaults. Default colors follow channel settings without changing chat itself.
+- Added centered, left and right main-bar growth for Mage and Consumables bars, independently of flyout expansion. Incomplete rows align to the selected direction.
+- Added hover-only layout controls inside native EUI movers for button size, spacing, buttons per row and growth. Each link opens its corresponding setting; narrow movers show one combined Bar settings entry.
+- Improved mover identification, control placement and rendering layers. Fixed clicked links becoming faded after closing settings popups.
+- Unlock edits support Save/Discard and hide during combat. Added /belbareditdebug for in-game diagnostics.
+
 # Bel Toolbox 0.19.16-dev
 
 - Unlock action links now open only their corresponding size, spacing, row-count or growth control. The compact Bar settings entry still exposes all controls.

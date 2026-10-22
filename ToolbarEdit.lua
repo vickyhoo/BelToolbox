@@ -217,7 +217,7 @@ if _G.SlashCmdList then
                 .." alpha="..tostring(frame:GetAlpha()).." size="..tostring(frame:GetWidth()).."x"..tostring(frame:GetHeight())
                 .." level="..tostring(frame:GetFrameLevel()).." strata="..tostring(frame:GetFrameStrata())
         end
-        print(prefix.."bar-edit debug 0.19.16-dev")
+        print(prefix.."bar-edit debug 0.19.16")
         for key,panel in pairs(editors)do
             local d=panel.belDebug
             print(prefix..key.." key="..tostring(d.moverKey).." active="..tostring(d.active).." ticks="..d.ticks.." reason="..d.reason.." error="..tostring(d.error))
