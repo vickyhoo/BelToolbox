@@ -1,3 +1,11 @@
+# Bel Toolbox 0.19.7
+
+- Added Mage Bar category visibility and drag sorting, buttons per row, 18–64 button sizes and 0–16 spacing. Zero spacing removes icon gaps.
+- Added automatic Mage flyout direction based on available screen space while preserving manual direction, legacy settings and remembered spell ranks.
+- Improved Mage and consumable flyout tooltip placement to avoid covering expanded buttons; aligned consumable arrows with the actual expansion edge.
+- Improved Mage Bar stability when changing spacing or categories: reuse cached spells for layout updates, preserve temporarily unavailable icons, position the root before its buttons and repair unresolved button coordinates with one deferred check.
+- Layout and spell changes requested during combat are applied after combat ends. Expanded /belmagedebug diagnostics with button geometry and anchors.
+
 # Bel Toolbox 0.19.7-dev
 
 - Addressed Mage Bar buttons reporting shown/visible with nil screen coordinates after category toggles. Position the clamped root before anchoring/showing its buttons, and avoid clearing valid, unchanged anchors during layout updates.
