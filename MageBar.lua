@@ -1,7 +1,7 @@
 local _, ns = ...
 local L = ns.L
 local _, class = UnitClass("player")
-local root, dirty
+local root, dirty, pendingRescan
 local SavePosition
 local RegisterMageUnlock
 local PositionGroup
@@ -233,51 +233,70 @@ SavePosition = function()
     Settings().y = root:GetBottom() * scale
     for _,group in ipairs(groups)do PositionGroup(group)end
 end
-function ns.RefreshMageBar()
+function ns.RefreshMageBar(rescanSpells)
     if class ~= "MAGE" then return end
+    if rescanSpells then pendingRescan=true end
     if InCombatLockdown() then dirty=true; return end
+    rescanSpells=pendingRescan;pendingRescan=nil
     dirty = nil
     local db = Settings()
     if not root then
         root = CreateFrame("Frame", "BelToolboxMageBar", UIParent)
         root:SetClampedToScreen(true); root:SetMovable(true)
         for index, data in ipairs(categories) do MakeGroup(index, data) end
+        rescanSpells=true
     end
     local size,gap=ns.GetMageSize(),ns.GetMageSpacing()
     local perRow=math.max(1,math.min(#categories,math.floor(tonumber(db.perRow)or #categories)))
     local byKey={};for _,group in ipairs(groups)do byKey[group.data.key]=group end
-    local visibleGroups=0
+    local visible={}
     for _,data in ipairs(ns.GetMageOrder())do
         local group=byKey[data.key]
-        group.popup:Hide();group.visibleButtons={}
+        group.popup:Hide()
+        -- Layout sliders must not re-query or rebuild the spellbook on every
+        -- tick. A transient spell-data result must not remove a category.
+        if rescanSpells or not group.visibleSpells then
+            group.visibleSpells={};group.visibleButtons={}
+            for index,id in ipairs(group.data.spells)do
+                local button=group.buttons[index]
+                local known=Known(id)
+                button:SetShown(known and true or false)
+                if known then
+                    local binding=SpellBinding(id)
+                    if button:GetAttribute("spell")~=binding then button:SetAttribute("spell",binding)end
+                    group.visibleSpells[#group.visibleSpells+1]=id
+                    group.visibleButtons[#group.visibleButtons+1]=button
+                end
+            end
+        end
         local defaultSpell,remembered
         local lastSpell=db.lastSpells and db.lastSpells[group.data.key]
-        for index,id in ipairs(group.data.spells)do
-            local button=group.buttons[index]
-            button:Hide()
-            if Known(id)then
-                button:SetAttribute("spell",SpellBinding(id));button:Show()
-                group.visibleButtons[#group.visibleButtons+1]=button
-                if not defaultSpell or group.data.highest then defaultSpell=id end
-                if id==lastSpell then remembered=id end
-            end
+        for _,id in ipairs(group.visibleSpells)do
+            if not defaultSpell or group.data.highest then defaultSpell=id end
+            if id==lastSpell then remembered=id end
         end
         local activeSpell=remembered or defaultSpell
         group.main.activeSpell=activeSpell
-        group.main:SetAttribute("spell",activeSpell and SpellBinding(activeSpell))
-        if activeSpell then group.main.icon:SetTexture(C_Spell.GetSpellTexture(activeSpell))end
+        local binding=activeSpell and SpellBinding(activeSpell)
+        if group.main:GetAttribute("spell")~=binding then group.main:SetAttribute("spell",binding)end
+        if activeSpell then
+            local texture=C_Spell.GetSpellTexture(activeSpell)
+            -- Keep the last resolved icon if item/spell data is briefly absent.
+            if texture then group.main.icon:SetTexture(texture)end
+        end
         local shown=activeSpell~=nil and(not db.categories or db.categories[data.key]~=false)
         group.main:SetShown(shown)
-        if shown then
-            local column,row=visibleGroups%perRow,math.floor(visibleGroups/perRow)
-            group.main:SetSize(size,size);group.main:ClearAllPoints()
-            group.main:SetPoint("TOPLEFT",root,"TOPLEFT",column*(size+gap),-row*(size+gap))
-            visibleGroups=visibleGroups+1
-        end
+        if shown then visible[#visible+1]=group end
     end
+    local visibleGroups=#visible
     local columns=math.max(1,math.min(perRow,visibleGroups))
     local rows=math.max(1,math.ceil(visibleGroups/perRow))
     root:SetSize(columns*(size+gap)-gap,rows*(size+gap)-gap)
+    for index,group in ipairs(visible)do
+        local column,row=(index-1)%perRow,math.floor((index-1)/perRow)
+        group.main:SetSize(size,size);group.main:ClearAllPoints()
+        group.main:SetPoint("TOPLEFT",root,"TOPLEFT",column*(size+gap),-row*(size+gap))
+    end
     ApplyPosition()
     UpdateCounts()
     root:SetShown(db.enabled ~= false and visibleGroups>0)
@@ -327,5 +346,31 @@ events:SetScript("OnEvent",function(_,event,unit,castGUID,spellID)
         end
     elseif event=="BAG_UPDATE_DELAYED" then UpdateCounts()
     elseif event=="PLAYER_REGEN_ENABLED" then if dirty then ns.RefreshMageBar() end
-    else ns.RefreshMageBar() end
+    else ns.RefreshMageBar(true) end
 end)
+if _G.SlashCmdList then
+    SLASH_BELMAGEDEBUG1="/belmagedebug"
+    SlashCmdList.BELMAGEDEBUG=function()
+        local function Value(frame,method)
+            local fn=frame and frame[method]
+            if type(fn)~="function"then return "-"end
+            local ok,value=pcall(fn,frame)
+            return ok and tostring(value)or "?"
+        end
+        local prefix=L("Bel Toolbox")..": "
+        local db=Settings()
+        print(prefix.."mage debug: enabled="..tostring(db.enabled~=false).." size="..ns.GetMageSize().." spacing="..ns.GetMageSpacing()
+            .." perRow="..tostring(db.perRow or #categories).." direction="..ns.GetMageDirection())
+        print(prefix.."root shown="..Value(root,"IsShown").." visible="..Value(root,"IsVisible").." alpha="..Value(root,"GetAlpha")
+            .." width="..Value(root,"GetWidth").." height="..Value(root,"GetHeight").." left="..Value(root,"GetLeft").." bottom="..Value(root,"GetBottom"))
+        for _,group in ipairs(groups)do
+            local live=0
+            for _,id in ipairs(group.data.spells)do local ok,value=pcall(Known,id);if ok and value then live=live+1 end end
+            local main=group.main
+            print(prefix..group.data.key.." shown="..Value(main,"IsShown").." visible="..Value(main,"IsVisible").." alpha="..Value(main,"GetAlpha")
+                .." active="..tostring(main.activeSpell).." icon="..Value(main.icon,"GetTexture").." cached="..tostring(#(group.visibleSpells or {}))
+                .." live="..live.." checked="..tostring(not db.categories or db.categories[group.data.key]~=false)
+                .." left="..Value(main,"GetLeft").." bottom="..Value(main,"GetBottom").." direction="..tostring(main.flyoutDirection))
+        end
+    end
+end

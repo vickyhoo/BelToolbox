@@ -1,3 +1,9 @@
+# Bel Toolbox 0.19.6-dev
+
+- Separated Mage Bar layout changes from spellbook scans: adjusting size, spacing, row count or category order reuses the last known spell list rather than hiding/rebuilding spells at every slider tick.
+- Preserve the last resolved icon if spell texture data is temporarily unavailable, and update root bounds before child layout. Deferred spell rescans survive combat.
+- Added read-only /belmagedebug output for unresolved in-game disappearance reports: visibility, alpha, icons, positions and cached/live spell counts. This targets plausible refresh causes; client verification remains necessary.
+
 # Bel Toolbox 0.19.5-dev
 
 - Added native EUI drag-reorder/category controls to Mage Bar settings, configurable buttons per row, 18–64 button sizes and 0–16 spacing. Removed icon insets so zero spacing produces touching edges.
