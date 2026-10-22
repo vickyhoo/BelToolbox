@@ -291,13 +291,37 @@ local registered = EUI.RegisterPlugin(addonName, {
                     y=y-h
                 end
                 Toggle("enabled", "Enable mage travel bar", true)
-                Toggle("large", "Use larger buttons", false)
+                _,h=W:Slider(parent,L("Button size"),y,18,64,1,ns.GetMageSize,
+                    function(value)ns.GetMageSettings().size=value;ns.RefreshMageBar()end);y=y-h
+                _,h=W:Slider(parent,L("Button spacing"),y,0,16,1,ns.GetMageSpacing,
+                    function(value)ns.GetMageSettings().spacing=value;ns.RefreshMageBar()end);y=y-h
+                _,h=W:Slider(parent,L("Buttons per row"),y,1,#ns.MageCategories,1,
+                    function()return ns.GetMageSettings().perRow or #ns.MageCategories end,
+                    function(value)ns.GetMageSettings().perRow=value;ns.RefreshMageBar()end);y=y-h
                 _, h = W:Dropdown(parent, L("Expansion direction"), y,
-                    { UP=L("Up"), DOWN=L("Down"), LEFT=L("Left"), RIGHT=L("Right") },
+                    { AUTO=L("Automatic"), UP=L("Up"), DOWN=L("Down"), LEFT=L("Left"), RIGHT=L("Right") },
                     ns.GetMageDirection,
                     function(value) ns.GetMageSettings().direction=value; ns.RefreshMageBar() end,
-                    { "UP", "DOWN", "LEFT", "RIGHT" })
+                    { "AUTO", "UP", "DOWN", "LEFT", "RIGHT" })
                 y=y-h
+                local orderRow
+                orderRow,h=W:DualRow(parent,y,{type="label",text=L("Categories and order")},nil);y=y-h
+                if EUI.BuildReorderCBDropdown then
+                    local items={}
+                    for _,data in ipairs(ns.GetMageOrder())do items[#items+1]={key=data.key,label=L(data.label)}end
+                    local dropdown,refresh=EUI.BuildReorderCBDropdown(orderRow,240,orderRow:GetFrameLevel()+2,items,
+                        function(key)local db=ns.GetMageSettings();return not db.categories or db.categories[key]~=false end,
+                        function(key,value)
+                            local db=ns.GetMageSettings();db.categories=db.categories or {};db.categories[key]=value;ns.RefreshMageBar()
+                        end,{
+                            grip=true,hint=L("Drag to reorder categories"),canReorder=function()return not InCombatLockdown()end,
+                            setOrder=ns.SetMageOrder,
+                            openOrder=function()local keys={};for _,data in ipairs(ns.GetMageOrder())do keys[#keys+1]=data.key end;return keys end,
+                            summaryLabel=function()return L("Drag to reorder categories")end,
+                        })
+                    dropdown:SetPoint("RIGHT",orderRow,"RIGHT",-20,0)
+                    if refresh and EUI.RegisterWidgetRefresh then EUI.RegisterWidgetRefresh(refresh)end
+                end
                 return math.abs(y)+12
             end,
         },

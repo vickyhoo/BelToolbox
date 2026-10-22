@@ -1,3 +1,10 @@
+# Bel Toolbox 0.19.5-dev
+
+- Added native EUI drag-reorder/category controls to Mage Bar settings, configurable buttons per row, 18–64 button sizes and 0–16 spacing. Removed icon insets so zero spacing produces touching edges.
+- Added automatic flyout direction using screen space, preserving explicit manual and legacy direction settings. Re-evaluate positions after movement and hover outside combat.
+- Preserved legacy large-button sizes and rank-specific remembered spells. Layout changes during combat wait until combat ends.
+- Mage flyout tooltips share the consumable flyout avoidance helper so automatic expansion does not put the tooltip over expanded spells.
+
 # Bel Toolbox 0.19.4-dev
 
 - Changed consumable tooltips to use the Mage Bar's right-side owner anchor. While expanded, position tooltips beside the full flyout grid so they do not cover its item buttons; horizontal flyouts use the space above or below.
