@@ -1,3 +1,11 @@
+# Bel Toolbox 0.19.22
+
+- Added countdowns below OpenMap's native boat, zeppelin and airship dock icons, including the routes to Zephras Isle. Labels follow icon visibility and reuse existing schedules and calibration.
+- Added separate EUI/OpenMap display switches in a native settings cog beside the transport timer master switch. OpenMap-only mode does not automatically enable EUI map markers; timers remain off by default.
+- Fixed micro-menu icons for newer EUI versions using boolean style caches. Legacy rs selections migrate to EUI's supported Custom style, and Blizzard textures, atlases and portraits retain their native behavior.
+- Added an optional player-class color setting in the Bel Toolbox icons cog. Turning it off restores EUI's current icon color.
+- The Chat Bar Dungeon Journal button can open DungeonsForever or NeedRoll, selected in its settings cog. Right-click still opens loot history, and hover text follows the selected addon.
+
 # Bel Toolbox 0.19.22-dev
 
 - Added a native settings cog for Bel Toolbox micro-menu icons with optional player-class tinting. Disabling class tint restores EUI's latest color; Blizzard icon style remains native.
