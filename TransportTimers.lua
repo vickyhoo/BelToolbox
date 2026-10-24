@@ -8,6 +8,7 @@ local atlases={flightmasterferry=true,["vehicle-air-horde"]=true,["vehicle-air-a
 local openMapPins=setmetatable({},{__mode="k"})
 local hookedStitches=setmetatable({},{__mode="k"})
 local openMapAtlases={["Ships_CargoShip-Map"]=true,["vehicle-air-horde"]=true,["vehicle-air-alliance"]=true}
+local openMapKinds={boat=true,zeppelin=true,airship=true}
 local function Safe(v)return not (issecretvalue and issecretvalue(v))end
 local function Number(v)return Safe(v)and type(v)=="number"and v==v end
 function ns.GetTransportSettings()
@@ -263,7 +264,7 @@ local function DiscoverOpenMap()
                         for _,cell in ipairs({set:GetChildren()})do
                             if not Forbidden(cell)then
                                 for _,pin in ipairs({cell:GetChildren()})do
-                                    if not Forbidden(pin)and pin.Icon and(pin.kind=="boat"or pin.kind=="zeppelin")then openMapPins[pin]=true end
+                                    if not Forbidden(pin)and pin.Icon and openMapKinds[pin.kind]then openMapPins[pin]=true end
                                 end
                             end
                         end
@@ -273,7 +274,7 @@ local function DiscoverOpenMap()
         end
     end
     for pin in pairs(openMapPins)do
-        if not Forbidden(pin)and(pin.kind=="boat"or pin.kind=="zeppelin")and Number(pin.u)and Number(pin.v)and pin.Icon then
+        if not Forbidden(pin)and openMapKinds[pin.kind]and Number(pin.u)and Number(pin.v)and pin.Icon then
             local record=Attach(pin,"openmap")
             local key=pin.kind..":"..pin.u..":"..pin.v..":"..tostring(pin.to and pin.to[1])..":"..tostring(pin.to and pin.to[2])
             if record.key~=key then record.key=key;record.matches=OpenMapMatches(pin,addon,stitch)end
@@ -307,7 +308,7 @@ local function Display()
     for pin,record in pairs(labels)do
         local valid
         if record.provider=="openmap"then
-            valid=OpenMapShown()and(pin.kind=="boat"or pin.kind=="zeppelin")and pin.look and openMapAtlases[pin.look.atlas]
+            valid=OpenMapShown()and openMapKinds[pin.kind]and pin.look and openMapAtlases[pin.look.atlas]
                 and pin:IsVisible()and #(record.matches or {})>0
         else valid=Safe(pin.atlas)and atlases[pin.atlas]and pin:IsVisible()end
         record.text:SetShown(valid and true or false)

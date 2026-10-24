@@ -1,3 +1,8 @@
+# Bel Toolbox 0.19.18-dev
+
+- Added OpenMap's separate airship category to countdown attachment, including the Mulgore and Alterac Mountains routes to Zephras Isle. Their existing schedules were already included; no new timetable is needed.
+- Covers existing and newly-created airship pins, including mainland docks whose destination map is not part of OpenMap's stitched projection.
+
 # Bel Toolbox 0.19.17-dev
 
 - Added optional OpenMap compatibility for ship/zeppelin countdowns below its native dock icons on the stitched map. Reuses existing timers and calibration; no extra routes or moving icons are drawn.
