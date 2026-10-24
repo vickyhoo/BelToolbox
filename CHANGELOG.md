@@ -1,3 +1,9 @@
+# Bel Toolbox 0.19.21-dev
+
+- Updated Bel Toolbox micro-menu icons for EUI's boolean icon-style cache while retaining legacy string-cache support.
+- Migrate legacy micromenu iconStyle=rs to EUI's supported custom key, fixing the raw rs dropdown label. The Bel Toolbox icons preference continues to control the original toolbox artwork.
+- Preserve native Blizzard textures and atlases when switching styles or disabling toolbox icons; secure button actions remain unchanged.
+
 # Bel Toolbox 0.19.20-dev
 
 - Moved EUI/OpenMap countdown display switches into a native EUI settings cog beside the transport timer master toggle. Existing display preferences are preserved and can be edited while the master toggle is off.
