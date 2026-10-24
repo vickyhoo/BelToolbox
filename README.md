@@ -2,7 +2,7 @@
 
 贝尔工具箱 · Quality-of-life extensions for **EllesmereUI on WoW Forever**.
 
-Author: **Bel** · License: **MIT** · Current version: **0.19.16**
+Author: **Bel** · License: **MIT** · Current version: **0.19.22**
 
 消耗品条：在 EUI → 贝尔工具箱 → 消耗品条开启（默认关闭）。鼠标移入展开，左键使用，展开项右键设为当前选项；支持食物、饮水、红药、蓝药、治疗石、法力宝石、绷带、合剂、药剂、抗性药水。空类别保留灰色按钮以保持位置稳定。未知或增益食物需手动指定，已知普通食物与魔法制造食物可自动选择。战斗中不根据背包变化自动切换物品，脱战后更新。位置使用 EUI 解锁模式；按键使用 EUI 快速键位绑定模式（/kb），并在原窗口保存或取消。
 
@@ -19,7 +19,7 @@ Author: **Bel** · License: **MIT** · Current version: **0.19.16**
 - **Tooltips:** item/spell title icons, AFK/DND status beside player names, class/reaction/quality borders and configurable text colors.
 - **Profession helper:** estimated recipe-list profit and return percentage using installed Auctionator, TradeSkillMaster or CraftProfit price APIs; preserves skill-up arrows and supports difficulty-colored recipe names.
 - **Chat:** configurable channel shortcuts, original micro-menu artwork, and an EUI chat-copy window with dragging, resizing, name/text search, channel colors and class-colored player names.
-- **Ship/zeppelin timers:** independent countdowns below existing EUI world-map transport icons, with built-in schedules and recorded-track calibration while standing aboard. No DockWatch installation is needed.
+- **Ship/zeppelin timers:** countdowns below EUI world-map transport icons and, when installed, OpenMap's native dock icons. Labels follow each map's icon visibility and use the same built-in schedules and recorded-track calibration while standing aboard. Disabled by default.
 - **Interface utilities:** quick focus with optional control marker, map resize handle, EUI window-movement integration, animated resting indicator, native quest-object sparkles and compact raid-tool extensions.
 
 ## Installation

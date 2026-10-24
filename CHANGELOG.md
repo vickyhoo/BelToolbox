@@ -1,3 +1,42 @@
+# Bel Toolbox 0.19.22
+
+- Added countdowns below OpenMap's native boat, zeppelin and airship dock icons, including the routes to Zephras Isle. Labels follow icon visibility and reuse existing schedules and calibration.
+- Added separate EUI/OpenMap display switches in a native settings cog beside the transport timer master switch. OpenMap-only mode does not automatically enable EUI map markers; timers remain off by default.
+- Fixed micro-menu icons for newer EUI versions using boolean style caches. Legacy rs selections migrate to EUI's supported Custom style, and Blizzard textures, atlases and portraits retain their native behavior.
+- Added an optional player-class color setting in the Bel Toolbox icons cog. Turning it off restores EUI's current icon color.
+- The Chat Bar Dungeon Journal button can open DungeonsForever or NeedRoll, selected in its settings cog. Right-click still opens loot history, and hover text follows the selected addon.
+
+# Bel Toolbox 0.19.22-dev
+
+- Added a native settings cog for Bel Toolbox micro-menu icons with optional player-class tinting. Disabling class tint restores EUI's latest color; Blizzard icon style remains native.
+- Chat Bar's Dungeon Journal cog can now select DungeonsForever or NeedRoll for left click. Existing choices default to DungeonsForever; right click still opens loot history. Tooltip text follows the selected addon.
+
+# Bel Toolbox 0.19.21-dev
+
+- Updated Bel Toolbox micro-menu icons for EUI's boolean icon-style cache while retaining legacy string-cache support.
+- Migrate legacy micromenu iconStyle=rs to EUI's supported custom key, fixing the raw rs dropdown label. The Bel Toolbox icons preference continues to control the original toolbox artwork.
+- Preserve native Blizzard textures and atlases when switching styles or disabling toolbox icons; secure button actions remain unchanged.
+
+# Bel Toolbox 0.19.20-dev
+
+- Moved EUI/OpenMap countdown display switches into a native EUI settings cog beside the transport timer master toggle. Existing display preferences are preserved and can be edited while the master toggle is off.
+
+# Bel Toolbox 0.19.19-dev
+
+- Added separate EUI and OpenMap icon countdown switches under the transport timer master switch. Existing enabled setups retain both displays; the master switch remains off by default.
+- OpenMap-only display no longer automatically enables EUI Map Markers. Turning a display off immediately hides its countdowns and restores EUI's native dock tooltip where applicable. With both displays off, the timer ticker stops.
+
+# Bel Toolbox 0.19.18-dev
+
+- Added OpenMap's separate airship category to countdown attachment, including the Mulgore and Alterac Mountains routes to Zephras Isle. Their existing schedules were already included; no new timetable is needed.
+- Covers existing and newly-created airship pins, including mainland docks whose destination map is not part of OpenMap's stitched projection.
+
+# Bel Toolbox 0.19.17-dev
+
+- Added optional OpenMap compatibility for ship/zeppelin countdowns below its native dock icons on the stitched map. Reuses existing timers and calibration; no extra routes or moving icons are drawn.
+- Match both departure docks and destinations to distinguish nearby piers. Labels follow OpenMap icon visibility and disappear for unsupported routes, reused non-transport icons or the timer's disabled state. Native icon clicks/tooltips remain intact.
+- Supports already-created and newly-created OpenMap pins while preserving the existing EUI pin integration. OpenMap remains optional; transport timers remain off by default.
+
 # Bel Toolbox 0.19.16
 
 - Added text, color-block and color-block-with-label styles for the chat bar, with configurable block width and spacing. Existing settings retain text mode by default.
