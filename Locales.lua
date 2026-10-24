@@ -3,6 +3,7 @@
 local _, ns = ...
 local translations = {
     enUS = {
+        ["Ship and zeppelin timer settings"] = "Ship and zeppelin timer settings",
         ["EUI icon countdowns"] = "EUI icon countdowns",
         ["OpenMap icon countdowns"] = "OpenMap icon countdowns",
         ["Show arrival or departure countdowns on the selected map icons. Stand still aboard a moving boat or airship to calibrate."] = "Show arrival or departure countdowns on the selected map icons. Stand still aboard a moving boat or airship to calibrate.",
@@ -437,6 +438,7 @@ local translations = {
         ["The server delivered more than requested; further purchases stopped."] = "服务器发放数量超过请求数量，已停止后续购买。",
         ["Buy %d x %s for %s?"] = "购买 %d 件 %s，共 %s？",
         ["Ship and zeppelin timers"] = "船与飞艇倒计时",
+        ["Ship and zeppelin timer settings"] = "船与飞艇倒计时设置",
         ["EUI icon countdowns"] = "EUI 图标倒计时",
         ["OpenMap icon countdowns"] = "OpenMap 图标倒计时",
         ["Show arrival or departure countdowns on the selected map icons. Stand still aboard a moving boat or airship to calibrate."] = "在选中的地图图标下显示下一次抵达或出发时间。船或飞船航行时站定可自动校准。",

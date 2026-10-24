@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.20-dev
+
+- Moved EUI/OpenMap countdown display switches into a native EUI settings cog beside the transport timer master toggle. Existing display preferences are preserved and can be edited while the master toggle is off.
+
 # Bel Toolbox 0.19.19-dev
 
 - Added separate EUI and OpenMap icon countdown switches under the transport timer master switch. Existing enabled setups retain both displays; the master switch remains off by default.

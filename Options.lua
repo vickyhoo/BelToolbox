@@ -166,15 +166,23 @@ local registered = EUI.RegisterPlugin(addonName, {
                 Toggle("Map corner resize handle",function()return ns.GetEnhancements().mapCornerResize~=false end,
                     function(v)ns.GetEnhancements().mapCornerResize=v;ns.RefreshMapResize()end,
                     "Drag the bottom-right corner to resize. Windowed mode only. The size is saved with EUI window settings.")
-                Toggle("Ship and zeppelin timers",function()return ns.GetTransportSettings().enabled==true end,
+                local transportRow=Toggle("Ship and zeppelin timers",function()return ns.GetTransportSettings().enabled==true end,
                     function(v)ns.GetTransportSettings().enabled=v;ns.RefreshTransportTimers()end,
                     "Show arrival or departure countdowns on the selected map icons. Stand still aboard a moving boat or airship to calibrate.")
-                Toggle("EUI icon countdowns",function()return ns.GetTransportSettings().eui~=false end,
-                    function(v)ns.GetTransportSettings().eui=v;ns.RefreshTransportTimers()end,
-                    "Show countdowns below EUI transport icons. Enables EUI Map Markers and transports while the timer is on.")
-                Toggle("OpenMap icon countdowns",function()return ns.GetTransportSettings().openmap~=false end,
-                    function(v)ns.GetTransportSettings().openmap=v;ns.RefreshTransportTimers()end,
-                    "Show countdowns below OpenMap boat, zeppelin and airship icons when OpenMap is installed.")
+                if EUI.BuildInlineCog and not EUI._prebuilding then
+                    EUI.BuildInlineCog(transportRow,{
+                        title=L("Ship and zeppelin timer settings"),minWidth=300,
+                        anchorTo=transportRow,relPoint="RIGHT",gap=70,chain=false,
+                        rows={
+                            {type="toggle",label=L("EUI icon countdowns"),
+                                get=function()return ns.GetTransportSettings().eui~=false end,
+                                set=function(v)ns.GetTransportSettings().eui=v;ns.RefreshTransportTimers()end},
+                            {type="toggle",label=L("OpenMap icon countdowns"),
+                                get=function()return ns.GetTransportSettings().openmap~=false end,
+                                set=function(v)ns.GetTransportSettings().openmap=v;ns.RefreshTransportTimers()end},
+                        },
+                    })
+                end
                 Header("Chat Copy Window")
                 Toggle("Enable chat copy enhancements",ns.IsChatCopyEnabled,
                     function(v)local db=ns.GetSettings();db.chatCopy=db.chatCopy or {};db.chatCopy.enabled=v;ns.RefreshChatCopy()end,
