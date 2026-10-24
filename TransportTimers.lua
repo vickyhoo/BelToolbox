@@ -5,6 +5,9 @@ local routes=ns.TransportRoutes or {}
 local labels=setmetatable({},{__mode="k"})
 local tracks,previous,ticker,hovered,tooltipGuard={},nil,nil,nil,false
 local atlases={flightmasterferry=true,["vehicle-air-horde"]=true,["vehicle-air-alliance"]=true}
+local openMapPins=setmetatable({},{__mode="k"})
+local hookedStitches=setmetatable({},{__mode="k"})
+local openMapAtlases={["Ships_CargoShip-Map"]=true,["vehicle-air-horde"]=true,["vehicle-air-alliance"]=true}
 local function Safe(v)return not (issecretvalue and issecretvalue(v))end
 local function Number(v)return Safe(v)and type(v)=="number"and v==v end
 function ns.GetTransportSettings()
@@ -112,20 +115,28 @@ local function Destination(r,from)
     if info and Safe(info.name)and type(info.name)=="string"then return info.name end
     return Name(r[Other(from)])or r.names[index]or r.id
 end
+local function MatchingPoint(point,destination,vehicle)
+    local found,best={},nil
+    for _,r in ipairs(routes)do
+        for _,from in ipairs({"a","b"})do
+            if Allowed(r,from)and(not vehicle or r.vehicle==vehicle)and Distance(point,r[from])<=650
+                and(not destination or Distance(destination,r[Other(from)])<=650)then
+                local score=destination and(Distance(point,r[from])+Distance(destination,r[Other(from)]))
+                if score and(not best or score<best-1)then found={};best=score end
+                if not score or score<=best+1 then
+                    found[#found+1]={route=r,from=from,destination=Destination(r,from)}
+                end
+            end
+        end
+    end
+    return found
+end
 local function Matching(pin)
     if not C_Map.GetWorldPosFromMapPos or not CreateVector2D then return {}end
     local ok,instance,position=pcall(C_Map.GetWorldPosFromMapPos,pin.linkMap,CreateVector2D(pin.linkX,pin.linkY))
     if not ok or not Number(instance)or not position then return {}end
     local x,y=position:GetXY();if not Number(x)or not Number(y)then return {}end
-    local point={instance,x,y};local found={}
-    for _,r in ipairs(routes)do
-        for _,from in ipairs({"a","b"})do
-            if Allowed(r,from)and Distance(point,r[from])<=650 then
-                found[#found+1]={route=r,from=from,destination=Destination(r,from)}
-            end
-        end
-    end
-    return found
+    return MatchingPoint({instance,x,y})
 end
 local function Rows(record,now)
     local result={}
@@ -190,7 +201,87 @@ end
 local function Forbidden(frame)
     return frame.IsForbidden and frame:IsForbidden()
 end
+local function Attach(pin,provider)
+    local record=labels[pin]
+    if record then return record end
+    record={provider=provider};labels[pin]=record
+    record.text=pin:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
+    record.text:SetPoint("TOP",pin,"BOTTOM",0,-2)
+    record.text:SetFontObject("GameFontNormalSmall")
+    if provider=="eui"then
+        pin:HookScript("OnEnter",function()if Enabled()then hovered=pin end end)
+        pin:HookScript("OnLeave",function()if hovered==pin then hovered=nil end end)
+    end
+    pin:HookScript("OnHide",function()
+        record.text:SetShown(false)
+        if hovered==pin then hovered=nil end
+    end)
+    return record
+end
+local function OpenMapMatches(pin,addon,stitch)
+    local found={}
+    for _,dock in ipairs(addon.MapPlaces and addon.MapPlaces.transports or {})do
+        if dock[1]==pin.kind then
+            local u,v=stitch.FromYards(dock[3],dock[4],dock[5])
+            local target=true
+            if pin.to and dock[6]then
+                local tu,tv=stitch.FromYards(dock[6],dock[7],dock[8])
+                target=Number(tu)and Number(tv)and math.abs(tu-pin.to[1])<.000001 and math.abs(tv-pin.to[2])<.000001
+            end
+            if target and Number(u)and Number(v)and math.abs(u-pin.u)<.000001 and math.abs(v-pin.v)<.000001 then
+                -- Distinct piers can be close together. Match the destination
+                -- too, rather than attaching every nearby route to every icon.
+                local destination=dock[6]and {dock[6],dock[7],dock[8]}
+                local matches=MatchingPoint({dock[3],dock[4],dock[5]},destination,pin.kind=="zeppelin"and "zeppelin"or "ship")
+                for _,match in ipairs(matches)do found[#found+1]=match end
+            end
+        end
+    end
+    return found
+end
+local function OpenMapShown()
+    local api=_G.OpenMapAPI
+    return api and api.major==1 and type(api.IsStitched)=="function"and api.IsStitched()
+end
+local function DiscoverOpenMap()
+    local addon=_G.OpenMap;local stitch=addon and addon.MapStitch
+    if not stitch or type(stitch.AddPin)~="function"or type(stitch.FromYards)~="function"then return end
+    if not hookedStitches[stitch]then
+        hookedStitches[stitch]=true
+        hooksecurefunc(stitch,"AddPin",function(set,_,_,look)
+            local pin=set and set.pins and set.pins[#set.pins]
+            if pin and look and openMapAtlases[look.atlas]then openMapPins[pin]=true end
+        end)
+        -- Bootstrap pins built before this adapter loaded. Parts is read-only;
+        -- only visit OpenMap's pin root, pin sets and spatial cells, never art.
+        if type(stitch.Parts)=="function"then
+            local ok,parts=pcall(stitch.Parts)
+            local root=ok and parts and parts[1]and parts[1][2]and parts[1][2][2]
+            if root and not Forbidden(root)then
+                for _,set in ipairs({root:GetChildren()})do
+                    if not Forbidden(set)then
+                        for _,cell in ipairs({set:GetChildren()})do
+                            if not Forbidden(cell)then
+                                for _,pin in ipairs({cell:GetChildren()})do
+                                    if not Forbidden(pin)and pin.Icon and(pin.kind=="boat"or pin.kind=="zeppelin")then openMapPins[pin]=true end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    for pin in pairs(openMapPins)do
+        if not Forbidden(pin)and(pin.kind=="boat"or pin.kind=="zeppelin")and Number(pin.u)and Number(pin.v)and pin.Icon then
+            local record=Attach(pin,"openmap")
+            local key=pin.kind..":"..pin.u..":"..pin.v..":"..tostring(pin.to and pin.to[1])..":"..tostring(pin.to and pin.to[2])
+            if record.key~=key then record.key=key;record.matches=OpenMapMatches(pin,addon,stitch)end
+        end
+    end
+end
 local function Discover()
+    DiscoverOpenMap()
     local map=WorldMapFrame
     local canvas=map and map.ScrollContainer and map.ScrollContainer.Child
     if not canvas or Forbidden(canvas)then return end
@@ -200,19 +291,7 @@ local function Discover()
         if not Forbidden(layer)then
             for _,pin in ipairs({layer:GetChildren()})do
                 if not Forbidden(pin)and Safe(pin.atlas)and atlases[pin.atlas]and pin.tex and Number(pin.linkMap)and Number(pin.linkX)and Number(pin.linkY)then
-                    local record=labels[pin]
-                    if not record then
-                        record={};labels[pin]=record
-                        record.text=pin:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
-                        record.text:SetPoint("TOP",pin,"BOTTOM",0,-2)
-                        record.text:SetFontObject("GameFontNormalSmall")
-                        pin:HookScript("OnEnter",function()if Enabled()then hovered=pin end end)
-                        pin:HookScript("OnLeave",function()if hovered==pin then hovered=nil end end)
-                        pin:HookScript("OnHide",function()
-                            record.text:SetShown(false)
-                            if hovered==pin then hovered=nil end
-                        end)
-                    end
+                    local record=Attach(pin,"eui")
                     local key=pin.linkMap..":"..pin.linkX..":"..pin.linkY..":"..pin.atlas
                     if record.key~=key then record.key=key;record.matches=Matching(pin);record.tip=nil end
                 end
@@ -226,7 +305,11 @@ local function Display()
     Discover()
     local now=Now()
     for pin,record in pairs(labels)do
-        local valid=Safe(pin.atlas)and atlases[pin.atlas]and pin:IsVisible()
+        local valid
+        if record.provider=="openmap"then
+            valid=OpenMapShown()and(pin.kind=="boat"or pin.kind=="zeppelin")and pin.look and openMapAtlases[pin.look.atlas]
+                and pin:IsVisible()and #(record.matches or {})>0
+        else valid=Safe(pin.atlas)and atlases[pin.atlas]and pin:IsVisible()end
         record.text:SetShown(valid and true or false)
         if valid then
             local first=Rows(record,now)[1]
@@ -375,5 +458,5 @@ local events=CreateFrame("Frame")
 events:RegisterEvent("PLAYER_LOGIN");events:RegisterEvent("ADDON_LOADED")
 events:SetScript("OnEvent",function(_,event,addon)
     if event=="PLAYER_LOGIN"then ns.RefreshTransportTimers()
-    elseif addon=="Blizzard_WorldMap"or addon=="EllesmereUIForeverEssentials"then EnableMapMarkers();Install();Display()end
+    elseif addon=="Blizzard_WorldMap"or addon=="EllesmereUIForeverEssentials"or addon=="OpenMap"then EnableMapMarkers();Install();Display()end
 end)

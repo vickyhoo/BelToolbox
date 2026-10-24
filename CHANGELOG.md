@@ -1,3 +1,9 @@
+# Bel Toolbox 0.19.17-dev
+
+- Added optional OpenMap compatibility for ship/zeppelin countdowns below its native dock icons on the stitched map. Reuses existing timers and calibration; no extra routes or moving icons are drawn.
+- Match both departure docks and destinations to distinguish nearby piers. Labels follow OpenMap icon visibility and disappear for unsupported routes, reused non-transport icons or the timer's disabled state. Native icon clicks/tooltips remain intact.
+- Supports already-created and newly-created OpenMap pins while preserving the existing EUI pin integration. OpenMap remains optional; transport timers remain off by default.
+
 # Bel Toolbox 0.19.16
 
 - Added text, color-block and color-block-with-label styles for the chat bar, with configurable block width and spacing. Existing settings retain text mode by default.
