@@ -16,6 +16,9 @@ function ns.GetTransportSettings()
     return db.transportTimers
 end
 local function Enabled()return ns.GetTransportSettings().enabled==true end
+function ns.IsTransportProviderEnabled(provider)
+    return Enabled()and ns.GetTransportSettings()[provider]~=false
+end
 local function Now()return GetServerTime()end
 local function Other(from)return from=="a"and "b"or "a"end
 local function Direction(from)return from=="a"and "ab"or "ba"end
@@ -179,6 +182,7 @@ local function FindWidgetTooltip(pin,text)
     end
 end
 local function ShowTip(pin,record,initial)
+    if not ns.IsTransportProviderEnabled(record.provider)then return end
     local EUI=EllesmereUI
     if not record.tip or not EUI or not EUI.ShowWidgetTooltip then return end
     local text=record.tip.."\n\n"..Tip(record,Now())
@@ -210,7 +214,7 @@ local function Attach(pin,provider)
     record.text:SetPoint("TOP",pin,"BOTTOM",0,-2)
     record.text:SetFontObject("GameFontNormalSmall")
     if provider=="eui"then
-        pin:HookScript("OnEnter",function()if Enabled()then hovered=pin end end)
+        pin:HookScript("OnEnter",function()if ns.IsTransportProviderEnabled(provider)then hovered=pin end end)
         pin:HookScript("OnLeave",function()if hovered==pin then hovered=nil end end)
     end
     pin:HookScript("OnHide",function()
@@ -282,7 +286,8 @@ local function DiscoverOpenMap()
     end
 end
 local function Discover()
-    DiscoverOpenMap()
+    if ns.IsTransportProviderEnabled("openmap")then DiscoverOpenMap()end
+    if not ns.IsTransportProviderEnabled("eui")then return end
     local map=WorldMapFrame
     local canvas=map and map.ScrollContainer and map.ScrollContainer.Child
     if not canvas or Forbidden(canvas)then return end
@@ -311,6 +316,7 @@ local function Display()
             valid=OpenMapShown()and openMapKinds[pin.kind]and pin.look and openMapAtlases[pin.look.atlas]
                 and pin:IsVisible()and #(record.matches or {})>0
         else valid=Safe(pin.atlas)and atlases[pin.atlas]and pin:IsVisible()end
+        valid=valid and ns.IsTransportProviderEnabled(record.provider)
         record.text:SetShown(valid and true or false)
         if valid then
             local first=Rows(record,now)[1]
@@ -418,7 +424,7 @@ local function Sample()
 end
 local hookedMap,hookedTooltip
 local function EnableMapMarkers()
-    if not Enabled()then return end
+    if not ns.IsTransportProviderEnabled("eui")then return end
     local travel=EllesmereUI and EllesmereUI._MapTravel
     if not travel or type(travel.Cfg)~="function"or type(travel.Apply)~="function"then return end
     local cfg=travel.Cfg()
@@ -436,7 +442,7 @@ local function Install()
     if not hookedTooltip and EllesmereUI and type(EllesmereUI.ShowWidgetTooltip)=="function"then
         hookedTooltip=true
         hooksecurefunc(EllesmereUI,"ShowWidgetTooltip",function(pin,text,options)
-            if tooltipGuard or not Enabled()or not labels[pin]or type(text)~="string"then return end
+            if tooltipGuard or not ns.IsTransportProviderEnabled("eui")or not labels[pin]or labels[pin].provider~="eui"or type(text)~="string"then return end
             labels[pin].tip=text;labels[pin].tipOptions=options;hovered=pin;ShowTip(pin,labels[pin],true)
         end)
     end
@@ -445,7 +451,15 @@ function ns.RefreshTransportTimers()
     if ticker then ticker:Cancel();ticker=nil end
     previous=nil;tracks={}
     Install()
-    if Enabled()then
+    if hovered and labels[hovered]and not ns.IsTransportProviderEnabled(labels[hovered].provider)then
+        local record=labels[hovered]
+        if record.tip and EllesmereUI then EllesmereUI.ShowWidgetTooltip(hovered,record.tip)end
+        hovered=nil
+    end
+    for _,record in pairs(labels)do
+        if not ns.IsTransportProviderEnabled(record.provider)then record.text:SetShown(false)end
+    end
+    if ns.IsTransportProviderEnabled("eui")or ns.IsTransportProviderEnabled("openmap")then
         EnableMapMarkers()
         ticker=C_Timer.NewTicker(1,function()Sample();Display()end)
         Display()

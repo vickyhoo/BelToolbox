@@ -1,3 +1,8 @@
+# Bel Toolbox 0.19.19-dev
+
+- Added separate EUI and OpenMap icon countdown switches under the transport timer master switch. Existing enabled setups retain both displays; the master switch remains off by default.
+- OpenMap-only display no longer automatically enables EUI Map Markers. Turning a display off immediately hides its countdowns and restores EUI's native dock tooltip where applicable. With both displays off, the timer ticker stops.
+
 # Bel Toolbox 0.19.18-dev
 
 - Added OpenMap's separate airship category to countdown attachment, including the Mulgore and Alterac Mountains routes to Zephras Isle. Their existing schedules were already included; no new timetable is needed.

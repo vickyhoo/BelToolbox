@@ -168,7 +168,13 @@ local registered = EUI.RegisterPlugin(addonName, {
                     "Drag the bottom-right corner to resize. Windowed mode only. The size is saved with EUI window settings.")
                 Toggle("Ship and zeppelin timers",function()return ns.GetTransportSettings().enabled==true end,
                     function(v)ns.GetTransportSettings().enabled=v;ns.RefreshTransportTimers()end,
-                    "Show the next arrival or departure below EUI map transport icons. Automatically enables EUI Map Markers and transports. Stand still aboard a moving boat or zeppelin to calibrate.")
+                    "Show arrival or departure countdowns on the selected map icons. Stand still aboard a moving boat or airship to calibrate.")
+                Toggle("EUI icon countdowns",function()return ns.GetTransportSettings().eui~=false end,
+                    function(v)ns.GetTransportSettings().eui=v;ns.RefreshTransportTimers()end,
+                    "Show countdowns below EUI transport icons. Enables EUI Map Markers and transports while the timer is on.")
+                Toggle("OpenMap icon countdowns",function()return ns.GetTransportSettings().openmap~=false end,
+                    function(v)ns.GetTransportSettings().openmap=v;ns.RefreshTransportTimers()end,
+                    "Show countdowns below OpenMap boat, zeppelin and airship icons when OpenMap is installed.")
                 Header("Chat Copy Window")
                 Toggle("Enable chat copy enhancements",ns.IsChatCopyEnabled,
                     function(v)local db=ns.GetSettings();db.chatCopy=db.chatCopy or {};db.chatCopy.enabled=v;ns.RefreshChatCopy()end,
