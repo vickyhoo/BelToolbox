@@ -2,6 +2,7 @@ local _, ns = ...
 local L,T=ns.L,ns.Toolbars
 local root,buttons
 local function Settings()return T.Settings("chatBar")end
+function ns.GetChatJournalTarget()return Settings().journalTarget=="needroll"and "needroll"or "dungeonsforever"end
 local function ChatFrame()return SELECTED_CHAT_FRAME or DEFAULT_CHAT_FRAME or ChatFrame1 end
 local function Open(text)
     if ChatFrame_OpenChat then ChatFrame_OpenChat(text or "",ChatFrame())end
@@ -25,6 +26,12 @@ local function Journal(right)
     if right then
         if ToggleLootHistoryFrame then ToggleLootHistoryFrame()
         elseif SlashCmdList.LOOT then SlashCmdList.LOOT("")end
+        return
+    end
+    if ns.GetChatJournalTarget()=="needroll"then
+        Load("NeedRoll")
+        if type(SlashCmdList.NEEDROLL)=="function"then SlashCmdList.NEEDROLL("")
+        else Notice("NeedRoll is not available.")end
         return
     end
     Load("DungeonsForever")
@@ -188,6 +195,7 @@ function ns.RefreshChatBar()
                 if d.channel then Channel(d.channel,right)else Open(right and d.right or d.chat)end
             end
             local tip=d.channel and "Left-click: chat. Right-click: join or leave this channel."or d.tip
+            if d.key=="journal"and ns.GetChatJournalTarget()=="needroll"then tip="Left-click: NeedRoll. Right-click: loot history."end
             local button=Button(d.key,L(d.title),L(d.label),d.color,action,tip)
             Style(button,d);visible[#visible+1]=button
         end

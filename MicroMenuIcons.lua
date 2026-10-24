@@ -6,6 +6,21 @@ local files={menu="menu",guild="guild",social="social",char="player",spell="spel
     profession="professions",legacy="legacy"}
 local textures=setmetatable({},{__mode="k"})
 local installed,discovered
+local function PaintColor(icon,r)
+    if r.coloring then return end
+    local settings=ns.GetEnhancements()
+    local custom=icon._edbWow~=true and icon._edbWow~="wow"
+    local color
+    if custom and settings.belMicroMenuIcons~=false and settings.belMicroMenuClassColor==true then
+        local _,class=UnitClass("player")
+        color=C_ClassColor and C_ClassColor.GetClassColor and C_ClassColor.GetClassColor(class)
+            or(CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS or {})[class]
+    end
+    r.coloring=true
+    if color then icon:SetVertexColor(color.r,color.g,color.b,1);r.classApplied=true
+    elseif r.classApplied then icon:SetVertexColor(unpack(r.nativeColor));r.classApplied=false end
+    r.coloring=nil
+end
 local function Migrate(block)
     if block and block.type=="micromenu"and block.settings and block.settings.iconStyle=="rs"then
         block.settings.iconStyle="custom"
@@ -15,7 +30,7 @@ local function Paint(icon,r)
     if r.painting then return end
     -- Native portrait painting can bypass Lua SetTexture hooks altogether.
     -- When EUI selected Blizzard art, leave the freshly painted icon alone.
-    if icon._edbWow==true or icon._edbWow=="wow"then r.applied=false;return end
+    if icon._edbWow==true or icon._edbWow=="wow"then r.applied=false;PaintColor(icon,r);return end
     local enabled=ns.GetEnhancements().belMicroMenuIcons~=false
     r.painting=true
     if enabled then
@@ -26,6 +41,7 @@ local function Paint(icon,r)
         r.applied=false
     end
     r.painting=nil
+    PaintColor(icon,r)
 end
 local function Inspect(button,key)
     if not button or (button.IsForbidden and button:IsForbidden())then return end
@@ -36,8 +52,13 @@ local function Inspect(button,key)
             local r=textures[region]
             if not r then
                 r={native=region:GetTexture(),nativeAtlas=region.GetAtlas and region:GetAtlas(),
+                    nativeColor=region.GetVertexColor and {region:GetVertexColor()}or {1,1,1,1},
                     path="Interface\\AddOns\\BelToolbox\\Media\\MicroMenu\\"..files[key]..".png"}
                 textures[region]=r
+                hooksecurefunc(region,"SetVertexColor",function(_,red,green,blue,alpha)
+                    if r.coloring then return end
+                    r.nativeColor={red,green,blue,alpha or 1};r.classApplied=false;PaintColor(region,r)
+                end)
                 hooksecurefunc(region,"SetTexture",function(_,path)
                     if r.painting then return end
                     r.native=path;r.nativeAtlas=nil;r.applied=false;Paint(region,r)

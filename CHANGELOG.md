@@ -1,3 +1,8 @@
+# Bel Toolbox 0.19.22-dev
+
+- Added a native settings cog for Bel Toolbox micro-menu icons with optional player-class tinting. Disabling class tint restores EUI's latest color; Blizzard icon style remains native.
+- Chat Bar's Dungeon Journal cog can now select DungeonsForever or NeedRoll for left click. Existing choices default to DungeonsForever; right click still opens loot history. Tooltip text follows the selected addon.
+
 # Bel Toolbox 0.19.21-dev
 
 - Updated Bel Toolbox micro-menu icons for EUI's boolean icon-style cache while retaining legacy string-cache support.

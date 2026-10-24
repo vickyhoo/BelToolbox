@@ -39,10 +39,7 @@ local function BuildToolbarPage(parent,yOffset,key,title,refresh)
             function(v)local db=ns.Toolbars.Settings(key);db.buttons=db.buttons or {};db.buttons[field]=v;refresh()end)
         y=y-h
         if EUI.BuildInlineCog and not EUI._prebuilding then
-            EUI.BuildInlineCog(row,{
-                title=L(data.title).." — "..L("Chat button colors"),minWidth=280,
-                anchorTo=row,relPoint="RIGHT",gap=70,chain=false,
-                rows={
+            local cogRows={
                     {type="colorpicker",label=L("Color block color"),
                         get=function()return ns.GetChatButtonColor(field,"block")end,
                         set=function(r,g,b)ns.SetChatButtonColor(field,"block",r,g,b)end},
@@ -50,7 +47,16 @@ local function BuildToolbarPage(parent,yOffset,key,title,refresh)
                         get=function()return ns.GetChatButtonColor(field,"text")end,
                         set=function(r,g,b)ns.SetChatButtonColor(field,"text",r,g,b)end},
                     {type="button",label=L("Restore default colors"),action=function()ns.ResetChatButtonColors(field)end},
-                },
+                }
+            if field=="journal"then
+                table.insert(cogRows,1,{type="dropdown",label=L("Open journal addon"),
+                    values={dungeonsforever="DungeonsForever",needroll="NeedRoll"},order={"dungeonsforever","needroll"},
+                    get=ns.GetChatJournalTarget,
+                    set=function(v)ns.Toolbars.Settings(key).journalTarget=v;refresh()end})
+            end
+            EUI.BuildInlineCog(row,{
+                title=field=="journal"and L("Dungeon journal settings")or L(data.title).." — "..L("Chat button colors"),minWidth=280,
+                anchorTo=row,relPoint="RIGHT",gap=70,chain=false,rows=cogRows,
             })
         end
     end
@@ -199,9 +205,18 @@ local registered = EUI.RegisterPlugin(addonName, {
                     function(v)local db=ns.GetSettings();db.chatCopy=db.chatCopy or {};db.chatCopy.classNames=v;ns.RefreshChatCopy()end,
                     "Preserve EUI's player colors first, then fill missing name colors from other messages and known class information.")
                 Header("Data Bars")
-                Toggle("Bel Toolbox icons",function()return ns.GetEnhancements().belMicroMenuIcons~=false end,
+                local microRow=Toggle("Bel Toolbox icons",function()return ns.GetEnhancements().belMicroMenuIcons~=false end,
                     function(v)ns.GetEnhancements().belMicroMenuIcons=v;ns.RefreshMicroMenuIcons()end,
                     "Use original Bel Toolbox icons for custom data-bar micro menus. Blizzard icon style is preserved.")
+                if EUI.BuildInlineCog and not EUI._prebuilding then
+                    EUI.BuildInlineCog(microRow,{
+                        title=L("Bel Toolbox icon settings"),minWidth=280,
+                        anchorTo=microRow,relPoint="RIGHT",gap=70,chain=false,
+                        rows={{type="toggle",label=L("Color icons by class"),
+                            get=function()return ns.GetEnhancements().belMicroMenuClassColor==true end,
+                            set=function(v)ns.GetEnhancements().belMicroMenuClassColor=v;ns.RefreshMicroMenuIcons()end}},
+                    })
+                end
                 Header("Player Frame")
                 Toggle("Animated resting indicator",function()return ns.GetEnhancements().animatedRestIndicator~=false end,
                     function(v)ns.GetEnhancements().animatedRestIndicator=v;ns.RefreshRestIndicator()end,
