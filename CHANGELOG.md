@@ -1,3 +1,9 @@
+# Bel Toolbox 0.19.23-dev
+
+- Adapted animated resting indicators to EUI 9.7.5's native flipbook and renamed rest regions. Use EUI's native placement/size/visibility controls on newer versions while retaining the legacy visual adapter.
+- Restore the previous native animation preference when the toolbox feature is disabled. Native updates are hooked without recursive rebuilds; combat changes wait until combat ends.
+- Audited current EUI integration surfaces; see docs/EUI_COMPATIBILITY.md for verified changes and limits.
+
 # Bel Toolbox 0.19.22
 
 - Added countdowns below OpenMap's native boat, zeppelin and airship dock icons, including the routes to Zephras Isle. Labels follow icon visibility and reuse existing schedules and calibration.
