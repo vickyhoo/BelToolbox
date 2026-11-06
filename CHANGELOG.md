@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.27-dev
+
+- Fix an Interface Enhancements error when EUI indexes the quest-item sparkles option for settings search.
+
 # Bel Toolbox 0.19.26-dev
 
 - Added an optional newly learned spells panel. New active skills and ranks can be dragged directly to an action bar, with no automatic slot changes. Combat learns wait until combat ends; use /belnewspells to reopen the current session's list.

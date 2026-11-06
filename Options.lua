@@ -233,6 +233,8 @@ local registered = EUI.RegisterPlugin(addonName, {
                 local sparkleRow=Toggle("Quest item sparkles",function()return ns.GetEnhancements().lootSparkles~=false end,
                     function(v)ns.GetEnhancements().lootSparkles=v;ns.RefreshLootSparkles()end,
                     "Enable native quest-object sparkles by disabling normal and raid outlines. Disabling restores saved settings. Fully exit and relaunch the game to clear existing sparkles; /reload is not enough. Changes apply after combat.")
+                -- EUI's search prebuild uses placeholder rows without font metrics.
+                if EUI._prebuilding then return math.abs(y)+12 end
                 local sparkleHint=EUI.MakeFont(sparkleRow,12,nil,1,.78,.35,1)
                 sparkleHint:SetPoint("TOPLEFT",sparkleRow,"BOTTOMLEFT",20,-8)
                 sparkleHint:SetPoint("TOPRIGHT",sparkleRow,"BOTTOMRIGHT",-20,-8)
