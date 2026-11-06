@@ -245,6 +245,14 @@ SavePosition = function()
     Settings().y = root:GetBottom() * scale
     for _,group in ipairs(groups)do PositionGroup(group)end
 end
+local function ConjureRanks(db)
+    local name,realm=UnitFullName("player")
+    if not name then return end
+    local key=name.."-"..((realm and realm~="")and realm or GetRealmName())
+    db.conjureRanks=db.conjureRanks or {}
+    db.conjureRanks[key]=db.conjureRanks[key]or {}
+    return db.conjureRanks[key]
+end
 function ns.RefreshMageBar(rescanSpells)
     if class ~= "MAGE" then return end
     if rescanSpells then pendingRescan=true end
@@ -262,6 +270,7 @@ function ns.RefreshMageBar(rescanSpells)
     local perRow=math.max(1,math.min(#categories,math.floor(tonumber(db.perRow)or #categories)))
     local byKey={};for _,group in ipairs(groups)do byKey[group.data.key]=group end
     local visible={}
+    local ranks=rescanSpells and ConjureRanks(db)
     for _,data in ipairs(ns.GetMageOrder())do
         local group=byKey[data.key]
         group.popup:Hide()
@@ -269,16 +278,27 @@ function ns.RefreshMageBar(rescanSpells)
         -- tick. A transient spell-data result must not remove a category.
         if rescanSpells or not group.visibleSpells then
             group.visibleSpells={};group.visibleButtons={}
+            local trackRank=ranks and (data.key=="water"or data.key=="food")
+            local previousRank,highestRank=0,0
             for index,id in ipairs(group.data.spells)do
+                if trackRank and ranks[data.key]==id then previousRank=index end
                 local button=group.buttons[index]
                 local known=Known(id)
                 button:SetShown(known and true or false)
                 if known then
+                    highestRank=index
                     local binding=SpellBinding(id)
                     if button:GetAttribute("spell")~=binding then button:SetAttribute("spell",binding)end
                     group.visibleSpells[#group.visibleSpells+1]=id
                     group.visibleButtons[#group.visibleButtons+1]=button
                 end
+            end
+            -- Remember the highest rank seen, not the rank last selected.
+            -- A lower manual choice survives rescans/reloads until a new rank
+            -- becomes known. Never lower the baseline on a partial scan.
+            if trackRank and highestRank>previousRank then
+                ranks[data.key]=data.spells[highestRank]
+                if db.lastSpells then db.lastSpells[data.key]=nil end
             end
         end
         local defaultSpell,remembered

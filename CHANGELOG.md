@@ -1,3 +1,25 @@
+# Bel Toolbox 0.19.25
+
+- Restore animated resting indicators on EUI 9.7.5 and newer compatible versions by using EUI's native animation, size, offsets and visibility. Older EUI versions retain the existing animation.
+- Newly learned higher ranks of Conjure Water and Conjure Food become the Mage Bar default. Later manual choices are remembered until another higher rank is learned. The first scan after upgrading selects the highest known rank.
+- Broaden automatic food selection to recovery-only food outside the fixed list, including generic consumables whose localized use text matches known plain food. Level requirements still apply; extra effects and unconfirmed food do not qualify for this fallback.
+
+# Bel Toolbox 0.19.25-dev
+
+- Allow recovery-only food outside the fixed automatic-selection list, including generic consumables, when its localized use text matches known plain food apart from amount and duration.
+- Preserve level requirements and manual selection; additional effects and unconfirmed food do not qualify for this automatic fallback.
+
+# Bel Toolbox 0.19.24-dev
+
+- Promote newly learned higher ranks of Conjure Water and Conjure Food to the Mage Bar default. Subsequent manual selections are remembered until another higher rank is learned.
+- Track the highest observed rank per character across reloads, without resetting it on partial spellbook scans. The first scan after upgrading selects the highest known ranks once.
+
+# Bel Toolbox 0.19.23-dev
+
+- Adapted animated resting indicators to EUI 9.7.5's native flipbook and renamed rest regions. Use EUI's native placement/size/visibility controls on newer versions while retaining the legacy visual adapter.
+- Restore the previous native animation preference when the toolbox feature is disabled. Native updates are hooked without recursive rebuilds; combat changes wait until combat ends.
+- Audited current EUI integration surfaces; see docs/EUI_COMPATIBILITY.md for verified changes and limits.
+
 # Bel Toolbox 0.19.22
 
 - Added countdowns below OpenMap's native boat, zeppelin and airship dock icons, including the routes to Zephras Isle. Labels follow icon visibility and reuse existing schedules and calibration.

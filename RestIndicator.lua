@@ -1,6 +1,7 @@
 -- Replace only the visual; EUI retains ownership of resting state and offsets.
 local _,ns=...
 local record
+local modern
 local function Wanted()return ns.GetEnhancements().animatedRestIndicator~=false end
 local function Sync(r)
     if r.syncing then return end
@@ -13,6 +14,37 @@ local function Sync(r)
 end
 function ns.RefreshRestIndicator()
     local pf=_G.EllesmereUIUnitFrames_Player
+    -- EUI 9.7.5 owns a native flipbook and renamed its text region.
+    if pf and pf._restText and type(pf._restUpdate)=="function"then
+        if InCombatLockdown()or not _G.EllesmereUIDB then return end
+        if record then
+            record.retired=true;record.native:SetAlpha(record.alpha);record.frame:Hide();record=nil
+        end
+        if not modern or modern.player~=pf then
+            local original=EllesmereUIDB.restedIndicatorAnimated
+            if modern then original=modern.original end
+            modern={player=pf,original=original}
+            local current=modern
+            hooksecurefunc(pf,"_restUpdate",function()
+                if modern==current and not current.syncing then ns.RefreshRestIndicator()end
+            end)
+        end
+        if modern.syncing then return end
+        modern.syncing=true
+        local changed=false
+        if Wanted()then
+            if EllesmereUIDB.restedIndicatorAnimated~=true then EllesmereUIDB.restedIndicatorAnimated=true;changed=true end
+            modern.applied=true
+        elseif modern.applied then
+            EllesmereUIDB.restedIndicatorAnimated=modern.original;modern.applied=false;changed=true
+        end
+        if changed then
+            if pf._restPlace then pf._restPlace()end
+            pf._restUpdate()
+        end
+        modern.syncing=nil
+        return
+    end
     local native=pf and pf._restIndicator
     if record and record.native==native then Sync(record);return end
     if InCombatLockdown()then return end

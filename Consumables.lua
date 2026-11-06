@@ -35,6 +35,46 @@ for _,id in ipairs({5349,1113,1114,1487,8075,8076,22895,5350,2288,2136,3772,8077
 local plain={}
 for _,id in ipairs({117,2287,3770,3771,4599,8952,4540,4541,4542,4544,4601,8950,159,1179,1205,1708,1645,8766})do plain[id]=true end
 local references={{433,"food"},{430,"drink"},{441,"healing"},{437,"mana"},{746,"bandage"}}
+local foodSamples={117,4540,8950,8952}
+local foodPatterns,loadedSamples,requestedSamples={},{},{}
+local function FoodUseText(id)
+    local getter=C_TooltipInfo and C_TooltipInfo.GetItemByID
+    if not getter then return end
+    local data=getter(id)
+    if not Safe(data)or not data or not Safe(data.lines)or not data.lines then return end
+    local types=Enum and Enum.TooltipDataLineType
+    local onUse=types and types.ItemSpellTriggerOnUse
+    local prefix=ITEM_SPELL_TRIGGER_ONUSE
+    local effect
+    for _,line in ipairs(data.lines)do
+        local text,kind=line.leftText,line.type
+        if not Safe(text)or not Safe(kind)then return end
+        if type(text)=="string"then text=text:gsub("|c%x%x%x%x%x%x%x%x",""):gsub("|r","")end
+        if (onUse and kind==onUse)or (type(text)=="string"and prefix and text:sub(1,#prefix)==prefix)then
+            if effect or type(text)~="string"or text==""then return end
+            if prefix and text:sub(1,#prefix)==prefix then text=text:sub(#prefix+1)end
+            -- Ignore recovery amounts and durations, but retain all wording
+            -- so additional effects cannot match the recovery-only text.
+            effect=text:gsub("%d[%d,.]*","#"):gsub("%s+"," "):match("^%s*(.-)%s*$")
+        end
+    end
+    return effect
+end
+local function PlainFood(id)
+    local text=FoodUseText(id)
+    if not text or text==""then return false end
+    for _,sample in ipairs(foodSamples)do
+        if not loadedSamples[sample]then
+            local pattern=FoodUseText(sample)
+            if pattern and pattern~=""then
+                foodPatterns[pattern]=true;loadedSamples[sample]=true
+            elseif not requestedSamples[sample]and C_Item and C_Item.RequestLoadItemDataByID then
+                requestedSamples[sample]=true;C_Item.RequestLoadItemDataByID(sample)
+            end
+        end
+    end
+    return foodPatterns[text]==true
+end
 function C.Classify(id)
     if specials[id]then return specials[id]end
     local spell=API("GetItemSpell",id)
@@ -59,6 +99,8 @@ function C.Classify(id)
         -- Drinks are matched by their localized use spell above. Cooked/buff
         -- foods can have different use spells, but still belong in the picker.
         if subclass==5 then return "food"end
+        -- Some foods use a generic consumable subclass and a different spell.
+        if subclass==0 then return nil,true end
     end
 end
 function C.Ordered()
@@ -120,17 +162,20 @@ function C.Scan()
             local id=C_Container.GetContainerItemID(bag,slot)
             if Safe(id)and id and not seen[id]then
                 seen[id]=true
-                local cat=C.Classify(id)
-                if cat and Count(id)>0 then
+                local cat,generic=C.Classify(id)
+                if (cat or generic)and Count(id)>0 then
                     local name,_,_,itemLevel,minLevel,_,_,_,_,icon=API("GetItemInfo",id)
                     if name and Safe(minLevel)and Safe(itemLevel)and (minLevel or 0)<=level then
                         local _,spellID=API("GetItemSpell",id)
                         local description=spellID and C_Spell.GetSpellDescription and C_Spell.GetSpellDescription(spellID)
                         local wellFed=C_Spell.GetSpellName and C_Spell.GetSpellName(19705)
-                        local buff=type(description)=="string"and wellFed and description:find(wellFed,1,true)
-                        lists[cat][#lists[cat]+1]={id=id,name=name,icon=icon,level=minLevel or 0,rank=itemLevel or 0,
+                        local buff=Safe(description)and type(description)=="string"and Safe(wellFed)and wellFed and wellFed~="" and description:find(wellFed,1,true)
+                        local recovery=not buff and (generic or (cat=="food"and not (conjured[id]or plain[id])))and PlainFood(id)
+                        local automatic=not buff and (conjured[id]or plain[id]or recovery)
+                        if generic and recovery then cat="food"end
+                        if cat then lists[cat][#lists[cat]+1]={id=id,name=name,icon=icon,level=minLevel or 0,rank=itemLevel or 0,
                             temporary=conjured[id]or false,manual=cat=="flask"or cat=="elixir"or cat=="protection"
-                                or (cat=="food"or cat=="drink")and (buff or not(conjured[id]or plain[id]))or false}
+                                or (cat=="food"or cat=="drink")and not automatic or false}end
                     elseif not name and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(id)end
                 elseif C_Item and C_Item.RequestLoadItemDataByID and not API("GetItemInfo",id)then C_Item.RequestLoadItemDataByID(id)end
             end
