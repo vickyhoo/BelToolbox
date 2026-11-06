@@ -176,11 +176,17 @@ local function Hover(button)
     if InCombatLockdown()or Modified()or Busy()then return end
     local data=slots[button]
     if not data or not Action(data.bag,data.slot)then return end
+    local x,y,width,height=button:GetRect()
+    if not Readable(x)or not Readable(y)or not Readable(width)or not Readable(height)
+        or not x or not y or not width or not height or width<=0 or height<=0 then return end
+    local scale=button:GetEffectiveScale()/UIParent:GetEffectiveScale()
     if not overlay then Build()end
     Hide();owner=button
     local host=button._textOverlay or button:GetParent()
-    overlay:SetParent(host)
-    overlay:ClearAllPoints();overlay:SetAllPoints(button)
+    -- Parenting or anchoring a secure button to a bag slot can lock the whole bag in combat.
+    overlay:ClearAllPoints()
+    overlay:SetPoint("BOTTOMLEFT",UIParent,"BOTTOMLEFT",x*scale,y*scale)
+    overlay:SetSize(width*scale,height*scale)
     overlay:SetFrameStrata(button:GetFrameStrata())
     overlay:SetFrameLevel(math.max(button:GetFrameLevel(),host and host:GetFrameLevel()or 0)+2)
     overlay:SetAttribute("type1","click");overlay:SetAttribute("clickbutton1",button)

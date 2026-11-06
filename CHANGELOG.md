@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.30-dev
+
+- Keep bag action buttons and the map resize handle from passing combat restrictions to the bag and map windows.
+
 # Bel Toolbox 0.19.29-dev
 
 - Add a toggle to show equipment item levels in tooltips that omit the native line.
