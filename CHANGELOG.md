@@ -1,3 +1,8 @@
+# Bel Toolbox 0.19.24-dev
+
+- Promote newly learned higher ranks of Conjure Water and Conjure Food to the Mage Bar default. Subsequent manual selections are remembered until another higher rank is learned.
+- Track the highest observed rank per character across reloads, without resetting it on partial spellbook scans. The first scan after upgrading selects the highest known ranks once.
+
 # Bel Toolbox 0.19.23-dev
 
 - Adapted animated resting indicators to EUI 9.7.5's native flipbook and renamed rest regions. Use EUI's native placement/size/visibility controls on newer versions while retaining the legacy visual adapter.
