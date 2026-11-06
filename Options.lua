@@ -464,6 +464,8 @@ local registered = EUI.RegisterPlugin(addonName, {
                     L("Show recorded bag and bank counts for your characters. Visit each bank to refresh its snapshot."))
                 Toggle(L("Show item title icons"), "itemTitleIcons",
                     L("Show an item icon to the left of its tooltip name."))
+                Toggle(L("Show equipment item level"), "itemLevel",
+                    L("Show item level in equipment tooltips that do not already display it."))
                 Toggle(L("Show spell title icons"), "spellTitleIcons",
                     L("Show spell and aura icons to the left of their tooltip names."))
                 Toggle(L("Enable status tooltips"), "enabled",

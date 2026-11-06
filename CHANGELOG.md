@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.29-dev
+
+- Add a toggle to show equipment item levels in tooltips that omit the native line.
+
 # Bel Toolbox 0.19.28-dev
 
 - Add an optional ItemRack Forever minimap button adapter for EUI's button group, with native set and options actions.
