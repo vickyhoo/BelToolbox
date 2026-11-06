@@ -1,3 +1,12 @@
+# Bel Toolbox 0.19.34
+
+- Added an optional panel for newly learned spells and ranks. Drag a spell to an action bar to close the panel, or use `/belnewspells` to reopen the remaining list.
+- Added equipment item levels to tooltips that omit the native line.
+- Added an optional switch to collect the ItemRack Forever minimap button in EUI while preserving its set and settings actions.
+- Fixed toolbar anchors after using EUI Unlock Mode. The Mage and Consumables bars keep their selected growth edge and top row, and the Chat Bar keeps its starting corner as buttons change.
+- Fixed Bel Toolbox controls that could prevent the bags or world map from closing in combat. Restored right-click scroll comprehension and weapon buff shortcuts with the bag button detached from the bag window.
+- Fixed an error while EUI indexes the quest-item sparkles option for settings search.
+
 # Bel Toolbox 0.19.34-dev
 
 - Preserve the selected growth edge and top row of the Mage and Consumables bars as their layouts change. Keep a moved Chat Bar's first button anchored when channels change.
