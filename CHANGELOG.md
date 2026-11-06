@@ -1,3 +1,8 @@
+# Bel Toolbox 0.19.25-dev
+
+- Allow recovery-only food outside the fixed automatic-selection list, including generic consumables, when its localized use text matches known plain food apart from amount and duration.
+- Preserve level requirements and manual selection; additional effects and unconfirmed food do not qualify for this automatic fallback.
+
 # Bel Toolbox 0.19.24-dev
 
 - Promote newly learned higher ranks of Conjure Water and Conjure Food to the Mage Bar default. Subsequent manual selections are remembered until another higher rank is learned.
