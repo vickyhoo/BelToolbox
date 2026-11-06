@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.31-dev
+
+- Restore right-click bag shortcuts by placing their detached click button above the bag slots without reattaching it to the bag window.
+
 # Bel Toolbox 0.19.30-dev
 
 - Keep bag action buttons and the map resize handle from passing combat restrictions to the bag and map windows.
