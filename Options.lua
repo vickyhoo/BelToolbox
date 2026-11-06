@@ -217,6 +217,10 @@ local registered = EUI.RegisterPlugin(addonName, {
                             set=function(v)ns.GetEnhancements().belMicroMenuClassColor=v;ns.RefreshMicroMenuIcons()end}},
                     })
                 end
+                Header("Spell learning")
+                Toggle("Newly learned spells",function()return ns.GetEnhancements().newSpells==true end,
+                    function(v)ns.GetEnhancements().newSpells=v;ns.RefreshNewSpells()end,
+                    "Show newly learned active spells and ranks in a draggable panel.")
                 Header("Player Frame")
                 Toggle("Animated resting indicator",function()return ns.GetEnhancements().animatedRestIndicator~=false end,
                     function(v)ns.GetEnhancements().animatedRestIndicator=v;ns.RefreshRestIndicator()end,

@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.26-dev
+
+- Added an optional newly learned spells panel. New active skills and ranks can be dragged directly to an action bar, with no automatic slot changes. Combat learns wait until combat ends; use /belnewspells to reopen the current session's list.
+
 # Bel Toolbox 0.19.25
 
 - Restore animated resting indicators on EUI 9.7.5 and newer compatible versions by using EUI's native animation, size, offsets and visibility. Older EUI versions retain the existing animation.
