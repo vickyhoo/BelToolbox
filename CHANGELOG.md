@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.33-dev
+
+- Keep the Mage Bar's left edge fixed when growing right, including after moving it in EUI Unlock Mode.
+
 # Bel Toolbox 0.19.32-dev
 
 - Close the newly learned spells panel after placing a spell on an action bar. Keep unplaced spells available via /belnewspells.

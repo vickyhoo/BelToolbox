@@ -227,14 +227,25 @@ local function SetAnchor(frame,point,relative,relativePoint,x,y)
     if count>1 or count==1 and(oldPoint~=point or oldRelative~=relative or oldRelativePoint~=relativePoint)then frame:ClearAllPoints()end
     frame:SetPoint(point,relative,relativePoint,x,y)
 end
+local rightGrowthAnchors={
+    TOP={"TOPLEFT",.5},CENTER={"LEFT",.5},BOTTOM={"BOTTOMLEFT",.5},
+    TOPRIGHT={"TOPLEFT",1},RIGHT={"LEFT",1},BOTTOMRIGHT={"BOTTOMLEFT",1},
+}
 local function ApplyPosition(skipFlyouts)
     if not root or InCombatLockdown() then return end
     local db=Settings()
-    if db.position then
-        local p=db.position
-        SetAnchor(root,p.point,UIParent,p.relPoint,p.x,p.y)
-    elseif db.x and db.y then SetAnchor(root,"BOTTOMLEFT",UIParent,"BOTTOMLEFT",db.x,db.y)
-    else SetAnchor(root,"CENTER",UIParent,"CENTER",0,-160)end
+    local p=db.position
+    if not p then
+        if db.x and db.y then p={point="BOTTOMLEFT",relPoint="BOTTOMLEFT",x=db.x,y=db.y}
+        else p={point="CENTER",relPoint="CENTER",x=0,y=-160}end
+    end
+    local edge=ns.Toolbars.Growth(db)=="RIGHT" and rightGrowthAnchors[p.point]
+    if edge then
+        -- EUI's mover saves a center point. Keep the current left edge before the bar changes width.
+        p={point=edge[1],relPoint=p.relPoint,x=p.x-root:GetWidth()*edge[2],y=p.y}
+        db.position=p
+    end
+    SetAnchor(root,p.point,UIParent,p.relPoint,p.x,p.y)
     if skipFlyouts~=true then for _,group in ipairs(groups)do PositionGroup(group)end end
 end
 SavePosition = function()
