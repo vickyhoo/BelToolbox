@@ -49,6 +49,58 @@ TooltipDataProcessor.AddTooltipPostCall(
     Enum.TooltipDataType.Unit,
     AddStatus
 )
+
+local function AddItemLevel(tooltip, data)
+    if ns.GetSettings().itemLevel == false or tooltip:IsForbidden() or IsSecret(data) or not data then return end
+    if tooltip.GetPrimaryTooltipData then
+        local primary = tooltip:GetPrimaryTooltipData()
+        if IsSecret(primary) or (primary and primary ~= data) then return end
+    end
+
+    local lines = data.lines
+    if IsSecret(lines) then return end
+    local levelLine = Enum.TooltipDataLineType and Enum.TooltipDataLineType.ItemLevel
+    if levelLine and lines then
+        for _, line in ipairs(lines) do
+            if IsSecret(line) or IsSecret(line.type) or line.type == levelLine then return end
+        end
+    end
+
+    local item = data.hyperlink
+    local guid = data.guid
+    if IsSecret(item) or IsSecret(guid) then return end
+    if type(guid) == "string" and guid ~= "" and C_Item.GetItemLinkByGUID then
+        local link = C_Item.GetItemLinkByGUID(guid)
+        if IsSecret(link) then return end
+        item = link or item
+    end
+    if type(item) ~= "string" or item == "" then item = data.id end
+    if IsSecret(item) or (type(item) ~= "number" and type(item) ~= "string") then return end
+
+    local _, _, _, equipLocation = C_Item.GetItemInfoInstant(item)
+    if IsSecret(equipLocation) or not equipLocation or equipLocation == "" or equipLocation == "INVTYPE_NON_EQUIP" then return end
+    local level = data.overrideItemLevel
+    if IsSecret(level) then return end
+    if type(level) ~= "number" or level <= 0 then level = C_Item.GetDetailedItemLevelInfo(item) end
+    if IsSecret(level) or type(level) ~= "number" or level <= 0 then return end
+
+    local text = ns.L("Item Level %d", level)
+    local nativeText = ITEM_LEVEL and ITEM_LEVEL:format(level)
+    local name = tooltip:GetName()
+    if name then
+        for index = 1, tooltip:NumLines() do
+            local line = _G[name .. "TextLeft" .. index]
+            local existing = line and line:GetText()
+            if not IsSecret(existing) and existing and (existing == text or existing == nativeText) then return end
+        end
+    end
+    tooltip:AddLine(text, 1, 0.82, 0)
+end
+
+if C_Item and C_Item.GetItemInfoInstant and C_Item.GetDetailedItemLevelInfo then
+    TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, AddItemLevel)
+end
+
 -- Inline title textures keep the icon on the same line as the native name.
 local titleIcons = setmetatable({}, { __mode="k" })
 local function AddTitleIcon(tooltip, data, kind)

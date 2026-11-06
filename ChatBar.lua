@@ -183,7 +183,9 @@ function ns.RefreshChatBar()
     if not root then
         root=CreateFrame("Frame","BelToolboxChatBar",UIParent)
         root:SetFrameStrata("LOW");buttons={}
-        T.Mover(root,"chatBar","Chat Bar",951,DefaultPosition)
+        T.Mover(root,"chatBar","Chat Bar",951,DefaultPosition,function(db)
+            if db.position then return "RIGHT" end
+        end)
     end
     for _,b in pairs(buttons)do b:Hide()end
     local db=Settings();db.buttons=db.buttons or {}

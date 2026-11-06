@@ -17,11 +17,9 @@ local function Stop()
     gesture=nil
 end
 local function Sync()
-    if grip and not InCombatLockdown()then
-        local shown=Enabled()and Windowed()
-        grip:SetAttribute("bel-visible",shown);grip:SetShown(shown)
-    end
-    if gesture and (not Enabled()or not Windowed()or InCombatLockdown())then Stop()end
+    local shown=Enabled()and Windowed()and not InCombatLockdown()
+    if grip then grip:SetShown(not not shown)end
+    if gesture and not shown then Stop()end
 end
 local function Resize()
     local g=gesture
@@ -69,18 +67,14 @@ function ns.RefreshMapResize()
         map=_G.WorldMapFrame
         if not map then return end
         positioner=CreateFrame("Frame",nil,UIParent,"SecureHandlerBaseTemplate")
-        grip=CreateFrame("Button","BelToolboxMapResizeHandle",map,"SecureHandlerStateTemplate")
+        -- Only the separate positioner needs to be secure. A secure grip would also protect its parent map.
+        grip=CreateFrame("Button","BelToolboxMapResizeHandle",map)
         grip:SetSize(26,26);grip:SetPoint("BOTTOMRIGHT",map,"BOTTOMRIGHT",1,-1)
         grip:SetFrameLevel(map:GetFrameLevel()+50)
         grip:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
         grip:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
         grip:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
         ns.Toolbars.Tooltip(grip,ns.L("Resize map window"),ns.L("Drag the bottom-right corner to resize. Windowed mode only. The size is saved with EUI window settings."))
-        grip:SetAttribute("_onstate-combat",[[
-            if newstate=="combat" then self:Hide()
-            elseif self:GetAttribute("bel-visible") then self:Show() end
-        ]])
-        RegisterStateDriver(grip,"combat","[combat] combat; peace")
         grip:SetScript("OnMouseDown",Start);grip:SetScript("OnMouseUp",Stop)
         grip:SetScript("OnHide",Stop)
         local function Arm()
@@ -92,14 +86,14 @@ function ns.RefreshMapResize()
             end)
         end
         map:HookScript("OnShow",Arm)
-        map:HookScript("OnHide",function()Stop();if not InCombatLockdown()then grip:Hide()end;controller:SetScript("OnUpdate",nil)end)
+        map:HookScript("OnHide",function()Stop();grip:Hide();controller:SetScript("OnUpdate",nil)end)
         if map:IsShown()then Arm()end
     end
     Sync()
 end
 for _,event in ipairs({"PLAYER_LOGIN","ADDON_LOADED","PLAYER_REGEN_DISABLED","PLAYER_REGEN_ENABLED"})do controller:RegisterEvent(event)end
 controller:SetScript("OnEvent",function(_,event,addon)
-    if event=="PLAYER_REGEN_DISABLED"then Stop();return end
+    if event=="PLAYER_REGEN_DISABLED"then Stop();if grip then grip:Hide()end;return end
     if event=="ADDON_LOADED"and addon~="Blizzard_WorldMap"then return end
     ns.RefreshMapResize()
 end)

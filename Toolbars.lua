@@ -38,13 +38,29 @@ function T.Button(parent,name,secure,text,texture)
     end
     return b
 end
+local growthPoints={RIGHT={"TOPLEFT",0},CENTER={"TOP",.5},LEFT={"TOPRIGHT",1}}
+function T.GrowthPosition(root,position,growth)
+    local target=growthPoints[growth]
+    local point=position.point
+    if not target or point==target[1]then return position end
+    -- Convert EUI's saved anchor using the current dimensions, keeping the bar in place.
+    local x=point:find("LEFT",1,true)and 0 or(point:find("RIGHT",1,true)and 1 or .5)
+    local y=point:find("TOP",1,true)and 0 or(point:find("BOTTOM",1,true)and 1 or .5)
+    return {point=target[1],relPoint=position.relPoint,
+        x=position.x+root:GetWidth()*(target[2]-x),y=position.y+root:GetHeight()*y}
+end
 function T.Position(root,key,default)
     if InCombatLockdown() then return end
-    local p=T.Settings(key).position or default()
+    local db=T.Settings(key)
+    local p=db.position or default()
+    if root._belGrowthAnchor then
+        local anchored=T.GrowthPosition(root,p,root._belGrowthAnchor(db))
+        if anchored~=p then db.position=anchored;p=anchored end
+    end
     root:ClearAllPoints();root:SetPoint(p.point,UIParent,p.relPoint,p.x,p.y)
     if root._belAfterPosition then root._belAfterPosition()end
 end
-function T.Mover(root,key,title,order,default)
+function T.Mover(root,key,title,order,default,getGrowth)
     root.belMoverKey="BelToolbox"..key
     root:SetSize(T.Size(key),T.Size(key))
     root:SetMovable(true);root:SetClampedToScreen(true)
@@ -68,7 +84,10 @@ function T.Mover(root,key,title,order,default)
         })
         EUI:RegisterUnlockElements({e},"BelToolbox");registered=true
     end
-    Apply();root.RegisterBelMover()
+    Apply()
+    -- Wait for the first real layout before converting the placeholder dimensions.
+    root._belGrowthAnchor=getGrowth
+    root.RegisterBelMover()
     return Apply
 end
 function T.Layout(root,buttons,key)

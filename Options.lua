@@ -189,6 +189,10 @@ local registered = EUI.RegisterPlugin(addonName, {
                         },
                     })
                 end
+                Header("Minimap")
+                Toggle("Collect the ItemRack minimap button",function()return ns.GetEnhancements().collectItemRack==true end,
+                    function(v)ns.GetEnhancements().collectItemRack=v;ns.RefreshItemRackButton()end,
+                    "Let EUI group the ItemRack Forever button. Keep the minimap button enabled in ItemRack's settings.")
                 Header("Chat Copy Window")
                 Toggle("Enable chat copy enhancements",ns.IsChatCopyEnabled,
                     function(v)local db=ns.GetSettings();db.chatCopy=db.chatCopy or {};db.chatCopy.enabled=v;ns.RefreshChatCopy()end,
@@ -217,6 +221,10 @@ local registered = EUI.RegisterPlugin(addonName, {
                             set=function(v)ns.GetEnhancements().belMicroMenuClassColor=v;ns.RefreshMicroMenuIcons()end}},
                     })
                 end
+                Header("Spell learning")
+                Toggle("Newly learned spells",function()return ns.GetEnhancements().newSpells==true end,
+                    function(v)ns.GetEnhancements().newSpells=v;ns.RefreshNewSpells()end,
+                    "Show newly learned active spells and ranks in a draggable panel.")
                 Header("Player Frame")
                 Toggle("Animated resting indicator",function()return ns.GetEnhancements().animatedRestIndicator~=false end,
                     function(v)ns.GetEnhancements().animatedRestIndicator=v;ns.RefreshRestIndicator()end,
@@ -229,6 +237,8 @@ local registered = EUI.RegisterPlugin(addonName, {
                 local sparkleRow=Toggle("Quest item sparkles",function()return ns.GetEnhancements().lootSparkles~=false end,
                     function(v)ns.GetEnhancements().lootSparkles=v;ns.RefreshLootSparkles()end,
                     "Enable native quest-object sparkles by disabling normal and raid outlines. Disabling restores saved settings. Fully exit and relaunch the game to clear existing sparkles; /reload is not enough. Changes apply after combat.")
+                -- EUI's search prebuild uses placeholder rows without font metrics.
+                if EUI._prebuilding then return math.abs(y)+12 end
                 local sparkleHint=EUI.MakeFont(sparkleRow,12,nil,1,.78,.35,1)
                 sparkleHint:SetPoint("TOPLEFT",sparkleRow,"BOTTOMLEFT",20,-8)
                 sparkleHint:SetPoint("TOPRIGHT",sparkleRow,"BOTTOMRIGHT",-20,-8)
@@ -454,6 +464,8 @@ local registered = EUI.RegisterPlugin(addonName, {
                     L("Show recorded bag and bank counts for your characters. Visit each bank to refresh its snapshot."))
                 Toggle(L("Show item title icons"), "itemTitleIcons",
                     L("Show an item icon to the left of its tooltip name."))
+                Toggle(L("Show equipment item level"), "itemLevel",
+                    L("Show item level in equipment tooltips that do not already display it."))
                 Toggle(L("Show spell title icons"), "spellTitleIcons",
                     L("Show spell and aura icons to the left of their tooltip names."))
                 Toggle(L("Enable status tooltips"), "enabled",

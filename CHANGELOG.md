@@ -1,3 +1,48 @@
+# Bel Toolbox 0.19.34
+
+- Added an optional panel for newly learned spells and ranks. Drag a spell to an action bar to close the panel, or use `/belnewspells` to reopen the remaining list.
+- Added equipment item levels to tooltips that omit the native line.
+- Added an optional switch to collect the ItemRack Forever minimap button in EUI while preserving its set and settings actions.
+- Fixed toolbar anchors after using EUI Unlock Mode. The Mage and Consumables bars keep their selected growth edge and top row, and the Chat Bar keeps its starting corner as buttons change.
+- Fixed Bel Toolbox controls that could prevent the bags or world map from closing in combat. Restored right-click scroll comprehension and weapon buff shortcuts with the bag button detached from the bag window.
+- Fixed an error while EUI indexes the quest-item sparkles option for settings search.
+
+# Bel Toolbox 0.19.34-dev
+
+- Preserve the selected growth edge and top row of the Mage and Consumables bars as their layouts change. Keep a moved Chat Bar's first button anchored when channels change.
+
+# Bel Toolbox 0.19.33-dev
+
+- Keep the Mage Bar's left edge fixed when growing right, including after moving it in EUI Unlock Mode.
+
+# Bel Toolbox 0.19.32-dev
+
+- Close the newly learned spells panel after placing a spell on an action bar. Keep unplaced spells available via /belnewspells.
+
+# Bel Toolbox 0.19.31-dev
+
+- Restore right-click bag shortcuts by placing their detached click button above the bag slots without reattaching it to the bag window.
+
+# Bel Toolbox 0.19.30-dev
+
+- Keep bag action buttons and the map resize handle from passing combat restrictions to the bag and map windows.
+
+# Bel Toolbox 0.19.29-dev
+
+- Add a toggle to show equipment item levels in tooltips that omit the native line.
+
+# Bel Toolbox 0.19.28-dev
+
+- Add an optional ItemRack Forever minimap button adapter for EUI's button group, with native set and options actions.
+
+# Bel Toolbox 0.19.27-dev
+
+- Fix an Interface Enhancements error when EUI indexes the quest-item sparkles option for settings search.
+
+# Bel Toolbox 0.19.26-dev
+
+- Added an optional newly learned spells panel. New active skills and ranks can be dragged directly to an action bar, with no automatic slot changes. Combat learns wait until combat ends; use /belnewspells to reopen the current session's list.
+
 # Bel Toolbox 0.19.25
 
 - Restore animated resting indicators on EUI 9.7.5 and newer compatible versions by using EUI's native animation, size, offsets and visibility. Older EUI versions retain the existing animation.
