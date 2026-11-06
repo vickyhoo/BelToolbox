@@ -189,6 +189,10 @@ local registered = EUI.RegisterPlugin(addonName, {
                         },
                     })
                 end
+                Header("Minimap")
+                Toggle("Collect the ItemRack minimap button",function()return ns.GetEnhancements().collectItemRack==true end,
+                    function(v)ns.GetEnhancements().collectItemRack=v;ns.RefreshItemRackButton()end,
+                    "Let EUI group the ItemRack Forever button. Keep the minimap button enabled in ItemRack's settings.")
                 Header("Chat Copy Window")
                 Toggle("Enable chat copy enhancements",ns.IsChatCopyEnabled,
                     function(v)local db=ns.GetSettings();db.chatCopy=db.chatCopy or {};db.chatCopy.enabled=v;ns.RefreshChatCopy()end,

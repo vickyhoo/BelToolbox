@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.28-dev
+
+- Add an optional ItemRack Forever minimap button adapter for EUI's button group, with native set and options actions.
+
 # Bel Toolbox 0.19.27-dev
 
 - Fix an Interface Enhancements error when EUI indexes the quest-item sparkles option for settings search.
