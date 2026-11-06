@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.32-dev
+
+- Close the newly learned spells panel after placing a spell on an action bar. Keep unplaced spells available via /belnewspells.
+
 # Bel Toolbox 0.19.31-dev
 
 - Restore right-click bag shortcuts by placing their detached click button above the bag slots without reattaching it to the bag window.

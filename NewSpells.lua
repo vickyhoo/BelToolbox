@@ -3,7 +3,7 @@ local L=ns.L
 local events=CreateFrame("Frame")
 local panel,buttons,page
 local spells,listed,pending={},{},{}
-local queued
+local queued,drag
 local generation=0
 local PAGE_SIZE=8
 local function Enabled()return ns.GetEnhancements().newSpells==true end
@@ -12,6 +12,16 @@ local function SpellSlot(id)
     local book=C_SpellBook
     if not book or not book.FindSpellBookSlotForSpell then return end
     return book.FindSpellBookSlotForSpell(id,true)
+end
+local function RemoveSpell(id)
+    for index,spell in ipairs(spells)do
+        if spell==id then table.remove(spells,index);listed[id]=nil;return end
+    end
+end
+local function StopDrag()
+    drag=nil
+    events:UnregisterEvent("ACTIONBAR_SLOT_CHANGED")
+    events:UnregisterEvent("CURSOR_UPDATE")
 end
 local function Build()
     panel=CreateFrame("Frame",nil,UIParent,"BackdropTemplate")
@@ -46,13 +56,16 @@ local function Show()
             button:SetScript("OnDragStart",function(self)
                 if self.spell and not InCombatLockdown()and not GetCursorInfo()and SpellSlot(self.spell)then
                     C_Spell.PickupSpell(self.spell)
+                    local kind,_,_,cursorSpell=GetCursorInfo()
+                    if kind=="spell"then
+                        drag={spell=self.spell,cursorSpell=Plain(cursorSpell)and cursorSpell or nil}
+                        events:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
+                        events:RegisterEvent("CURSOR_UPDATE")
+                    end
                 end
             end)
             button:SetScript("OnClick",function(self)
-                local id=self.spell
-                for index,spell in ipairs(spells)do
-                    if spell==id then table.remove(spells,index);listed[id]=nil;break end
-                end
+                RemoveSpell(self.spell)
                 GameTooltip:Hide();Show()
             end)
             button:SetScript("OnEnter",function(self)
@@ -117,6 +130,7 @@ function ns.RefreshNewSpells()
     if Enabled()then events:RegisterEvent("LEARNED_SPELL_IN_SKILL_LINE")
     else
         generation=generation+1;queued=nil
+        StopDrag()
         events:UnregisterEvent("LEARNED_SPELL_IN_SKILL_LINE")
         spells,listed,pending={},{},{};page=nil
         if panel then panel:Hide()end
@@ -126,6 +140,20 @@ events:RegisterEvent("PLAYER_LOGIN");events:RegisterEvent("PLAYER_REGEN_ENABLED"
 events:SetScript("OnEvent",function(_,event,id,_,guildPerk)
     if event=="PLAYER_LOGIN"then ns.RefreshNewSpells()
     elseif event=="PLAYER_REGEN_ENABLED"then if #pending>0 then Flush()end
+    elseif event=="ACTIONBAR_SLOT_CHANGED"then
+        if not drag or not Plain(id)or type(id)~="number"or id<=0 then return end
+        local kind,spell=GetActionInfo(id)
+        if Plain(kind)and Plain(spell)and kind=="spell"and spell and (spell==drag.spell or spell==drag.cursorSpell)then
+            RemoveSpell(drag.spell);StopDrag()
+            panel:Hide()
+        end
+    elseif event=="CURSOR_UPDATE"then
+        if not drag then return end
+        local kind,_,_,spell=GetCursorInfo()
+        if kind=="spell"and (not drag.cursorSpell or not Plain(spell)or spell==drag.cursorSpell)then return end
+        -- The cursor may change before the slot event when dropping or swapping a spell.
+        local current=drag
+        C_Timer.After(0,function()if current==drag then StopDrag()end end)
     elseif Plain(id)and type(id)=="number"and id>0 and Plain(guildPerk)and not guildPerk then
         pending[#pending+1]=id
         if not queued and not InCombatLockdown()then
