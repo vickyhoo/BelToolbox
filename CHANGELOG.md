@@ -1,3 +1,9 @@
+# Bel Toolbox 0.19.25
+
+- Restore animated resting indicators on EUI 9.7.5 and newer compatible versions by using EUI's native animation, size, offsets and visibility. Older EUI versions retain the existing animation.
+- Newly learned higher ranks of Conjure Water and Conjure Food become the Mage Bar default. Later manual choices are remembered until another higher rank is learned. The first scan after upgrading selects the highest known rank.
+- Broaden automatic food selection to recovery-only food outside the fixed list, including generic consumables whose localized use text matches known plain food. Level requirements still apply; extra effects and unconfirmed food do not qualify for this fallback.
+
 # Bel Toolbox 0.19.25-dev
 
 - Allow recovery-only food outside the fixed automatic-selection list, including generic consumables, when its localized use text matches known plain food apart from amount and duration.
