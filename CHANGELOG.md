@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.34-dev
+
+- Preserve the selected growth edge and top row of the Mage and Consumables bars as their layouts change. Keep a moved Chat Bar's first button anchored when channels change.
+
 # Bel Toolbox 0.19.33-dev
 
 - Keep the Mage Bar's left edge fixed when growing right, including after moving it in EUI Unlock Mode.

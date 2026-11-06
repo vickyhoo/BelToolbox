@@ -235,7 +235,7 @@ end
 local function Create()
     root=CreateFrame("Frame","BelToolboxConsumables",UIParent);root:SetFrameStrata("MEDIUM")
     root._belAfterPosition=F.PositionAll
-    T.Mover(root,"consumables","Consumables",955,DefaultPosition)
+    T.Mover(root,"consumables","Consumables",955,DefaultPosition,T.Growth)
     T.RegisterBarEditor(root,"consumables","Consumables",C.Settings,ns.RefreshConsumables,
         function()return T.Size("consumables")end,function()return C.Settings().spacing or 2 end,"perLine",#categories,7)
     for _,category in ipairs(categories)do

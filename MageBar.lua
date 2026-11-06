@@ -227,10 +227,6 @@ local function SetAnchor(frame,point,relative,relativePoint,x,y)
     if count>1 or count==1 and(oldPoint~=point or oldRelative~=relative or oldRelativePoint~=relativePoint)then frame:ClearAllPoints()end
     frame:SetPoint(point,relative,relativePoint,x,y)
 end
-local rightGrowthAnchors={
-    TOP={"TOPLEFT",.5},CENTER={"LEFT",.5},BOTTOM={"BOTTOMLEFT",.5},
-    TOPRIGHT={"TOPLEFT",1},RIGHT={"LEFT",1},BOTTOMRIGHT={"BOTTOMLEFT",1},
-}
 local function ApplyPosition(skipFlyouts)
     if not root or InCombatLockdown() then return end
     local db=Settings()
@@ -239,12 +235,9 @@ local function ApplyPosition(skipFlyouts)
         if db.x and db.y then p={point="BOTTOMLEFT",relPoint="BOTTOMLEFT",x=db.x,y=db.y}
         else p={point="CENTER",relPoint="CENTER",x=0,y=-160}end
     end
-    local edge=ns.Toolbars.Growth(db)=="RIGHT" and rightGrowthAnchors[p.point]
-    if edge then
-        -- EUI's mover saves a center point. Keep the current left edge before the bar changes width.
-        p={point=edge[1],relPoint=p.relPoint,x=p.x-root:GetWidth()*edge[2],y=p.y}
-        db.position=p
-    end
+    local T=ns.Toolbars
+    local anchored=T.GrowthPosition(root,p,T.Growth(db))
+    if anchored~=p then db.position=anchored;p=anchored end
     SetAnchor(root,p.point,UIParent,p.relPoint,p.x,p.y)
     if skipFlyouts~=true then for _,group in ipairs(groups)do PositionGroup(group)end end
 end
@@ -254,7 +247,7 @@ SavePosition = function()
     local scale = root:GetEffectiveScale() / UIParent:GetEffectiveScale()
     Settings().x = root:GetLeft() * scale
     Settings().y = root:GetBottom() * scale
-    for _,group in ipairs(groups)do PositionGroup(group)end
+    ns.RefreshMageBar()
 end
 local function ConjureRanks(db)
     local name,realm=UnitFullName("player")
