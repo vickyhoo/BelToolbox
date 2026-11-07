@@ -1,4 +1,4 @@
-# Bel Toolbox 0.19.35-dev
+# Bel Toolbox 0.19.35
 
 - Fix newly learned spell dragging on Forever clients without the CURSOR_UPDATE event.
 
