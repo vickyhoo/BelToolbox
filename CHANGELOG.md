@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.35
+
+- Fix newly learned spell dragging on Forever clients without the CURSOR_UPDATE event.
+
 # Bel Toolbox 0.19.34
 
 - Added an optional panel for newly learned spells and ranks. Drag a spell to an action bar to close the panel, or use `/belnewspells` to reopen the remaining list.

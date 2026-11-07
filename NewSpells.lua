@@ -19,9 +19,14 @@ local function RemoveSpell(id)
     end
 end
 local function StopDrag()
+    if not drag then return end
     drag=nil
     events:UnregisterEvent("ACTIONBAR_SLOT_CHANGED")
-    events:UnregisterEvent("CURSOR_UPDATE")
+    events:SetScript("OnUpdate",nil)
+end
+local function CheckDrag()
+    local kind,_,_,spell=GetCursorInfo()
+    if kind~="spell"or (drag.cursorSpell and Plain(spell)and spell~=drag.cursorSpell)then StopDrag()end
 end
 local function Build()
     panel=CreateFrame("Frame",nil,UIParent,"BackdropTemplate")
@@ -60,7 +65,8 @@ local function Show()
                     if kind=="spell"then
                         drag={spell=self.spell,cursorSpell=Plain(cursorSpell)and cursorSpell or nil}
                         events:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
-                        events:RegisterEvent("CURSOR_UPDATE")
+                        -- Check cancellations on the next frame, after the action-slot event can run.
+                        events:SetScript("OnUpdate",CheckDrag)
                     end
                 end
             end)
@@ -147,13 +153,6 @@ events:SetScript("OnEvent",function(_,event,id,_,guildPerk)
             RemoveSpell(drag.spell);StopDrag()
             panel:Hide()
         end
-    elseif event=="CURSOR_UPDATE"then
-        if not drag then return end
-        local kind,_,_,spell=GetCursorInfo()
-        if kind=="spell"and (not drag.cursorSpell or not Plain(spell)or spell==drag.cursorSpell)then return end
-        -- The cursor may change before the slot event when dropping or swapping a spell.
-        local current=drag
-        C_Timer.After(0,function()if current==drag then StopDrag()end end)
     elseif Plain(id)and type(id)=="number"and id>0 and Plain(guildPerk)and not guildPerk then
         pending[#pending+1]=id
         if not queued and not InCombatLockdown()then
