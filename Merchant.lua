@@ -15,7 +15,7 @@ local function Settings()
     return db.merchant
 end
 ns.GetMerchantSettings = Settings
-local frame, fallbackFrame, selected, pending, running, confirm
+local frame, selected, pending, running, confirm
 local serial = 0
 local function BuyText(text)
     if not frame or not frame.buy then return end
@@ -27,7 +27,7 @@ local function Stop(message)
     pending = nil
     local handle=confirm;confirm=nil
     if handle and EllesmereUI and EllesmereUI.CloseConfirmPopup then EllesmereUI:CloseConfirmPopup(handle)end
-    if frame then frame.buy:Enable(); BuyText(L("Buy")); if frame.notice then frame.notice:SetText("") end end
+    if frame then frame.buy:Enable(); BuyText(L("Buy")) end
     if message then Say(message) end
 end
 
@@ -48,9 +48,9 @@ local function Info(index)
     if not stack then return end
     -- Extended-cost and unique items are deliberately left to the native purchase UI.
     local costs = GetMerchantItemCostInfo and GetMerchantItemCostInfo(index) or 0
-    if info.currencyID or info.hasExtendedCost or info.extendedCost or (costs and costs > 0) then return nil, "currency" end
+    if info.currencyID or info.hasExtendedCost or info.extendedCost or (costs and costs > 0) then return end
     local unique = C_Item.GetItemUniquenessByID and C_Item.GetItemUniquenessByID(id)
-    if unique then return nil, "unique" end
+    if unique then return end
     return { index=index, id=id, link=link, name=info.name, price=info.price or 0,
         pack=math.max(info.stackCount or 1, 1), stock=info.numAvailable or -1,
         stack=stack, reagent=reagent, vendor=UnitGUID("npc") }
@@ -92,11 +92,10 @@ local function Update()
     if not item then Stop(); frame:Hide(); return end
     local amount = tonumber(frame.input:GetText()) or 0
     if pending and (pending.amount ~= amount or pending.selection ~= selected) then
-        pending = nil; BuyText(L("Buy")); if frame.notice then frame.notice:SetText("") end
+        pending = nil; BuyText(L("Buy"))
         local handle=confirm;confirm=nil
         if handle and EllesmereUI and EllesmereUI.CloseConfirmPopup then EllesmereUI:CloseConfirmPopup(handle)end
     end
-    if frame.detail then frame.detail:SetText(string.format(L("Vendor pack: %d   |   Max: %d"), item.pack, Limit(item)))end
     frame.cost:SetText(L("Total: ") .. MoneyText(math.ceil(amount * item.price / item.pack)))
     if frame._belNativeBulk then
         frame.buy:SetEnabled(not running and not pending and amount>=1 and amount<=Limit(item))
@@ -142,7 +141,6 @@ local function Begin(request)
     running = { left=request.amount }
     BuyText(L("Purchasing..."))
     frame.buy:Disable()
-    if frame.notice then frame.notice:SetText(L("Purchasing...")) end
     NextBatch(serial)
 end
 local function Purchase()
@@ -168,61 +166,6 @@ local function Purchase()
             onCancel=function()confirm=nil;pending=nil;Update()end})
         Update()
     else Begin(request)end
-end
-local function BuildFrame()
-    frame = CreateFrame("Frame", "BelToolboxMerchantFrame", UIParent, "BackdropTemplate")
-    fallbackFrame=frame
-    frame:SetSize(304, 208)
-    frame:SetPoint("CENTER")
-    frame:SetFrameStrata("DIALOG")
-    frame:SetClampedToScreen(true)
-    frame:SetMovable(true); frame:EnableMouse(true); frame:RegisterForDrag("LeftButton")
-    frame:SetScript("OnDragStart", frame.StartMoving); frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
-    frame:SetBackdrop({ bgFile="Interface\\Buttons\\WHITE8X8", edgeFile="Interface\\Buttons\\WHITE8X8", edgeSize=1 })
-    frame:SetBackdropColor(0.055, 0.065, 0.08, 0.98); frame:SetBackdropBorderColor(0.29, 0.8, 1)
-    local function Label(y, font)
-        local label = frame:CreateFontString(nil, "OVERLAY", font or "GameFontHighlight")
-        label:SetPoint("TOPLEFT", 12, y); label:SetWidth(280); label:SetJustifyH("LEFT")
-        return label
-    end
-    Label(-12, "GameFontNormal"):SetText("Bel Toolbox")
-    frame.item = Label(-34)
-    frame.item:SetMaxLines(1)
-    frame.detail = Label(-57, "GameFontHighlightSmall")
-    frame.input = CreateFrame("EditBox", nil, frame, "InputBoxTemplate")
-    frame.input:SetSize(72, 24); frame.input:SetPoint("TOPLEFT", 46, -80)
-    frame.input:SetJustifyH("CENTER")
-    frame.input:SetAutoFocus(false); frame.input:SetNumeric(true); frame.input:SetMaxLetters(6)
-    frame.input:SetScript("OnTextChanged", Update)
-    frame.input:SetScript("OnEnterPressed", function(self) self:ClearFocus(); Purchase() end)
-    frame.input:SetScript("OnEscapePressed", function() frame:Hide() end)
-    local function Button(text, x, y, width, callback)
-        local button = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-        button:SetSize(width, 24); button:SetPoint("TOPLEFT", x, y); button:SetText(text); button:SetScript("OnClick", callback)
-        return button
-    end
-    local function Adjust(delta)
-        if running then return end
-        local item = Current()
-        if not item then return end
-        local value = tonumber(frame.input:GetText()) or 1
-        frame.input:SetText(tostring(math.max(1, math.min(Limit(item), value + delta))))
-    end
-    Button("−", 12, -80, 26, function() Adjust(-1) end)
-    Button("+", 126, -80, 26, function() Adjust(1) end)
-    frame.input:EnableMouseWheel(true)
-    frame.input:SetScript("OnMouseWheel", function(_, delta) Adjust(delta > 0 and 1 or -1) end)
-    Button(L("Stack"), 160, -80, 58, function()
-        local item = Current(); if item then frame.input:SetText(tostring(math.min(Limit(item), item.stack))) end
-    end)
-    Button(L("Max"), 222, -80, 70, function() local item=Current(); if item then frame.input:SetText(tostring(Limit(item))) end end)
-    frame.cost = Label(-114)
-    frame.notice = Label(-173, "GameFontHighlightSmall")
-    frame.buy = Button(L("Buy"), 12, -140, 136, Purchase)
-    Button(L("Close / Stop"), 156, -140, 136, function() frame:Hide() end)
-    frame:SetScript("OnHide", function() Stop(); selected=nil end)
-    tinsert(UISpecialFrames, "BelToolboxMerchantFrame")
-    frame:Hide()
 end
 local function NativeEnabled()
     return EllesmereUIDB and EllesmereUIDB.merchantBulkBuy==true and EllesmereUI and EllesmereUI._Merchant_RefreshBulkBuy
@@ -267,7 +210,6 @@ local function BindNative(dialog)
         end
         if frame~=dialog or not selected or selected.index~=item.index or selected.id~=item.id then
             Stop()
-            if fallbackFrame and fallbackFrame:IsShown()then fallbackFrame:Hide()end
             frame=dialog;selected=item
         end
         dialog._belNativeBulk=true
@@ -284,7 +226,8 @@ local function BindNative(dialog)
         if Prepare()then Stop();dialog._eb:SetText("1");Update()end
     end)
     dialog:HookScript("OnHide",function()
-        if frame==dialog then Stop();selected=nil end
+        if frame==dialog then Stop();selected=nil;frame=nil end
+        dialog._belNativeBulk=nil
         CostMode(false)
     end)
     local oldBuy=dialog._buttons.buy:GetScript("OnClick")
@@ -309,50 +252,28 @@ end
 function ns.RefreshMerchantAssistant()
     HookNative()
     if Settings().enabled==false then
-        Stop()
-        if frame then frame:Hide()end
+        if frame then frame:Hide() end
+        return
+    end
+    local EUI=EllesmereUI
+    if EUI and EUI._Merchant_RefreshBulkBuy then
+        EllesmereUIDB=EllesmereUIDB or {}
+        if EllesmereUIDB.merchantBulkBuy~=true then
+            EllesmereUIDB.merchantBulkBuy=true
+            EUI._Merchant_RefreshBulkBuy()
+        end
     end
 end
-local hooked
-local function HookMerchant()
-    HookNative()
-    if hooked or type(MerchantItemButton_OnModifiedClick) ~= "function" then return end
-    hooked = true
-    hooksecurefunc("MerchantItemButton_OnModifiedClick", function(button, mouseButton)
-        if Settings().enabled == false or mouseButton ~= "LeftButton" or not IsShiftKeyDown()
-            or IsControlKeyDown() or IsAltKeyDown() or InCombatLockdown() then return end
-        if ChatEdit_GetActiveWindow and ChatEdit_GetActiveWindow() then return end
-        if NativeEnabled()then
-            if fallbackFrame and fallbackFrame:IsShown()then fallbackFrame:Hide()end
-            return
-        end
-        local item, reason = Info(button:GetID())
-        if not item then
-            if reason then Say(L("Use the native purchase UI for currency-cost or unique items.")) end
-            return
-        end
-        Stop()
-        if not fallbackFrame then BuildFrame()else frame=fallbackFrame end
-        if StackSplitFrame then StackSplitFrame:Hide() end
-        selected = item
-        frame:ClearAllPoints()
-        frame:SetPoint("TOPLEFT", button, "BOTTOMLEFT", 0, -4)
-        frame.item:SetText(item.link)
-        frame:Show()
-        frame.input:SetText("1"); Update()
-        frame.input:SetFocus(); frame.input:HighlightText()
-    end)
-end
 local events = CreateFrame("Frame")
-events:RegisterEvent("MERCHANT_SHOW"); events:RegisterEvent("MERCHANT_CLOSED")
-events:RegisterEvent("MERCHANT_UPDATE"); events:RegisterEvent("PLAYER_REGEN_DISABLED")
-events:RegisterEvent("ADDON_LOADED")
-events:SetScript("OnEvent", function(_, event)
-    if event == "MERCHANT_SHOW" then HookMerchant()
-    elseif event=="ADDON_LOADED"then HookNative()
-    elseif event == "MERCHANT_CLOSED" or event == "PLAYER_REGEN_DISABLED" then
-        Stop(); if frame then frame:Hide() end
-    elseif frame and frame:IsShown() then Update() end
+for _,event in ipairs({"PLAYER_LOGIN","ADDON_LOADED","MERCHANT_CLOSED","MERCHANT_UPDATE","PLAYER_REGEN_DISABLED"})do
+    events:RegisterEvent(event)
+end
+events:SetScript("OnEvent", function(_,event,addon)
+    if event=="PLAYER_LOGIN"or (event=="ADDON_LOADED"and addon=="EllesmereUIBlizzardSkin")then
+        ns.RefreshMerchantAssistant()
+    elseif event=="MERCHANT_CLOSED"or event=="PLAYER_REGEN_DISABLED"then
+        if frame then frame:Hide() end
+    elseif event=="MERCHANT_UPDATE"and frame and frame:IsShown()then Update()end
 end)
 HookNative()
 

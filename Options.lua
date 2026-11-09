@@ -400,7 +400,7 @@ local registered = EUI.RegisterPlugin(addonName, {
         {
             key = "Merchant",
             title = L("Merchant Assistant"),
-            description = L("Shift-left-click a vendor item to enter an item count. Gold purchases supported; use the native UI for special currencies and unique items."),
+            description = L("Enhance EUI Bulk Buy and customize the merchant layout."),
             pages = { L("Bulk Purchase") },
             buildPage = function(pageName, parent, yOffset)
                 local W = EUI.Widgets
@@ -411,13 +411,13 @@ local registered = EUI.RegisterPlugin(addonName, {
                     function()return ns.GetEnhancements().merchantColumns~=false end,
                     function(v)ns.GetEnhancements().merchantColumns=v;ns.RefreshMerchantLayout()end,
                     L("Show 20 vendor items per page in four columns. Native purchase buttons and Shift-click bulk purchase are preserved."));y=y-h
-                _, h = W:Toggle(parent, L("Enable merchant assistant"), y,
+                _, h = W:Toggle(parent, L("Enhance EUI Bulk Buy"), y,
                     function() return ns.GetMerchantSettings().enabled ~= false end,
                     function(value)
                         ns.GetMerchantSettings().enabled = value
                         ns.RefreshMerchantAssistant()
                     end,
-                    L("Shift-left-click a vendor item. When EUI Bulk Buy is enabled, use its window with individual item quantities for ordinary gold purchases. Currency-cost and unique items keep EUI's behavior.")); y = y - h
+                    L("Enables EUI Bulk Buy. Shift-left-click a vendor item to buy ordinary gold items by the piece. Currency-cost and unique items keep EUI's behavior.")); y = y - h
                 return math.abs(y) + 12
             end,
         },
