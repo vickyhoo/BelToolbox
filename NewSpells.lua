@@ -6,6 +6,7 @@ local spells,listed,pending={},{},{}
 local queued,drag
 local generation=0
 local PAGE_SIZE=8
+local MAX_ACTION_SLOTS=180
 local function Enabled()return ns.GetEnhancements().newSpells==true end
 local function Plain(value)return not (issecretvalue and issecretvalue(value))end
 local function SpellSlot(id)
@@ -24,13 +25,48 @@ local function StopDrag()
     events:UnregisterEvent("ACTIONBAR_SLOT_CHANGED")
     events:SetScript("OnUpdate",nil)
 end
+local function Rank(id)
+    local text=C_Spell.GetSpellSubtext and C_Spell.GetSpellSubtext(id)
+    return Plain(text)and type(text)=="string"and tonumber(text:match("%d+"))
+end
+local function LowerRankSlots(id)
+    local slots={}
+    local rank=Rank(id)
+    local name=rank and C_Spell.GetSpellName and C_Spell.GetSpellName(id)
+    if not Plain(name)or type(name)~="string"or name==""or not PlaceAction or not ClearCursor or not GetActionInfo then return slots end
+    for slot=1,MAX_ACTION_SLOTS do
+        local kind,old=GetActionInfo(slot)
+        if Plain(kind)and Plain(old)and kind=="spell"and type(old)=="number"and old~=id then
+            local oldName=C_Spell.GetSpellName(old)
+            local oldRank=Plain(oldName)and oldName==name and Rank(old)
+            if oldRank and oldRank<rank then slots[#slots+1]=slot end
+        end
+    end
+    return slots
+end
+local function Upgrade(id)
+    if not id or InCombatLockdown()or GetCursorInfo()or not SpellSlot(id)then return end
+    local slots=LowerRankSlots(id)
+    if #slots==0 then return end
+    for _,slot in ipairs(slots)do
+        if not pcall(C_Spell.PickupSpell,id)then return end
+        local cursorKind,_,_,cursorSpell=GetCursorInfo()
+        if cursorKind~="spell"then return end
+        if not Plain(cursorSpell)or (cursorSpell and cursorSpell~=id)then ClearCursor();return end
+        local placed=pcall(PlaceAction,slot)
+        ClearCursor()
+        local kind,actual=GetActionInfo(slot)
+        if not placed or not Plain(kind)or not Plain(actual)or kind~="spell"or actual~=id then return end
+    end
+    RemoveSpell(id)
+end
 local function CheckDrag()
     local kind,_,_,spell=GetCursorInfo()
     if kind~="spell"or (drag.cursorSpell and Plain(spell)and spell~=drag.cursorSpell)then StopDrag()end
 end
 local function Build()
     panel=CreateFrame("Frame",nil,UIParent,"BackdropTemplate")
-    panel:SetSize(340,120);panel:SetPoint("CENTER",0,100)
+    panel:SetSize(340,144);panel:SetPoint("CENTER",0,100)
     panel:SetFrameStrata("DIALOG");panel:SetClampedToScreen(true)
     panel:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1})
     panel:SetBackdropColor(.09,.09,.09,.96);panel:SetBackdropBorderColor(.45,.38,.29,1)
@@ -79,11 +115,25 @@ local function Show()
                 GameTooltip:SetSpellByID(self.spell);GameTooltip:Show()
             end)
             button:SetScript("OnLeave",function()GameTooltip:Hide()end)
+            local upgrade=CreateFrame("Button",nil,button,"UIPanelButtonTemplate")
+            button.upgrade=upgrade
+            upgrade:SetSize(34,19);upgrade:SetPoint("TOP",button,"BOTTOM",0,-3);upgrade:SetText("+")
+            upgrade:SetScript("OnClick",function()
+                if InCombatLockdown()then return end
+                GameTooltip:Hide();Upgrade(button.spell);Show()
+            end)
+            upgrade:SetScript("OnEnter",function(self)
+                GameTooltip:SetOwner(self,"ANCHOR_RIGHT")
+                GameTooltip:SetText(L("Replace lower ranks on the action bars"))
+                GameTooltip:Show()
+            end)
+            upgrade:SetScript("OnLeave",function()GameTooltip:Hide()end)
             buttons[i]=button
         end
         local id=spells[(page-1)*PAGE_SIZE+i]
         button.spell=id
         if id then button.icon:SetTexture(C_Spell.GetSpellTexture(id)or 134400)end
+        button.upgrade:SetShown(id~=nil and #LowerRankSlots(id)>0)
         button:SetShown(id~=nil)
     end
     if not panel.previous then

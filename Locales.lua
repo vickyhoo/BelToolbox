@@ -599,6 +599,7 @@ local translations = {
         ["Spell learning"] = "技能学习",
         ["Show newly learned active spells and ranks in a draggable panel."] = "学会主动技能或新等级后弹出面板，可拖到动作条。",
         ["Drag to your action bar. Right-click to dismiss."] = "拖到动作条；右键移除。",
+        ["Replace lower ranks on the action bars"] = "替换动作条上的低阶同名技能",
         ["Bel Toolbox icon settings"] = "贝尔工具箱图标设置",
         ["Color icons by class"] = "图标按职业染色",
         ["Open journal addon"] = "打开的手册插件",

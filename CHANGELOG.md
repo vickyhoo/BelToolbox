@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.36-dev
+
+- Offer a manual action-bar upgrade for newly learned higher ranks when matching lower ranks are already slotted.
+
 # Bel Toolbox 0.19.35
 
 - Fix newly learned spell dragging on Forever clients without the CURSOR_UPDATE event.
