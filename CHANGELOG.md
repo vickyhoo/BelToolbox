@@ -1,8 +1,6 @@
-# Bel Toolbox 0.19.37-dev
+# Bel Toolbox 0.19.37
 
 - Enable EUI Bulk Buy when its Toolbox enhancement is active. Use EUI's purchase dialog with per-item quantities and totals for ordinary gold items.
-
-# Bel Toolbox 0.19.36-dev
 
 - Offer a manual action-bar upgrade for newly learned higher ranks when matching lower ranks are already slotted.
 
