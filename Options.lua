@@ -172,6 +172,15 @@ local registered = EUI.RegisterPlugin(addonName, {
                 Toggle("Map corner resize handle",function()return ns.GetEnhancements().mapCornerResize~=false end,
                     function(v)ns.GetEnhancements().mapCornerResize=v;ns.RefreshMapResize()end,
                     "Drag the bottom-right corner to resize. Windowed mode only. The size is saved with EUI window settings.")
+                if EUI._InitShifterLootWindows then
+                    Toggle("Move loot roll windows in EUI Unlock Mode",
+                        function()return EllesmereUIDB and EllesmereUIDB.shifterLootUnlock and not EllesmereUIDB.shifterLootHideOverlays end,
+                        ns.SetLootRollMovement,
+                        "Drag Group Loot in EUI Unlock Mode. This also shows EUI's Bonus Roll and Alert Toast movers.")
+                end
+                Toggle("Show loot roll choice counts",function()return ns.GetEnhancements().lootRollCounts==true end,
+                    function(v)ns.GetEnhancements().lootRollCounts=v;ns.RefreshLootRollCounts()end,
+                    "Show Need, Greed, and Pass counts on the original loot roll buttons.")
                 local transportRow=Toggle("Ship and zeppelin timers",function()return ns.GetTransportSettings().enabled==true end,
                     function(v)ns.GetTransportSettings().enabled=v;ns.RefreshTransportTimers()end,
                     "Show arrival or departure countdowns on the selected map icons. Stand still aboard a moving boat or airship to calibrate.")
