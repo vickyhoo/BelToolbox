@@ -1,4 +1,4 @@
-# Bel Toolbox 0.19.38-dev
+# Bel Toolbox 0.19.38
 
 - Show live Need, Greed, and Pass counts on the default group loot buttons and expose the existing EUI loot window movers.
 - Hide the Bonus Roll mover in EUI Unlock Mode on WoW Forever.
