@@ -176,7 +176,7 @@ local registered = EUI.RegisterPlugin(addonName, {
                     Toggle("Move loot roll windows in EUI Unlock Mode",
                         function()return EllesmereUIDB and EllesmereUIDB.shifterLootUnlock and not EllesmereUIDB.shifterLootHideOverlays end,
                         ns.SetLootRollMovement,
-                        "Drag Group Loot in EUI Unlock Mode. This also shows EUI's Bonus Roll and Alert Toast movers.")
+                        "Drag Group Loot in EUI Unlock Mode. This also shows EUI's Alert Toast mover.")
                 end
                 Toggle("Show loot roll choice counts",function()return ns.GetEnhancements().lootRollCounts==true end,
                     function(v)ns.GetEnhancements().lootRollCounts=v;ns.RefreshLootRollCounts()end,

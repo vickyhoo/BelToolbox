@@ -27,6 +27,14 @@ local function ItemKey(link)
     end
 end
 
+local function HideBonusRollMover()
+    local registered = EUI._unlockRegisteredElements
+    local mover = registered and registered.EUI_BonusRoll
+    if EUI.IS_FOREVER and mover then
+        mover.isHidden = function() return true end
+    end
+end
+
 function ns.SetLootRollMovement(enabled)
     if not EUI._InitShifterLootWindows then return end
     EllesmereUIDB = EllesmereUIDB or {}
@@ -34,6 +42,7 @@ function ns.SetLootRollMovement(enabled)
     if enabled then
         EllesmereUIDB.shifterLootHideOverlays = false
         EUI._InitShifterLootWindows()
+        HideBonusRollMover()
     elseif EUI._DisableShifterLootWindows then
         EUI._DisableShifterLootWindows()
     end
@@ -143,6 +152,7 @@ end
 events:RegisterEvent("PLAYER_LOGIN")
 events:SetScript("OnEvent", function(_, event, id)
     if event == "PLAYER_LOGIN" then
+        C_Timer.After(0, HideBonusRollMover)
         if GroupLootContainer_Update then hooksecurefunc("GroupLootContainer_Update", QueueUpdate) end
         ns.RefreshLootRollCounts()
         return
