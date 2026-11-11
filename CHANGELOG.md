@@ -1,3 +1,8 @@
+# Bel Toolbox 0.19.38
+
+- Show live Need, Greed, and Pass counts on the default group loot buttons and expose the existing EUI loot window movers.
+- Hide the Bonus Roll mover in EUI Unlock Mode on WoW Forever.
+
 # Bel Toolbox 0.19.37
 
 - Enable EUI Bulk Buy when its Toolbox enhancement is active. Use EUI's purchase dialog with per-item quantities and totals for ordinary gold items.
