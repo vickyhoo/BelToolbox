@@ -185,6 +185,7 @@ function F.SetItems(main,list,automatic,tooltip,onSelect,enabled)
         local entry=list[index-1]
         button.automatic=index==1;button:SetAttribute("automatic",button.automatic)
         button.belMain=main;button.category=main.category;button.itemID=entry and entry.id
+        button.unavailable=entry and entry.unavailable
         button:SetAttribute("type1",entry and not main.itemTarget and "item"or nil)
         button:SetAttribute("item1",entry and "item:"..entry.id or nil)
         button.icon:SetTexture(entry and entry.icon or "Interface\\Buttons\\UI-RefreshButton")

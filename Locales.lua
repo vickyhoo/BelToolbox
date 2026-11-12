@@ -42,6 +42,7 @@ local translations = {
         ["Flasks"] = "Flasks",
         ["Resistance potions"] = "Resistance potions",
         ["Weapon enhancements"] = "Weapon Enhancements",
+        ["Equip a fishing pole in your main hand to apply this lure."] = "Equip a fishing pole in your main hand to apply this lure.",
         ["Applies to a compatible equipped weapon or fishing pole out of combat."] = "Applies to a compatible equipped weapon or fishing pole out of combat.",
 
         ["Bag changes update the choices after combat; existing choices remain usable."] = "Bag changes update the choices after combat; existing choices remain usable.",
@@ -411,6 +412,7 @@ local translations = {
         ["Flasks"] = "合剂",
         ["Resistance potions"] = "抗性药水",
         ["Weapon enhancements"] = "武器附魔",
+        ["Equip a fishing pole in your main hand to apply this lure."] = "请在主手装备鱼竿，再使用这个鱼饵。",
         ["Applies to a compatible equipped weapon or fishing pole out of combat."] = "脱战后点击，直接用于已装备的兼容武器或鱼竿。",
 
         ["Bag changes update the choices after combat; existing choices remain usable."] = "背包变化在脱战后更新到选项；已有选项在战斗中仍可使用。",

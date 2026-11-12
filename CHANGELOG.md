@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.42-dev
+
+- Keep bagged fishing lures visible in Weapon Enhancements when a fishing pole is unequipped. Show an equip hint and prioritize usable enhancements in automatic mode.
+
 # Bel Toolbox 0.19.41-dev
 
 - Keep consumable flyouts open during inventory and item-data refreshes while their category still has choices.

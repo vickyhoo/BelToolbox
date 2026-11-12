@@ -75,6 +75,9 @@ end
 function ns.IsWeaponBuffItem(id)
     return buffs[id]~=nil or imbues[id]~=nil
 end
+function ns.IsFishingLure(id)
+    return buffs[id]=="lure"
+end
 function ns.GetWeaponBuffTarget(id)
     local kind=buffs[id]or imbues[id]
     if not kind then return end

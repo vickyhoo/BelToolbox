@@ -172,7 +172,8 @@ function C.Scan()
             if Safe(id)and id and not seen[id]then
                 seen[id]=true
                 local cat,generic=C.Classify(id)
-                if (cat or generic)and (cat~="weaponBuff"or ns.GetWeaponBuffTarget(id))and Count(id)>0 then
+                local missingTarget=cat=="weaponBuff"and not ns.GetWeaponBuffTarget(id)
+                if (cat or generic)and (not missingTarget or ns.IsFishingLure(id))and Count(id)>0 then
                     local name,_,_,itemLevel,minLevel,_,_,_,_,icon=API("GetItemInfo",id)
                     if name and Safe(minLevel)and Safe(itemLevel)and (minLevel or 0)<=level then
                         local _,spellID=API("GetItemSpell",id)
@@ -183,7 +184,7 @@ function C.Scan()
                         local automatic=not buff and (conjured[id]or plain[id]or recovery)
                         if generic and recovery then cat="food"end
                         if cat then lists[cat][#lists[cat]+1]={id=id,name=name,icon=icon,level=minLevel or 0,rank=itemLevel or 0,
-                            temporary=conjured[id]or false,manual=cat=="flask"or cat=="elixir"or cat=="protection"
+                            temporary=conjured[id]or false,unavailable=missingTarget,manual=cat=="flask"or cat=="elixir"or cat=="protection"
                                 or (cat=="food"or cat=="drink")and not automatic or false}end
                     elseif not name then RequestItemData(id)end
                 elseif not API("GetItemInfo",id)then RequestItemData(id)end
@@ -200,7 +201,14 @@ function C.Scan()
 end
 function C.Resolve(list,chosen)
     for _,entry in ipairs(list)do if entry.id==chosen and Count(entry.id)>0 then return entry,true end end
-    for _,entry in ipairs(list)do if not entry.manual and Count(entry.id)>0 then return entry,false end end
+    local fallback
+    for _,entry in ipairs(list)do
+        if not entry.manual and Count(entry.id)>0 then
+            if not entry.unavailable then return entry,false end
+            fallback=fallback or entry
+        end
+    end
+    return fallback,false
 end
 local function UpdateVisuals()
     local cooldowns={}
@@ -218,7 +226,7 @@ local function UpdateVisuals()
     F.VisitItems(function(button)
         local count=Count(button.itemID)
         button.count:SetText(count>0 and tostring(count)or "")
-        button.icon:SetDesaturated(count==0)
+        button.icon:SetDesaturated(count==0 or button.unavailable==true)
         if button.itemID then
             local start,duration,enabled=API("GetItemCooldown",button.itemID)
             if cooldowns[button.itemID]then start,duration=unpack(cooldowns[button.itemID])end
@@ -240,6 +248,9 @@ local function Tooltip(button)
     local hint=button.category.key=="weaponBuff"and "Applies to a compatible equipped weapon or fishing pole out of combat."
         or "Bag changes update the choices after combat; existing choices remain usable."
     GameTooltip:AddLine(L(hint),.7,.7,.7,true)
+    if button.unavailable then
+        GameTooltip:AddLine(L("Equip a fishing pole in your main hand to apply this lure."),1,.35,.3,true)
+    end
     if button.flyout then GameTooltip:AddLine(L("Use the Auto button in the flyout to restore automatic selection."),.4,.8,1,true)end
     F.ShowTooltip(button)
 end
@@ -276,7 +287,7 @@ function ns.RefreshConsumables()
     C.Scan();local choices=Choices();local visible={}
     for _,category in ipairs(C.Ordered())do
         local button=buttons[category.key];local chosen,manual=C.Resolve(lists[category.key],choices[category.key])
-        button.itemID=chosen and chosen.id;button.manual=manual
+        button.itemID=chosen and chosen.id;button.manual=manual;button.unavailable=chosen and chosen.unavailable
         local available=#lists[category.key]
         local enabled=(not db.categories or db.categories[category.key]~=false)
             and (not db.hideEmpty or available>0 or ns.IsToolbarBindingMode())
