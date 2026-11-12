@@ -14,6 +14,7 @@ local categories={
     {key="flask",label="Flasks",icon=134828},
     {key="elixir",label="Elixirs",icon=134842},
     {key="protection",label="Resistance potions",icon=134804},
+    {key="weaponBuff",label="Weapon enhancements",icon=135249},
 }
 ns.ConsumableCategories=categories
 local C={};ns.Consumables=C
@@ -76,6 +77,7 @@ local function PlainFood(id)
     return foodPatterns[text]==true
 end
 function C.Classify(id)
+    if ns.IsWeaponBuffItem(id)then return "weaponBuff"end
     if specials[id]then return specials[id]end
     local spell=API("GetItemSpell",id)
     if not Safe(spell)then return end
@@ -163,7 +165,7 @@ function C.Scan()
             if Safe(id)and id and not seen[id]then
                 seen[id]=true
                 local cat,generic=C.Classify(id)
-                if (cat or generic)and Count(id)>0 then
+                if (cat or generic)and (cat~="weaponBuff"or ns.GetWeaponBuffTarget(id))and Count(id)>0 then
                     local name,_,_,itemLevel,minLevel,_,_,_,_,icon=API("GetItemInfo",id)
                     if name and Safe(minLevel)and Safe(itemLevel)and (minLevel or 0)<=level then
                         local _,spellID=API("GetItemSpell",id)
@@ -228,7 +230,9 @@ local function Tooltip(button)
     if not button.itemID and available>0 then
         GameTooltip:AddLine(L("%d choices available. Hover to select; buff consumables require a manual choice.",available),1,.82,.3,true)
     end
-    GameTooltip:AddLine(L("Bag changes update the choices after combat; existing choices remain usable."),.7,.7,.7,true)
+    local hint=button.category.key=="weaponBuff"and "Applies to a compatible equipped weapon or fishing pole out of combat."
+        or "Bag changes update the choices after combat; existing choices remain usable."
+    GameTooltip:AddLine(L(hint),.7,.7,.7,true)
     if button.flyout then GameTooltip:AddLine(L("Use the Auto button in the flyout to restore automatic selection."),.4,.8,1,true)end
     F.ShowTooltip(button)
 end
@@ -239,10 +243,9 @@ local function Create()
     T.RegisterBarEditor(root,"consumables","Consumables",C.Settings,ns.RefreshConsumables,
         function()return T.Size("consumables")end,function()return C.Settings().spacing or 2 end,"perLine",#categories,7)
     for _,category in ipairs(categories)do
-        local button=F.Create(root,"BelToolboxConsume"..category.key,category.icon)
+        local target=category.key=="weaponBuff"and ns.GetWeaponBuffTarget or nil
+        local button=F.Create(root,"BelToolboxConsume"..category.key,category.icon,target)
         button.category=category;buttons[category.key]=button
-        button:RegisterForClicks("AnyUp","AnyDown")
-        button:SetAttribute("type1","item");button:SetAttribute("type2",nil)
         button.hotkey=button:CreateFontString(nil,"OVERLAY","NumberFontNormalSmall");button.hotkey:SetPoint("TOPRIGHT",-1,-1)
         button.arrow=button:CreateTexture(nil,"OVERLAY");button.arrow:SetTexture("Interface\\Buttons\\Arrow-Up-Up")
         button.arrow:SetSize(14,14);button.arrow:SetVertexColor(1,.82,0)
@@ -292,11 +295,12 @@ function ns.RefreshConsumables()
     root:SetShown(#visible>0);root.RegisterBelMover();UpdateVisuals();ns.UpdateToolbarBindings()
 end
 local events=CreateFrame("Frame")
-for _,event in ipairs({"PLAYER_LOGIN","PLAYER_ENTERING_WORLD","PLAYER_REGEN_ENABLED","PLAYER_REGEN_DISABLED","BAG_UPDATE_DELAYED","SPELL_UPDATE_COOLDOWN","BAG_UPDATE_COOLDOWN","ITEM_DATA_LOAD_RESULT","PLAYER_LEVEL_UP"})do events:RegisterEvent(event)end
-events:SetScript("OnEvent",function(_,event,_,success)
+for _,event in ipairs({"PLAYER_LOGIN","PLAYER_ENTERING_WORLD","PLAYER_REGEN_ENABLED","PLAYER_REGEN_DISABLED","BAG_UPDATE_DELAYED","SPELL_UPDATE_COOLDOWN","BAG_UPDATE_COOLDOWN","ITEM_DATA_LOAD_RESULT","PLAYER_LEVEL_UP","PLAYER_EQUIPMENT_CHANGED"})do events:RegisterEvent(event)end
+events:SetScript("OnEvent",function(_,event,value,success)
     if event=="SPELL_UPDATE_COOLDOWN"or event=="BAG_UPDATE_COOLDOWN"then if root and root:IsShown()then UpdateVisuals()end;return end
     if event=="PLAYER_REGEN_DISABLED"then return end
     if event=="ITEM_DATA_LOAD_RESULT"and not success then return end
+    if event=="PLAYER_EQUIPMENT_CHANGED"and value~=16 and value~=17 then return end
     if C.Settings().enabled~=true and not root then return end
     if queued then return end
     queued=true;C_Timer.After(0,function()queued=nil;ns.RefreshConsumables()end)

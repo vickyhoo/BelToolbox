@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.40-dev
+
+- Add a Weapon Enhancements category to the consumables bar for one-click application of compatible temporary weapon buffs, deciphered Mage imbue scrolls and fishing lures out of combat.
+
 # Bel Toolbox 0.19.39-dev
 
 - Show vendor sale revenue per craft in the recipe tooltip and add a vendor mode for the recipe list's profit and return percentage.

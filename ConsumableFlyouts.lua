@@ -70,15 +70,42 @@ function F.Position(main)
         main.arrow:SetRotation(direction=="DOWN"and math.pi or direction=="LEFT"and math.pi/2 or direction=="RIGHT"and -math.pi/2 or 0)
     end
 end
-function F.Create(parent,name,icon)
-    local main=CreateFrame("Button",name,parent,"SecureActionButtonTemplate,SecureHandlerEnterLeaveTemplate")
+local function ConfigureTargetedClick(button,target)
+    button:HookScript("PreClick",function(self,mouse)
+        if mouse~="LeftButton"or InCombatLockdown()then return end
+        local slot=not SpellIsTargeting()and target(self.itemID)or nil
+        self:SetAttribute("type1",slot and "item"or nil)
+        self:SetAttribute("target-slot1",slot)
+    end)
+    button:HookScript("PostClick",function(self,mouse)
+        if mouse~="LeftButton"or InCombatLockdown()then return end
+        self:SetAttribute("type1",nil)
+        self:SetAttribute("target-slot1",nil)
+    end)
+end
+function F.Create(parent,name,icon,target)
+    local template="SecureActionButtonTemplate,SecureHandlerEnterLeaveTemplate"
+    if target then template=template..",SecureHandlerStateTemplate"end
+    local main=CreateFrame("Button",name,parent,template)
     Style(main,icon);main:RegisterForClicks("AnyUp","AnyDown")
-    main:SetAttribute("type1","item");main:SetAttribute("type2",nil)
+    main:SetAttribute("type1",not target and "item"or nil)
     local popup=CreateFrame("Frame",nil,main,"SecureHandlerEnterLeaveTemplate")
     popup.items={};popup:SetFrameStrata("DIALOG");popup:SetClampedToScreen(true);popup:EnableMouse(true);popup:Hide()
-    main.flyout=popup;main:SetFrameRef("flyout",popup);popup:SetFrameRef("main",main);popup:SetFrameRef("flyout",popup)
+    main.flyout=popup;main.itemTarget=target
+    main:SetFrameRef("flyout",popup);popup:SetFrameRef("main",main);popup:SetFrameRef("flyout",popup)
+    if target then
+        ConfigureTargetedClick(main,target)
+        main:SetAttribute("_onstate-combat",[[
+            if newstate=="combat" then
+                self:SetAttribute("type1",nil)
+                self:SetAttribute("target-slot1",nil)
+                self:GetFrameRef("flyout"):Hide()
+            end
+        ]])
+        RegisterStateDriver(main,"combat","[combat] combat; rest")
+    end
     main:SetAttribute("_onenter",[[
-        if self:GetAttribute("flyoutEnabled") then
+        if self:GetAttribute("flyoutEnabled") and self:GetAttribute("state-combat")~="combat" then
             local popup=self:GetFrameRef("flyout")
             popup:Show();popup:RegisterAutoHide(.3);popup:AddToAutoHide(self)
         end
@@ -122,7 +149,7 @@ function F.SetItems(main,list,automatic,tooltip,onSelect,enabled)
             button=CreateFrame("Button",nil,popup,"SecureActionButtonTemplate,SecureHandlerEnterLeaveTemplate")
             Style(button);button:RegisterForClicks("AnyUp","AnyDown")
             button:SetFrameRef("flyout",popup);button:SetAttribute("_onleave",leave)
-            button:SetAttribute("type2",nil)
+            if main.itemTarget then ConfigureTargetedClick(button,main.itemTarget)end
             main:WrapScript(button,"OnClick","return nil, true",[[
                 local popup=self:GetParent()
                 local main=popup:GetFrameRef("main")
@@ -152,7 +179,7 @@ function F.SetItems(main,list,automatic,tooltip,onSelect,enabled)
         local entry=list[index-1]
         button.automatic=index==1;button:SetAttribute("automatic",button.automatic)
         button.belMain=main;button.category=main.category;button.itemID=entry and entry.id
-        button:SetAttribute("type1",entry and "item"or nil)
+        button:SetAttribute("type1",entry and not main.itemTarget and "item"or nil)
         button:SetAttribute("item1",entry and "item:"..entry.id or nil)
         button.icon:SetTexture(entry and entry.icon or "Interface\\Buttons\\UI-RefreshButton")
         if button.automatic then
