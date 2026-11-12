@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.39-dev
+
+- Show vendor sale revenue per craft in the recipe tooltip and add a vendor mode for the recipe list's profit and return percentage.
+
 # Bel Toolbox 0.19.38
 
 - Show live Need, Greed, and Pass counts on the default group loot buttons and expose the existing EUI loot window movers.

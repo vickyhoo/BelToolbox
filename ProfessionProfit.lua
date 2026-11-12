@@ -3,6 +3,7 @@ local L=ns.L
 local unpack=unpack or table.unpack
 local rows=setmetatable({}, {__mode="k"})
 local cache={}
+local pendingVendorPrices={}
 local attached,pending
 local profitTooltip
 local function Number(v) return not (issecretvalue and issecretvalue(v)) and type(v)=="number" end
@@ -69,14 +70,37 @@ local function Lookup(itemID,kind,used)
     return value
 end
 local function Missing(reason) return {reason=reason} end
+local function VendorUnitPrice(itemID)
+    local getInfo=C_Item and C_Item.GetItemInfo
+    if not getInfo then return end
+    local _,_,_,_,_,_,_,_,_,_,price=getInfo(itemID)
+    if Number(price) and price>=0 then return price end
+    pendingVendorPrices[itemID]=true
+end
 function ns.CalculateRecipeProfit(recipeID)
     local settings=ns.GetProfessionProfitSettings()
-    local signature=(settings.source or "auto")..":"..tostring(settings.ahCut or 5)
+    local vendorMode=settings.saleMode=="vendor"
+    local signature=(settings.source or "auto")..":"..(vendorMode and "vendor" or tostring(settings.ahCut or 5))
     local saved=cache[recipeID]
     if saved and saved.signature==signature then return saved.value end
     local t=C_TradeSkillUI
     local schematic=t and Call(t.GetRecipeSchematic,recipeID,false)
     if type(schematic)~="table" then return Missing("Recipe data unavailable") end
+    local output=schematic.outputItemID
+    if not Number(output) or output<=0 then
+        local info=Call(t.GetRecipeOutputItemData,recipeID,{})
+        if type(info)=="table" then
+            output=info.itemID
+            if (not Number(output) or output<=0) and type(info.hyperlink)=="string" then output=tonumber(info.hyperlink:match("item:(%d+)")) end
+        end
+    end
+    if not Number(output) or output<=0 then return Missing("No tradable item output") end
+    local minimum=schematic.quantityMin or 1
+    local maximum=schematic.quantityMax or minimum
+    if not Number(minimum) or not Number(maximum) or minimum<=0 or maximum<minimum then return Missing("Recipe data unavailable") end
+    local quantity=(minimum+maximum)/2
+    local vendorPrice=VendorUnitPrice(output)
+    local value={quantity=quantity,vendorMode=vendorMode,vendorSale=vendorPrice and vendorPrice*quantity,variable=maximum~=minimum}
     local used={}
     local cost=0
     for _,slot in ipairs(schematic.reagentSlotSchematics or {}) do
@@ -91,29 +115,21 @@ function ns.CalculateRecipeProfit(recipeID)
                         if value and (not best or value<best) then best=value end
                     end
                 end
-                if not best then return Missing("Missing reagent prices") end
+                if not best then value.reason="Missing reagent prices";return value end
                 cost=cost+best*quantity
             end
         end
     end
-    local output=schematic.outputItemID
-    if not Number(output) or output<=0 then
-        local info=Call(t.GetRecipeOutputItemData,recipeID,{})
-        if type(info)=="table" then
-            output=info.itemID
-            if (not Number(output) or output<=0) and type(info.hyperlink)=="string" then output=tonumber(info.hyperlink:match("item:(%d+)")) end
-        end
+    local sale=vendorMode and Price(vendorPrice) or nil
+    if not vendorMode then sale=Lookup(output,"sale",used) end
+    if not sale then
+        value.reason=vendorMode and (vendorPrice==0 and "Cannot sell to a vendor" or "Vendor price unavailable") or "Missing output price"
+        return value
     end
-    if not Number(output) or output<=0 then return Missing("No tradable item output") end
-    local sale=Lookup(output,"sale",used)
-    if not sale then return Missing("Missing output price") end
-    local minimum=schematic.quantityMin or 1
-    local maximum=schematic.quantityMax or minimum
-    if not Number(minimum) or not Number(maximum) or minimum<=0 or maximum<minimum then return Missing("Recipe data unavailable") end
-    local quantity=(minimum+maximum)/2
     local cut=settings.ahCut
-    cut=Number(cut) and math.max(0,math.min(30,cut)) or 5
-    local value={cost=cost,sale=sale*quantity,net=sale*quantity*(1-cut/100)-cost,quantity=quantity,cut=cut,used=used,variable=maximum~=minimum}
+    cut=vendorMode and 0 or (Number(cut) and math.max(0,math.min(30,cut)) or 5)
+    value.cost,value.sale,value.cut,value.used=cost,sale*quantity,cut,used
+    value.net=value.sale*(1-cut/100)-cost
     value.returnPercent=cost>0 and value.net/cost*100 or nil
     cache[recipeID]={signature=signature,value=value}
     return value
@@ -191,11 +207,16 @@ local function ShowInfo(row)
     tip:SetOwner(row,"ANCHOR_RIGHT")
     tip:AddLine(L("Recipe Profit"),1,.82,0)
     local result=state.result
+    if result.vendorSale and result.vendorSale>0 then
+        tip:AddDoubleLine(L("Vendor sale value"),Money(result.vendorSale),1,1,1,1,1,1)
+    end
     if result.reason then tip:AddLine(L(result.reason),1,1,1)
     else
         tip:AddDoubleLine(L("Craft cost"),Money(result.cost),1,1,1,1,1,1)
-        tip:AddDoubleLine(L("Expected sale value"),Money(result.sale),1,1,1,1,1,1)
-        tip:AddDoubleLine(L("Auction cut"),tostring(result.cut).."%",1,1,1,1,1,1)
+        if not result.vendorMode then
+            tip:AddDoubleLine(L("Expected sale value"),Money(result.sale),1,1,1,1,1,1)
+            tip:AddDoubleLine(L("Auction cut"),tostring(result.cut).."%",1,1,1,1,1,1)
+        end
         tip:AddDoubleLine(L("Estimated net profit"),(result.net<0 and "-" or "+")..Money(result.net),1,1,1,result.net>=0 and .3 or 1,result.net>=0 and 1 or .3,.3)
         tip:AddDoubleLine(L("Return on crafting cost"),Percent(result.returnPercent),1,1,1,result.net>=0 and .3 or 1,result.net>=0 and 1 or .3,.3)
     end
@@ -325,9 +346,14 @@ local function Attach()
     ns.RefreshProfessionProfit()
 end
 local events=CreateFrame("Frame")
-for _,event in ipairs({"PLAYER_LOGIN","ADDON_LOADED","TRADE_SKILL_SHOW","TRADE_SKILL_LIST_UPDATE","TRADE_SKILL_DATA_SOURCE_CHANGED","SKILL_LINES_CHANGED","AUCTION_HOUSE_CLOSED"})do events:RegisterEvent(event)end
-events:SetScript("OnEvent",function(_,event,addon)
+for _,event in ipairs({"PLAYER_LOGIN","ADDON_LOADED","TRADE_SKILL_SHOW","TRADE_SKILL_LIST_UPDATE","TRADE_SKILL_DATA_SOURCE_CHANGED","SKILL_LINES_CHANGED","AUCTION_HOUSE_CLOSED","GET_ITEM_INFO_RECEIVED"})do events:RegisterEvent(event)end
+events:SetScript("OnEvent",function(_,event,addon,success)
     if event=="ADDON_LOADED"and addon~="Blizzard_Professions"and addon~="Auctionator"and addon~="TradeSkillMaster"and addon~="CraftProfit"then return end
+    if event=="GET_ITEM_INFO_RECEIVED"then
+        if not Number(addon) or not pendingVendorPrices[addon] then return end
+        pendingVendorPrices[addon]=nil
+        if not success then return end
+    end
     Debug(event)
     if pending then return end
     pending=true
