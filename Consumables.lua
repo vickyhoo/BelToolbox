@@ -6,6 +6,7 @@ local F=ns.ConsumableFlyouts
 local root,dirty,queued
 local DefaultPosition
 local buttons,lists={},{}
+local pendingItemData={}
 local categories={
     {key="food",label="Food",icon=133906},{key="drink",label="Drink",icon=132794},
     {key="healing",label="Healing potion",icon=134829},{key="mana",label="Mana potion",icon=134852},
@@ -14,12 +15,19 @@ local categories={
     {key="flask",label="Flasks",icon=134828},
     {key="elixir",label="Elixirs",icon=134842},
     {key="protection",label="Resistance potions",icon=134804},
+    {key="weaponBuff",label="Weapon enhancements",icon=135249},
 }
 ns.ConsumableCategories=categories
 local C={};ns.Consumables=C
 function C.Settings()return T.Settings("consumables")end
 local function Safe(value)return not(issecretvalue and issecretvalue(value))end
 local function API(name,...)local fn=C_Item and C_Item[name]or _G[name];if fn then return fn(...)end end
+local function RequestItemData(id)
+    if not pendingItemData[id]and C_Item and C_Item.RequestLoadItemDataByID then
+        pendingItemData[id]=true
+        C_Item.RequestLoadItemDataByID(id)
+    end
+end
 local specials={}
 for _,id in ipairs({5512,5511,5509,5510,9421,19004,19005,19006,19007,19008,19009,19010,19011,19012,19013})do specials[id]="stone"end
 for _,id in ipairs({5514,5513,8007,8008})do specials[id]="gem"end
@@ -68,14 +76,15 @@ local function PlainFood(id)
             local pattern=FoodUseText(sample)
             if pattern and pattern~=""then
                 foodPatterns[pattern]=true;loadedSamples[sample]=true
-            elseif not requestedSamples[sample]and C_Item and C_Item.RequestLoadItemDataByID then
-                requestedSamples[sample]=true;C_Item.RequestLoadItemDataByID(sample)
+            elseif not requestedSamples[sample]then
+                requestedSamples[sample]=true;RequestItemData(sample)
             end
         end
     end
     return foodPatterns[text]==true
 end
 function C.Classify(id)
+    if ns.IsWeaponBuffItem(id)then return "weaponBuff"end
     if specials[id]then return specials[id]end
     local spell=API("GetItemSpell",id)
     if not Safe(spell)then return end
@@ -163,7 +172,8 @@ function C.Scan()
             if Safe(id)and id and not seen[id]then
                 seen[id]=true
                 local cat,generic=C.Classify(id)
-                if (cat or generic)and Count(id)>0 then
+                local missingTarget=cat=="weaponBuff"and not ns.GetWeaponBuffTarget(id)
+                if (cat or generic)and (not missingTarget or ns.IsFishingLure(id))and Count(id)>0 then
                     local name,_,_,itemLevel,minLevel,_,_,_,_,icon=API("GetItemInfo",id)
                     if name and Safe(minLevel)and Safe(itemLevel)and (minLevel or 0)<=level then
                         local _,spellID=API("GetItemSpell",id)
@@ -174,10 +184,10 @@ function C.Scan()
                         local automatic=not buff and (conjured[id]or plain[id]or recovery)
                         if generic and recovery then cat="food"end
                         if cat then lists[cat][#lists[cat]+1]={id=id,name=name,icon=icon,level=minLevel or 0,rank=itemLevel or 0,
-                            temporary=conjured[id]or false,manual=cat=="flask"or cat=="elixir"or cat=="protection"
+                            temporary=conjured[id]or false,unavailable=missingTarget,manual=cat=="flask"or cat=="elixir"or cat=="protection"
                                 or (cat=="food"or cat=="drink")and not automatic or false}end
-                    elseif not name and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(id)end
-                elseif C_Item and C_Item.RequestLoadItemDataByID and not API("GetItemInfo",id)then C_Item.RequestLoadItemDataByID(id)end
+                    elseif not name then RequestItemData(id)end
+                elseif not API("GetItemInfo",id)then RequestItemData(id)end
             end
         end
     end
@@ -191,7 +201,14 @@ function C.Scan()
 end
 function C.Resolve(list,chosen)
     for _,entry in ipairs(list)do if entry.id==chosen and Count(entry.id)>0 then return entry,true end end
-    for _,entry in ipairs(list)do if not entry.manual and Count(entry.id)>0 then return entry,false end end
+    local fallback
+    for _,entry in ipairs(list)do
+        if not entry.manual and Count(entry.id)>0 then
+            if not entry.unavailable then return entry,false end
+            fallback=fallback or entry
+        end
+    end
+    return fallback,false
 end
 local function UpdateVisuals()
     local cooldowns={}
@@ -209,7 +226,7 @@ local function UpdateVisuals()
     F.VisitItems(function(button)
         local count=Count(button.itemID)
         button.count:SetText(count>0 and tostring(count)or "")
-        button.icon:SetDesaturated(count==0)
+        button.icon:SetDesaturated(count==0 or button.unavailable==true)
         if button.itemID then
             local start,duration,enabled=API("GetItemCooldown",button.itemID)
             if cooldowns[button.itemID]then start,duration=unpack(cooldowns[button.itemID])end
@@ -228,7 +245,12 @@ local function Tooltip(button)
     if not button.itemID and available>0 then
         GameTooltip:AddLine(L("%d choices available. Hover to select; buff consumables require a manual choice.",available),1,.82,.3,true)
     end
-    GameTooltip:AddLine(L("Bag changes update the choices after combat; existing choices remain usable."),.7,.7,.7,true)
+    local hint=button.category.key=="weaponBuff"and "Applies to a compatible equipped weapon or fishing pole out of combat."
+        or "Bag changes update the choices after combat; existing choices remain usable."
+    GameTooltip:AddLine(L(hint),.7,.7,.7,true)
+    if button.unavailable then
+        GameTooltip:AddLine(L("Equip a fishing pole in your main hand to apply this lure."),1,.35,.3,true)
+    end
     if button.flyout then GameTooltip:AddLine(L("Use the Auto button in the flyout to restore automatic selection."),.4,.8,1,true)end
     F.ShowTooltip(button)
 end
@@ -239,10 +261,9 @@ local function Create()
     T.RegisterBarEditor(root,"consumables","Consumables",C.Settings,ns.RefreshConsumables,
         function()return T.Size("consumables")end,function()return C.Settings().spacing or 2 end,"perLine",#categories,7)
     for _,category in ipairs(categories)do
-        local button=F.Create(root,"BelToolboxConsume"..category.key,category.icon)
+        local target=category.key=="weaponBuff"and ns.GetWeaponBuffTarget or nil
+        local button=F.Create(root,"BelToolboxConsume"..category.key,category.icon,target)
         button.category=category;buttons[category.key]=button
-        button:RegisterForClicks("AnyUp","AnyDown")
-        button:SetAttribute("type1","item");button:SetAttribute("type2",nil)
         button.hotkey=button:CreateFontString(nil,"OVERLAY","NumberFontNormalSmall");button.hotkey:SetPoint("TOPRIGHT",-1,-1)
         button.arrow=button:CreateTexture(nil,"OVERLAY");button.arrow:SetTexture("Interface\\Buttons\\Arrow-Up-Up")
         button.arrow:SetSize(14,14);button.arrow:SetVertexColor(1,.82,0)
@@ -266,7 +287,7 @@ function ns.RefreshConsumables()
     C.Scan();local choices=Choices();local visible={}
     for _,category in ipairs(C.Ordered())do
         local button=buttons[category.key];local chosen,manual=C.Resolve(lists[category.key],choices[category.key])
-        button.itemID=chosen and chosen.id;button.manual=manual
+        button.itemID=chosen and chosen.id;button.manual=manual;button.unavailable=chosen and chosen.unavailable
         local available=#lists[category.key]
         local enabled=(not db.categories or db.categories[category.key]~=false)
             and (not db.hideEmpty or available>0 or ns.IsToolbarBindingMode())
@@ -292,11 +313,16 @@ function ns.RefreshConsumables()
     root:SetShown(#visible>0);root.RegisterBelMover();UpdateVisuals();ns.UpdateToolbarBindings()
 end
 local events=CreateFrame("Frame")
-for _,event in ipairs({"PLAYER_LOGIN","PLAYER_ENTERING_WORLD","PLAYER_REGEN_ENABLED","PLAYER_REGEN_DISABLED","BAG_UPDATE_DELAYED","SPELL_UPDATE_COOLDOWN","BAG_UPDATE_COOLDOWN","ITEM_DATA_LOAD_RESULT","PLAYER_LEVEL_UP"})do events:RegisterEvent(event)end
-events:SetScript("OnEvent",function(_,event,_,success)
+for _,event in ipairs({"PLAYER_LOGIN","PLAYER_ENTERING_WORLD","PLAYER_REGEN_ENABLED","PLAYER_REGEN_DISABLED","BAG_UPDATE_DELAYED","SPELL_UPDATE_COOLDOWN","BAG_UPDATE_COOLDOWN","ITEM_DATA_LOAD_RESULT","PLAYER_LEVEL_UP","PLAYER_EQUIPMENT_CHANGED"})do events:RegisterEvent(event)end
+events:SetScript("OnEvent",function(_,event,value,success)
     if event=="SPELL_UPDATE_COOLDOWN"or event=="BAG_UPDATE_COOLDOWN"then if root and root:IsShown()then UpdateVisuals()end;return end
     if event=="PLAYER_REGEN_DISABLED"then return end
-    if event=="ITEM_DATA_LOAD_RESULT"and not success then return end
+    if event=="ITEM_DATA_LOAD_RESULT"then
+        if not pendingItemData[value]then return end
+        pendingItemData[value]=nil
+        if not success then return end
+    end
+    if event=="PLAYER_EQUIPMENT_CHANGED"and value~=16 and value~=17 then return end
     if C.Settings().enabled~=true and not root then return end
     if queued then return end
     queued=true;C_Timer.After(0,function()queued=nil;ns.RefreshConsumables()end)

@@ -10,11 +10,17 @@ end
 local function Readable(value)return not(issecretvalue and issecretvalue(value))end
 local buffs={}
 local function Items(kind,ids)for _,id in ipairs(ids)do buffs[id]=kind end end
-Items("sharp",{2862,2863,2871,7964,12404,18262,23122})
+Items("sharp",{2862,2863,2871,7964,12404,23122,287978})
+Items("melee",{18262,211845,287980})
 Items("blunt",{3239,3240,3241,7965,12643})
-Items("oil",{20744,20746,20750,20749,20745,20747,20748,23123,3824,3829})
+Items("oil",{20744,20746,20750,20749,20745,20747,20748,23123,3824,3829,287979})
 Items("poison",{6947,6949,6950,8926,8927,8928,2892,2893,8984,8985,20844,3775,3776,5237,6951,9186,10918,10920,10921,10922})
 Items("lure",{6529,6530,6532,6533,7307,6811})
+-- Forever's deciphered Mage scrolls target specific weapon subclasses.
+local imbues={}
+for _,id in ipairs({274947,277485,277486,277487,277494,277495,277496,277497,277500,277501,277502,277503})do imbues[id]="staff"end
+for _,id in ipairs({275067,277488,277498})do imbues[id]="dagger"end
+imbues[277489]="sword"
 local sharp={[0]=true,[1]=true,[6]=true,[7]=true,[8]=true,[15]=true}
 local blunt={[4]=true,[5]=true,[10]=true}
 local melee={[0]=true,[1]=true,[4]=true,[5]=true,[6]=true,[7]=true,[8]=true,[10]=true,[13]=true,[15]=true}
@@ -29,6 +35,9 @@ local function Fits(kind,inventorySlot)
     if kind=="lure"then return inventorySlot==16 and subclass==20 end
     if kind=="sharp"then return sharp[subclass]or false end
     if kind=="blunt"then return blunt[subclass]or false end
+    if kind=="staff"then return subclass==10 end
+    if kind=="dagger"then return subclass==15 end
+    if kind=="sword"then return subclass==7 or subclass==8 end
     return melee[subclass]or false
 end
 local function EnchantTime(inventorySlot)
@@ -62,6 +71,21 @@ local function WeaponSlot(kind)
         return mt~=nil and (ot==nil or ot<mt)and 17 or 16
     end
     return main and 16 or off and 17 or nil
+end
+function ns.IsWeaponBuffItem(id)
+    return buffs[id]~=nil or imbues[id]~=nil
+end
+function ns.IsFishingLure(id)
+    return buffs[id]=="lure"
+end
+function ns.GetWeaponBuffTarget(id)
+    local kind=buffs[id]or imbues[id]
+    if not kind then return end
+    if imbues[id]or kind=="poison"then
+        local _,class=UnitClass("player")
+        if class~=(imbues[id]and "MAGE"or "ROGUE")then return end
+    end
+    return WeaponSlot(kind)
 end
 local function KnowsComprehend()
     local _,class=UnitClass("player")

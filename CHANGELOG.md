@@ -1,3 +1,10 @@
+# Bel Toolbox 0.19.42
+
+- Added a vendor mode to the profession recipe list. Switch the displayed profit and return percentage to vendor sales, and see vendor revenue per craft in the tooltip.
+- Added Weapon Enhancements to the consumables bar. Click to apply compatible sharpening stones, weightstones, oils, poisons, deciphered Mage imbue scrolls, or fishing lures out of combat.
+- Fishing lures remain visible when the fishing pole is unequipped and show an equip hint. Automatic selection prioritizes enhancements usable with current gear.
+- Fixed consumable flyouts closing during inventory or item-data refreshes.
+
 # Bel Toolbox 0.19.38
 
 - Show live Need, Greed, and Pass counts on the default group loot buttons and expose the existing EUI loot window movers.

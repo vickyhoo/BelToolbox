@@ -77,7 +77,11 @@ local registered = EUI.RegisterPlugin(addonName, {
                 _,h=W:Toggle(parent,L("Enable recipe list profit"),y,
                     function()return ns.GetProfessionProfitSettings().enabled~=false end,
                     function(v)ns.GetProfessionProfitSettings().enabled=v;ns.RefreshProfessionProfit()end,
-                    L("Shows profit per craft after the auction cut. Missing prices show a dash. When CraftProfit row tags are enabled, its tags take priority to avoid duplicates."));y=y-h
+                    L("Shows profit per craft for the selected sale method. Missing prices show a dash. When CraftProfit row tags are enabled, its tags take priority to avoid duplicates."));y=y-h
+                _,h=W:Dropdown(parent,L("Sale method"),y,{auction=L("Auction House"),vendor=L("Sell to vendor")},
+                    function()return ns.GetProfessionProfitSettings().saleMode or "auction"end,
+                    function(v)ns.GetProfessionProfitSettings().saleMode=v;ns.RefreshProfessionProfit()end,
+                    {"auction","vendor"});y=y-h
                 local available=ns.GetProfessionPriceSources()
                 local choices={auto=L("Automatic")}
                 for _,source in ipairs({{"auctionator","Auctionator"},{"tsm","TradeSkillMaster"},{"craftprofit","CraftProfit"}})do
