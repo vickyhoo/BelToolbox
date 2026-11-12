@@ -1,3 +1,8 @@
+# Bel Toolbox 0.19.41-dev
+
+- Keep consumable flyouts open during inventory and item-data refreshes while their category still has choices.
+- Recognize additional Forever sharpening stones and Lesser Wizard Oil variants.
+
 # Bel Toolbox 0.19.40-dev
 
 - Add a Weapon Enhancements category to the consumables bar for one-click application of compatible temporary weapon buffs, deciphered Mage imbue scrolls and fishing lures out of combat.

@@ -6,6 +6,7 @@ local F=ns.ConsumableFlyouts
 local root,dirty,queued
 local DefaultPosition
 local buttons,lists={},{}
+local pendingItemData={}
 local categories={
     {key="food",label="Food",icon=133906},{key="drink",label="Drink",icon=132794},
     {key="healing",label="Healing potion",icon=134829},{key="mana",label="Mana potion",icon=134852},
@@ -21,6 +22,12 @@ local C={};ns.Consumables=C
 function C.Settings()return T.Settings("consumables")end
 local function Safe(value)return not(issecretvalue and issecretvalue(value))end
 local function API(name,...)local fn=C_Item and C_Item[name]or _G[name];if fn then return fn(...)end end
+local function RequestItemData(id)
+    if not pendingItemData[id]and C_Item and C_Item.RequestLoadItemDataByID then
+        pendingItemData[id]=true
+        C_Item.RequestLoadItemDataByID(id)
+    end
+end
 local specials={}
 for _,id in ipairs({5512,5511,5509,5510,9421,19004,19005,19006,19007,19008,19009,19010,19011,19012,19013})do specials[id]="stone"end
 for _,id in ipairs({5514,5513,8007,8008})do specials[id]="gem"end
@@ -69,8 +76,8 @@ local function PlainFood(id)
             local pattern=FoodUseText(sample)
             if pattern and pattern~=""then
                 foodPatterns[pattern]=true;loadedSamples[sample]=true
-            elseif not requestedSamples[sample]and C_Item and C_Item.RequestLoadItemDataByID then
-                requestedSamples[sample]=true;C_Item.RequestLoadItemDataByID(sample)
+            elseif not requestedSamples[sample]then
+                requestedSamples[sample]=true;RequestItemData(sample)
             end
         end
     end
@@ -178,8 +185,8 @@ function C.Scan()
                         if cat then lists[cat][#lists[cat]+1]={id=id,name=name,icon=icon,level=minLevel or 0,rank=itemLevel or 0,
                             temporary=conjured[id]or false,manual=cat=="flask"or cat=="elixir"or cat=="protection"
                                 or (cat=="food"or cat=="drink")and not automatic or false}end
-                    elseif not name and C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(id)end
-                elseif C_Item and C_Item.RequestLoadItemDataByID and not API("GetItemInfo",id)then C_Item.RequestLoadItemDataByID(id)end
+                    elseif not name then RequestItemData(id)end
+                elseif not API("GetItemInfo",id)then RequestItemData(id)end
             end
         end
     end
@@ -299,7 +306,11 @@ for _,event in ipairs({"PLAYER_LOGIN","PLAYER_ENTERING_WORLD","PLAYER_REGEN_ENAB
 events:SetScript("OnEvent",function(_,event,value,success)
     if event=="SPELL_UPDATE_COOLDOWN"or event=="BAG_UPDATE_COOLDOWN"then if root and root:IsShown()then UpdateVisuals()end;return end
     if event=="PLAYER_REGEN_DISABLED"then return end
-    if event=="ITEM_DATA_LOAD_RESULT"and not success then return end
+    if event=="ITEM_DATA_LOAD_RESULT"then
+        if not pendingItemData[value]then return end
+        pendingItemData[value]=nil
+        if not success then return end
+    end
     if event=="PLAYER_EQUIPMENT_CHANGED"and value~=16 and value~=17 then return end
     if C.Settings().enabled~=true and not root then return end
     if queued then return end

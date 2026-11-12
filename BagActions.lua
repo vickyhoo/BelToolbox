@@ -10,9 +10,10 @@ end
 local function Readable(value)return not(issecretvalue and issecretvalue(value))end
 local buffs={}
 local function Items(kind,ids)for _,id in ipairs(ids)do buffs[id]=kind end end
-Items("sharp",{2862,2863,2871,7964,12404,18262,23122})
+Items("sharp",{2862,2863,2871,7964,12404,23122,287978})
+Items("melee",{18262,211845,287980})
 Items("blunt",{3239,3240,3241,7965,12643})
-Items("oil",{20744,20746,20750,20749,20745,20747,20748,23123,3824,3829})
+Items("oil",{20744,20746,20750,20749,20745,20747,20748,23123,3824,3829,287979})
 Items("poison",{6947,6949,6950,8926,8927,8928,2892,2893,8984,8985,20844,3775,3776,5237,6951,9186,10918,10920,10921,10922})
 Items("lure",{6529,6530,6532,6533,7307,6811})
 -- Forever's deciphered Mage scrolls target specific weapon subclasses.

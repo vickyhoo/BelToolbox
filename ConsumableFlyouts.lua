@@ -44,6 +44,10 @@ function F.Position(main)
     if not left or not bottom then return end
     local count=main.flyoutCount or 1
     local direction,columns,rows=F.Geometry(left,left+size,bottom,bottom+size,width,height,count,size,gap)
+    local layout=main.flyoutLayout
+    if layout and main.flyoutDirection==direction and layout.columns==columns and layout.rows==rows
+        and layout.size==size and layout.gap==gap and layout.count==count then return end
+    main.flyoutLayout={columns=columns,rows=rows,size=size,gap=gap,count=count}
     local popup=main.flyout;popup:ClearAllPoints()
     if direction=="UP"then popup:SetPoint("BOTTOMLEFT",main,"TOPLEFT",0,0)
     elseif direction=="DOWN"then popup:SetPoint("TOPLEFT",main,"BOTTOMLEFT",0,0)
@@ -138,10 +142,12 @@ function F.ShowTooltip(button)
 end
 function F.SetItems(main,list,automatic,tooltip,onSelect,enabled)
     if InCombatLockdown()then return end
-    local popup=main.flyout;popup:Hide();main.onSelect=onSelect
+    local popup=main.flyout;main.onSelect=onSelect
     main.autoItemID=automatic and automatic.id;main.autoIcon=automatic and automatic.icon
     main:SetAttribute("autoitem",automatic and "item:"..automatic.id or nil)
-    main:SetAttribute("flyoutEnabled",enabled and #list>0 or false)
+    local canOpen=enabled and #list>0
+    main:SetAttribute("flyoutEnabled",canOpen)
+    if not canOpen then popup:Hide()end
     main.flyoutCount=#list+1
     for index=1,main.flyoutCount do
         local button=popup.items[index]
