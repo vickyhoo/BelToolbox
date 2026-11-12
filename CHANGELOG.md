@@ -1,19 +1,9 @@
-# Bel Toolbox 0.19.42-dev
+# Bel Toolbox 0.19.42
 
-- Keep bagged fishing lures visible in Weapon Enhancements when a fishing pole is unequipped. Show an equip hint and prioritize usable enhancements in automatic mode.
-
-# Bel Toolbox 0.19.41-dev
-
-- Keep consumable flyouts open during inventory and item-data refreshes while their category still has choices.
-- Recognize additional Forever sharpening stones and Lesser Wizard Oil variants.
-
-# Bel Toolbox 0.19.40-dev
-
-- Add a Weapon Enhancements category to the consumables bar for one-click application of compatible temporary weapon buffs, deciphered Mage imbue scrolls and fishing lures out of combat.
-
-# Bel Toolbox 0.19.39-dev
-
-- Show vendor sale revenue per craft in the recipe tooltip and add a vendor mode for the recipe list's profit and return percentage.
+- Added a vendor mode to the profession recipe list. Switch the displayed profit and return percentage to vendor sales, and see vendor revenue per craft in the tooltip.
+- Added Weapon Enhancements to the consumables bar. Click to apply compatible sharpening stones, weightstones, oils, poisons, deciphered Mage imbue scrolls, or fishing lures out of combat.
+- Fishing lures remain visible when the fishing pole is unequipped and show an equip hint. Automatic selection prioritizes enhancements usable with current gear.
+- Fixed consumable flyouts closing during inventory or item-data refreshes.
 
 # Bel Toolbox 0.19.38
 
