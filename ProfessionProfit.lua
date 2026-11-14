@@ -72,6 +72,27 @@ end
 function ns.GetAuctionUnitPrice(itemID, sources)
     return Lookup(itemID,"sale",sources)
 end
+function ns.GetRecipeMaterialSlots(recipeID, recipeLevel)
+    local api=C_TradeSkillUI
+    local schematic=api and Call(api.GetRecipeSchematic,recipeID,false,recipeLevel)
+    if (issecretvalue and issecretvalue(schematic)) or type(schematic)~="table" then return end
+    local slots={}
+    local basic=(Enum.CraftingReagentType and Enum.CraftingReagentType.Basic) or 0
+    for _,slot in ipairs(schematic.reagentSlotSchematics or {}) do
+        if slot.required~=false and slot.reagentType==basic then
+            local quantity=slot.quantityRequired
+            if not Number(quantity) or quantity<0 then return end
+            if quantity>0 then
+                local ids={}
+                for _,reagent in ipairs(slot.reagents or {}) do
+                    if Number(reagent.itemID) and reagent.itemID>0 then ids[#ids+1]=reagent.itemID end
+                end
+                slots[#slots+1]={quantity=quantity,ids=ids}
+            end
+        end
+    end
+    if #slots>0 then return slots end
+end
 local function Missing(reason) return {reason=reason} end
 local function VendorUnitPrice(itemID)
     local getInfo=C_Item and C_Item.GetItemInfo

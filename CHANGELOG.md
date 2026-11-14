@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.45-dev
+
+- Show auction price estimates per required reagent and per craft in supported profession recipe tooltips, including Enchant Weapon - Revelation.
+
 # Bel Toolbox 0.19.44-dev
 
 - Fix Waylaid Crate tooltips stopping after the filling cost heading on Forever when auction prices are available.

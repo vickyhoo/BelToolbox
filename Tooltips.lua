@@ -101,11 +101,41 @@ if C_Item and C_Item.GetItemInfoInstant and C_Item.GetDetailedItemLevelInfo then
     TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, AddItemLevel)
 end
 
-local function CrateCostText(copper)
+local function CostText(copper)
     local format = C_CurrencyInfo and C_CurrencyInfo.GetCoinTextureString or GetCoinTextureString
     if format then return format(copper) end
     if GetMoneyString then return GetMoneyString(copper, true) end
     return ns.L("%d copper", copper)
+end
+
+local function IsPrimaryTooltip(tooltip, data)
+    if not tooltip.GetPrimaryTooltipData then return true end
+    local primary = tooltip:GetPrimaryTooltipData()
+    return not IsSecret(primary) and (not primary or primary == data)
+end
+
+local function AddMaterialCost(tooltip, id, quantity, total, highlight)
+    local name = C_Item.GetItemNameByID(id)
+    if IsSecret(name) or not name then
+        if C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(id) end
+        name = ns.L("Item #%d", id)
+    end
+    local r, g, b = .55, .55, .55
+    if total then
+        if highlight then r, g, b = .35, 1, .35
+        else r, g, b = 1, 1, 1 end
+    end
+    tooltip:AddDoubleLine(quantity .. " × " .. name,
+        total and CostText(total) or ns.L("No auction price"), 1, 1, 1, r, g, b)
+end
+
+local function AddPriceSources(tooltip, sources)
+    local names = {}
+    for source in pairs(sources) do names[#names + 1] = source end
+    if #names > 0 then
+        table.sort(names)
+        tooltip:AddLine(ns.L("Price sources: %s", table.concat(names, ", ")), .65, .65, .65)
+    end
 end
 
 local function AddCrateCosts(tooltip, data)
@@ -114,10 +144,7 @@ local function AddCrateCosts(tooltip, data)
     if IsSecret(id) or type(id) ~= "number" or ns.GetSettings().crateCosts == false then return end
     local bundles = ns.WaylaidCrates and ns.WaylaidCrates[id]
     if not bundles or not ns.GetAuctionUnitPrice then return end
-    if tooltip.GetPrimaryTooltipData then
-        local primary = tooltip:GetPrimaryTooltipData()
-        if IsSecret(primary) or (primary and primary ~= data) then return end
-    end
+    if not IsPrimaryTooltip(tooltip, data) then return end
 
     local sources, totals = {}, {}
     local cheapest
@@ -133,30 +160,63 @@ local function AddCrateCosts(tooltip, data)
     local L = ns.L
     tooltip:AddLine(L("Crate filling cost"), 1, .82, 0)
     for index, bundle in ipairs(bundles) do
-        local name = C_Item.GetItemNameByID(bundle[1])
-        if IsSecret(name) or not name then
-            if C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(bundle[1]) end
-            name = L("Item #%d", bundle[1])
-        end
         local total = totals[index]
-        local r, g, b = .55, .55, .55
-        if total then
-            if total == cheapest then r, g, b = .35, 1, .35
-            else r, g, b = 1, 1, 1 end
+        AddMaterialCost(tooltip, bundle[1], bundle[2], total, total == cheapest)
+    end
+    AddPriceSources(tooltip, sources)
+end
+
+-- The linked Revelation spell can be shown before the client opens Enchanting.
+local revelation = 1248805
+local revelationMaterials = {{11083, 8}, {11084, 6}, {11082, 2}, {249409, 4}, {249410, 4}}
+local function AddRecipeCosts(tooltip, data, isSpell)
+    if tooltip:IsForbidden() or IsSecret(data) or not data or not ns.GetAuctionUnitPrice
+        or ns.GetSettings().recipeCosts == false or not IsPrimaryTooltip(tooltip, data) then return end
+    local id = data.id
+    if IsSecret(id) then return end
+    local recipeID, recipeLevel
+    if isSpell then
+        recipeID = id
+    else
+        local info = tooltip.GetPrimaryTooltipInfo and tooltip:GetPrimaryTooltipInfo()
+        if IsSecret(info) then return end
+        if info and not IsSecret(info.getterName) and info.getterName == "GetRecipeResultItem" then
+            local args = info.getterArgs
+            if not IsSecret(args) and args then recipeID, recipeLevel = args[1], args[4] end
+        elseif id == 249481 or id == 273629 then
+            recipeID = revelation
         end
-        tooltip:AddDoubleLine(bundle[2] .. " × " .. name,
-            total and CrateCostText(total) or L("No auction price"), 1, 1, 1, r, g, b)
     end
-    local providerNames = {}
-    for source in pairs(sources) do providerNames[#providerNames + 1] = source end
-    if #providerNames > 0 then
-        table.sort(providerNames)
-        tooltip:AddLine(L("Price sources: %s", table.concat(providerNames, ", ")), .65, .65, .65)
+    if IsSecret(recipeID) or type(recipeID) ~= "number" or IsSecret(recipeLevel) then return end
+
+    local slots = ns.GetRecipeMaterialSlots and ns.GetRecipeMaterialSlots(recipeID, recipeLevel)
+    if not slots and recipeID == revelation then
+        slots = {}
+        for _, pair in ipairs(revelationMaterials) do slots[#slots + 1] = {quantity = pair[2], ids = {pair[1]}} end
     end
+    if not slots then return end
+
+    local L, sources = ns.L, {}
+    local sum, complete = 0, true
+    tooltip:AddLine(L("Recipe material costs"), 1, .82, 0)
+    for _, slot in ipairs(slots) do
+        local cheapest
+        for _, material in ipairs(slot.ids) do
+            local price = ns.GetAuctionUnitPrice(material, sources)
+            local subtotal = price and price * slot.quantity
+            if subtotal and (not cheapest or subtotal < cheapest) then cheapest = subtotal end
+            AddMaterialCost(tooltip, material, slot.quantity, subtotal, false)
+        end
+        if cheapest then sum = sum + cheapest else complete = false end
+    end
+    tooltip:AddDoubleLine(L("Estimated material total"), complete and CostText(sum) or L("Missing reagent prices"), 1, .82, 0, 1, 1, 1)
+    AddPriceSources(tooltip, sources)
 end
 
 if C_Item and C_Item.GetItemNameByID then
     TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, AddCrateCosts)
+    TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tooltip, data) AddRecipeCosts(tooltip, data, false) end)
+    TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, function(tooltip, data) AddRecipeCosts(tooltip, data, true) end)
 end
 
 -- Inline title textures keep the icon on the same line as the native name.
