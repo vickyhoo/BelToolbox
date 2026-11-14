@@ -48,29 +48,37 @@ function ns.GetProfessionPriceSources()
     }
 end
 local names={auctionator="Auctionator",tsm="TradeSkillMaster",craftprofit="CraftProfit"}
+local baseVendorPrices={[14341]=5000} -- Rune Thread, before reputation discounts.
 local function Lookup(itemID,kind,used)
     local available=ns.GetProfessionPriceSources()
     local wanted=ns.GetProfessionProfitSettings().source or "auto"
     local order=wanted=="auto" and {"auctionator","tsm","craftprofit"} or {wanted}
-    local value
+    local value,source
     for _,key in ipairs(order) do
         if available[key] then
             if key=="auctionator" then value=Call(AuctionAPI().GetAuctionPriceByItemID,"BelToolbox",itemID)
             elseif key=="tsm" then value=Call(TSM_API.GetCustomPriceValue,"DBMarket","i:"..itemID)
             else value=Call(CraftProfit.GetSalePrice,CraftProfit,itemID) end
             value=Price(value)
-            if value then used[names[key]]=true;break end
+            if value then source=names[key];break end
         end
     end
     if kind=="reagent" then
         local api=AuctionAPI()
-        local vendor=api and Price(Call(api.GetVendorPriceByItemID,"BelToolbox",itemID))
-        if vendor and (not value or vendor<value) then value=vendor;used[L("Vendor purchase price")]=true end
+        local vendor=(api and Price(Call(api.GetVendorPriceByItemID,"BelToolbox",itemID))) or baseVendorPrices[itemID]
+        if vendor and (not value or vendor<=value) then
+            used[L("Vendor purchase price")]=true
+            return vendor,true
+        end
     end
-    return value
+    if source then used[source]=true end
+    return value,false
 end
 function ns.GetAuctionUnitPrice(itemID, sources)
     return Lookup(itemID,"sale",sources)
+end
+function ns.GetMaterialUnitPrice(itemID, sources)
+    return Lookup(itemID,"reagent",sources)
 end
 function ns.GetRecipeMaterialSlots(recipeID, recipeLevel)
     local api=C_TradeSkillUI

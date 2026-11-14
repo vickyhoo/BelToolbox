@@ -114,7 +114,7 @@ local function IsPrimaryTooltip(tooltip, data)
     return not IsSecret(primary) and (not primary or primary == data)
 end
 
-local function AddMaterialCost(tooltip, id, quantity, total, highlight)
+local function AddMaterialCost(tooltip, id, quantity, total, highlight, vendor)
     local name = C_Item.GetItemNameByID(id)
     if IsSecret(name) or not name then
         if C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(id) end
@@ -125,8 +125,9 @@ local function AddMaterialCost(tooltip, id, quantity, total, highlight)
         if highlight then r, g, b = .35, 1, .35
         else r, g, b = 1, 1, 1 end
     end
-    tooltip:AddDoubleLine(quantity .. " × " .. name,
-        total and CostText(total) or ns.L("No auction price"), 1, 1, 1, r, g, b)
+    local amount = total and CostText(total) or ns.L("No auction price")
+    if vendor then amount = amount .. " (" .. ns.L("Vendor price") .. ")" end
+    tooltip:AddDoubleLine(quantity .. " × " .. name, amount, 1, 1, 1, r, g, b)
 end
 
 local function AddPriceSources(tooltip, sources)
@@ -191,7 +192,7 @@ local function GetItemRecipeID(id)
 end
 
 local function AddRecipeCosts(tooltip, data, isSpell)
-    if tooltip:IsForbidden() or IsSecret(data) or not data or not ns.GetAuctionUnitPrice
+    if tooltip:IsForbidden() or IsSecret(data) or not data or not ns.GetMaterialUnitPrice
         or ns.GetSettings().recipeCosts == false or not IsPrimaryTooltip(tooltip, data) then return end
     local id = data.id
     if IsSecret(id) then return end
@@ -224,10 +225,10 @@ local function AddRecipeCosts(tooltip, data, isSpell)
     for _, slot in ipairs(slots) do
         local cheapest
         for _, material in ipairs(slot.ids) do
-            local price = ns.GetAuctionUnitPrice(material, sources)
+            local price, vendor = ns.GetMaterialUnitPrice(material, sources)
             local subtotal = price and price * slot.quantity
             if subtotal and (not cheapest or subtotal < cheapest) then cheapest = subtotal end
-            AddMaterialCost(tooltip, material, slot.quantity, subtotal, false)
+            AddMaterialCost(tooltip, material, slot.quantity, subtotal, false, vendor)
         end
         if cheapest then sum = sum + cheapest else complete = false end
     end

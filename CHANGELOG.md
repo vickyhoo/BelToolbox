@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.47-dev
+
+- Use known vendor purchase prices for recipe material estimates when they are cheaper than auction quotes or no quote is available. Label vendor-priced materials and include a base price for Rune Thread.
+
 # Bel Toolbox 0.19.46-dev
 
 - Show material prices on recipe items when their recipe data is available, with a fallback for the Forever Pattern: Robe of the Archmage.

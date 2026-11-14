@@ -518,6 +518,7 @@ local translations = {
         ["Missing reagent prices"] = "缺少材料价格",
         ["Recipe data unavailable"] = "配方数据暂不可用",
         ["Vendor purchase price"] = "商人购买价",
+        ["Vendor price"] = "商人价",
         ["Color learned recipe names orange, yellow, green or gray. Native skill-up arrows remain unchanged."] = "将已学配方名称按难度显示为橙、黄、绿、灰色，保留原生技能提升箭头。",
         ["Recipe names by skill-up difficulty"] = "配方名称按技能提升难度染色",
         ["Auction cut (%)"] = "拍卖手续费（%）",
