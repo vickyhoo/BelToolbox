@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.46-dev
+
+- Show material prices on recipe items when their recipe data is available, with a fallback for the Forever Pattern: Robe of the Archmage.
+
 # Bel Toolbox 0.19.45-dev
 
 - Show auction price estimates per required reagent and per craft in supported profession recipe tooltips, including Enchant Weapon - Revelation.

@@ -166,9 +166,30 @@ local function AddCrateCosts(tooltip, data)
     AddPriceSources(tooltip, sources)
 end
 
--- The linked Revelation spell can be shown before the client opens Enchanting.
-local revelation = 1248805
-local revelationMaterials = {{11083, 8}, {11084, 6}, {11082, 2}, {249409, 4}, {249410, 4}}
+local itemRecipes = {
+    [14513] = 18457, -- Pattern: Robe of the Archmage
+    [249481] = 1248805, -- Formula: Enchant Weapon - Revelation
+    [273629] = 1248805, -- Enchant Weapon - Revelation
+}
+-- These recipes can appear in item links before their profession is open.
+local recipeFallbacks = {
+    [18457] = {{14048, 12}, {7078, 8}, {7082, 8}, {7076, 8}, {7080, 8}, {14341, 2}, {249431, 10}},
+    [1248805] = {{11083, 8}, {11084, 6}, {11082, 2}, {249409, 4}, {249410, 4}},
+}
+
+local function GetItemRecipeID(id)
+    if type(id) ~= "number" then return end
+    if itemRecipes[id] then return itemRecipes[id] end
+    local getInfo = C_Item.GetItemInfoInstant
+    local getSpell = C_Item.GetItemSpell
+    if not getInfo or not getSpell then return end
+    local _, _, _, _, _, classID = getInfo(id)
+    local recipeClass = Enum.ItemClass and Enum.ItemClass.Recipe or 9
+    if IsSecret(classID) or classID ~= recipeClass then return end
+    local _, spellID = getSpell(id)
+    return spellID
+end
+
 local function AddRecipeCosts(tooltip, data, isSpell)
     if tooltip:IsForbidden() or IsSecret(data) or not data or not ns.GetAuctionUnitPrice
         or ns.GetSettings().recipeCosts == false or not IsPrimaryTooltip(tooltip, data) then return end
@@ -183,16 +204,17 @@ local function AddRecipeCosts(tooltip, data, isSpell)
         if info and not IsSecret(info.getterName) and info.getterName == "GetRecipeResultItem" then
             local args = info.getterArgs
             if not IsSecret(args) and args then recipeID, recipeLevel = args[1], args[4] end
-        elseif id == 249481 or id == 273629 then
-            recipeID = revelation
+        else
+            recipeID = GetItemRecipeID(id)
         end
     end
     if IsSecret(recipeID) or type(recipeID) ~= "number" or IsSecret(recipeLevel) then return end
 
     local slots = ns.GetRecipeMaterialSlots and ns.GetRecipeMaterialSlots(recipeID, recipeLevel)
-    if not slots and recipeID == revelation then
+    local fallback = recipeFallbacks[recipeID]
+    if not slots and fallback then
         slots = {}
-        for _, pair in ipairs(revelationMaterials) do slots[#slots + 1] = {quantity = pair[2], ids = {pair[1]}} end
+        for _, pair in ipairs(fallback) do slots[#slots + 1] = {quantity = pair[2], ids = {pair[1]}} end
     end
     if not slots then return end
 
