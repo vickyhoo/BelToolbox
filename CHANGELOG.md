@@ -1,3 +1,10 @@
+# Bel Toolbox 0.19.48
+
+- Show the auction cost of each Waylaid Crate filling option, including in offline bank tooltips, and highlight the lowest known cost.
+- Show required material subtotals and the estimated cost per craft in supported recipe and pattern tooltips, including Enchant Weapon - Revelation and Pattern: Robe of the Archmage.
+- Include known vendor purchase prices in recipe estimates when they are cheaper or when an auction quote is missing. Label vendor-priced materials and include a base price for Rune Thread.
+- Keep the newly learned spells window open after placing a spell while other spells remain.
+
 # Bel Toolbox 0.19.42
 
 - Added a vendor mode to the profession recipe list. Switch the displayed profit and return percentage to vendor sales, and see vendor revenue per craft in the tooltip.
