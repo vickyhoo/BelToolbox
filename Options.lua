@@ -479,6 +479,8 @@ local registered = EUI.RegisterPlugin(addonName, {
                     L("Show an item icon to the left of its tooltip name."))
                 Toggle(L("Show equipment item level"), "itemLevel",
                     L("Show item level in equipment tooltips that do not already display it."))
+                Toggle(L("Show crate filling costs"), "crateCosts",
+                    L("Show the estimated auction cost of each material bundle for Waylaid Crates."))
                 Toggle(L("Show spell title icons"), "spellTitleIcons",
                     L("Show spell and aura icons to the left of their tooltip names."))
                 Toggle(L("Enable status tooltips"), "enabled",

@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.43-dev
+
+- Show estimated auction costs for alternative Waylaid Crate material bundles in item tooltips and highlight the lowest known cost.
+
 # Bel Toolbox 0.19.42
 
 - Added a vendor mode to the profession recipe list. Switch the displayed profit and return percentage to vendor sales, and see vendor revenue per craft in the tooltip.

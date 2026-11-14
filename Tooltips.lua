@@ -101,6 +101,57 @@ if C_Item and C_Item.GetItemInfoInstant and C_Item.GetDetailedItemLevelInfo then
     TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, AddItemLevel)
 end
 
+local function AddCrateCosts(tooltip, data)
+    if tooltip:IsForbidden() or IsSecret(data) or not data then return end
+    local id = data.id
+    if IsSecret(id) or type(id) ~= "number" or ns.GetSettings().crateCosts == false then return end
+    local bundles = ns.WaylaidCrates and ns.WaylaidCrates[id]
+    if not bundles or not ns.GetAuctionUnitPrice then return end
+    if tooltip.GetPrimaryTooltipData then
+        local primary = tooltip:GetPrimaryTooltipData()
+        if IsSecret(primary) or (primary and primary ~= data) then return end
+    end
+
+    local sources, totals = {}, {}
+    local cheapest
+    for index, bundle in ipairs(bundles) do
+        local unitPrice = ns.GetAuctionUnitPrice(bundle[1], sources)
+        if unitPrice then
+            local total = unitPrice * bundle[2]
+            totals[index] = total
+            cheapest = cheapest and math.min(cheapest, total) or total
+        end
+    end
+
+    local L = ns.L
+    tooltip:AddLine(L("Crate filling cost"), 1, .82, 0)
+    for index, bundle in ipairs(bundles) do
+        local name = C_Item.GetItemNameByID(bundle[1])
+        if IsSecret(name) or not name then
+            if C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(bundle[1]) end
+            name = L("Item #%d", bundle[1])
+        end
+        local total = totals[index]
+        local r, g, b = .55, .55, .55
+        if total then
+            if total == cheapest then r, g, b = .35, 1, .35
+            else r, g, b = 1, 1, 1 end
+        end
+        tooltip:AddDoubleLine(bundle[2] .. " × " .. name,
+            total and GetCoinTextureString(total) or L("No auction price"), 1, 1, 1, r, g, b)
+    end
+    local providerNames = {}
+    for source in pairs(sources) do providerNames[#providerNames + 1] = source end
+    if #providerNames > 0 then
+        table.sort(providerNames)
+        tooltip:AddLine(L("Price sources: %s", table.concat(providerNames, ", ")), .65, .65, .65)
+    end
+end
+
+if C_Item and C_Item.GetItemNameByID then
+    TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, AddCrateCosts)
+end
+
 -- Inline title textures keep the icon on the same line as the native name.
 local titleIcons = setmetatable({}, { __mode="k" })
 local function AddTitleIcon(tooltip, data, kind)

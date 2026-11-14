@@ -69,6 +69,9 @@ local function Lookup(itemID,kind,used)
     end
     return value
 end
+function ns.GetAuctionUnitPrice(itemID, sources)
+    return Lookup(itemID,"sale",sources)
+end
 local function Missing(reason) return {reason=reason} end
 local function VendorUnitPrice(itemID)
     local getInfo=C_Item and C_Item.GetItemInfo
