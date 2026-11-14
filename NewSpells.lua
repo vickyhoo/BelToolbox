@@ -201,7 +201,7 @@ events:SetScript("OnEvent",function(_,event,id,_,guildPerk)
         local kind,spell=GetActionInfo(id)
         if Plain(kind)and Plain(spell)and kind=="spell"and spell and (spell==drag.spell or spell==drag.cursorSpell)then
             RemoveSpell(drag.spell);StopDrag()
-            panel:Hide()
+            Show()
         end
     elseif Plain(id)and type(id)=="number"and id>0 and Plain(guildPerk)and not guildPerk then
         pending[#pending+1]=id

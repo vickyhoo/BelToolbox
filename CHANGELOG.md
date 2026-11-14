@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.48-dev
+
+- Keep the newly learned spells window open after placing a spell while other spells remain.
+
 # Bel Toolbox 0.19.47-dev
 
 - Use known vendor purchase prices for recipe material estimates when they are cheaper than auction quotes or no quote is available. Label vendor-priced materials and include a base price for Rune Thread.
