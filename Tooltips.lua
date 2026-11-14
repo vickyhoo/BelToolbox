@@ -101,6 +101,13 @@ if C_Item and C_Item.GetItemInfoInstant and C_Item.GetDetailedItemLevelInfo then
     TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, AddItemLevel)
 end
 
+local function CrateCostText(copper)
+    local format = C_CurrencyInfo and C_CurrencyInfo.GetCoinTextureString or GetCoinTextureString
+    if format then return format(copper) end
+    if GetMoneyString then return GetMoneyString(copper, true) end
+    return ns.L("%d copper", copper)
+end
+
 local function AddCrateCosts(tooltip, data)
     if tooltip:IsForbidden() or IsSecret(data) or not data then return end
     local id = data.id
@@ -138,7 +145,7 @@ local function AddCrateCosts(tooltip, data)
             else r, g, b = 1, 1, 1 end
         end
         tooltip:AddDoubleLine(bundle[2] .. " × " .. name,
-            total and GetCoinTextureString(total) or L("No auction price"), 1, 1, 1, r, g, b)
+            total and CrateCostText(total) or L("No auction price"), 1, 1, 1, r, g, b)
     end
     local providerNames = {}
     for source in pairs(sources) do providerNames[#providerNames + 1] = source end

@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.44-dev
+
+- Fix Waylaid Crate tooltips stopping after the filling cost heading on Forever when auction prices are available.
+
 # Bel Toolbox 0.19.43-dev
 
 - Show estimated auction costs for alternative Waylaid Crate material bundles in item tooltips and highlight the lowest known cost.
