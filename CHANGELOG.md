@@ -1,6 +1,8 @@
-# Bel Toolbox 0.19.49-dev
+# Bel Toolbox 1.0.0
 
 - Preview estimated disenchant materials, quantities, chances and auction prices in equipment tooltips, with an average value when all prices are available.
+- Remove the Toolbox offline bank, cross-character item counts and four-column merchant layout. These are available in EllesmereUI.
+- Preserve alternate-character mail contacts from existing Toolbox data and record character details for contacts on login.
 
 # Bel Toolbox 0.19.48
 

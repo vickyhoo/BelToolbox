@@ -271,7 +271,7 @@ local registered = EUI.RegisterPlugin(addonName, {
         {
             key = "InventoryMail",
             title = L("Bags and Mail"),
-            description = L("Record character inventories and bank visits. Mail contacts only fill the recipient."),
+            description = L("Bag shortcuts and mail recipient contacts."),
             pages = { L("Bags and Mail") },
             buildPage = function(pageName, parent, yOffset)
                 local W=EUI.Widgets
@@ -286,11 +286,6 @@ local registered = EUI.RegisterPlugin(addonName, {
                     function()return ns.GetBagActionSettings().comprehendScrolls~=false end,
                     function(v)ns.GetBagActionSettings().comprehendScrolls=v;ns.RefreshBagActions()end,
                     L("Mages who know Comprehend Scroll can right-click a comprehension scroll to cast on it. Out of combat only; no modifier keys."));y=y-h
-                _,h=W:SectionHeader(parent,L("Offline Inventory"),y);y=y-h
-                _,h=W:Toggle(parent,L("Enable offline inventory"),y,
-                    ns.IsInventoryEnabled,
-                    function(value)ns.GetSettings().offlineInventoryEnabled=value;ns.RefreshInventoryFeature()end,
-                    L("Show the offline bank button and record bank contents. Disabling keeps saved snapshots."));y=y-h
                 _,h=W:SectionHeader(parent,L("Mail Contacts"),y);y=y-h
                 _,h=W:Toggle(parent,L("Show contacts button at the mailbox"),y,
                     function()return ns.GetSettings().mailContactsEnabled~=false end,
@@ -413,17 +408,13 @@ local registered = EUI.RegisterPlugin(addonName, {
         {
             key = "Merchant",
             title = L("Merchant Assistant"),
-            description = L("Enhance EUI Bulk Buy and customize the merchant layout."),
+            description = L("Buy individual items through EUI Bulk Buy."),
             pages = { L("Bulk Purchase") },
             buildPage = function(pageName, parent, yOffset)
                 local W = EUI.Widgets
                 local y = yOffset
                 local _, h
                 _, h = W:SectionHeader(parent, L("Bulk Purchase"), y); y = y - h
-                _, h = W:Toggle(parent,L("Four-column merchant layout"),y,
-                    function()return ns.GetEnhancements().merchantColumns~=false end,
-                    function(v)ns.GetEnhancements().merchantColumns=v;ns.RefreshMerchantLayout()end,
-                    L("Show 20 vendor items per page in four columns. Native purchase buttons and Shift-click bulk purchase are preserved."));y=y-h
                 _, h = W:Toggle(parent, L("Enhance EUI Bulk Buy"), y,
                     function() return ns.GetMerchantSettings().enabled ~= false end,
                     function(value)
@@ -473,8 +464,6 @@ local registered = EUI.RegisterPlugin(addonName, {
                     y = y - h
                 end
 
-                Toggle(L("Show owned item counts"), "ownedCounts",
-                    L("Show recorded bag and bank counts for your characters. Visit each bank to refresh its snapshot."))
                 Toggle(L("Show item title icons"), "itemTitleIcons",
                     L("Show an item icon to the left of its tooltip name."))
                 Toggle(L("Show equipment item level"), "itemLevel",
