@@ -8,3 +8,9 @@
 ## Local game testing
 
 - Use the live Forever client at `E:\bilzzard games\World of Warcraft\_forever_` for addon testing and local deployment. Install Bel Toolbox under `Interface\AddOns\BelToolbox` in that client. The former beta client is closed.
+
+## Check EllesmereUI before adding features
+
+- Before adding a user-facing feature, inspect the locally installed Forever version of EllesmereUI, including its options and the relevant module implementation, for matching or similar behavior.
+- When EUI already covers part or all of the request, tell the user before implementing it. Give the EUI setting or entry point, note what remains useful in Bel Toolbox, and prefer reusing EUI behavior where it meets the request.
+- If no match is found or the local EUI source is unavailable, say what was checked when reporting the change.
