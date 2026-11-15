@@ -1,3 +1,7 @@
+# Bel Toolbox 0.19.49-dev
+
+- Preview estimated disenchant materials, quantities, chances and auction prices in equipment tooltips, with an average value when all prices are available.
+
 # Bel Toolbox 0.19.48
 
 - Show the auction cost of each Waylaid Crate filling option, including in offline bank tooltips, and highlight the lowest known cost.
