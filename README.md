@@ -2,7 +2,7 @@
 
 贝尔工具箱 · Quality-of-life extensions for **EllesmereUI on WoW Forever**.
 
-Author: **Bel** · License: **MIT** · Current version: **0.19.39-dev**
+Author: **Bel** · License: **MIT** · Current version: **1.0.0**
 
 消耗品条：在 EUI → 贝尔工具箱 → 消耗品条开启（默认关闭）。鼠标移入展开，左键使用，展开项右键设为当前选项。支持食物、饮水、红药、蓝药、治疗石、法力宝石、绷带、合剂、药剂、抗性药水和武器附魔。武器附魔在脱战后可一键用于兼容的已装备武器或鱼竿。空类别保留灰色按钮以保持位置稳定。未知或增益食物需手动指定，已知普通食物与魔法制造食物可自动选择。战斗中不根据背包变化自动切换物品，脱战后更新。位置使用 EUI 解锁模式，按键使用 EUI 快速键位绑定模式（/kb），并在原窗口保存或取消。
 
@@ -13,8 +13,8 @@ Author: **Bel** · License: **MIT** · Current version: **0.19.39-dev**
 - **Consumables bar:** secure hover flyouts, per-character choices, item counts and cooldowns, EUI drag ordering, adaptive expansion, configurable size/spacing/wrapping, and Quick Keybind Mode (/kb). The Weapon Enhancements category applies temporary buffs and fishing lures to compatible equipped gear with one click out of combat. Off by default.
 
 - **Mage Bar:** teleport/portal flyouts, mana gems, conjure food and water, rank-specific casting and remembered spell selection. EUI drag ordering and visibility, automatic or manual expansion direction, 18–64 button sizes, 0–16 spacing and configurable buttons per row. Supports EUI Unlock Mode.
-- **Merchant assistant:** Shift-click bulk purchases, a four-column merchant layout and learned-recipe markers. When EUI Bulk Buy is enabled, reuse its window with individual quantities for ordinary gold items; otherwise use the toolbox window.
-- **Bags and mail:** offline inventory/bank snapshots, character-colored item counts, mail recipient shortcuts, favorites and recent contacts.
+- **Merchant assistant:** Shift-click EUI Bulk Buy to purchase ordinary gold items by the piece. Also marks learned recipes.
+- **Bags and mail:** bag shortcuts, mail recipient shortcuts, favorites and recent contacts.
 - **Bag shortcuts:** optional automatic weapon buff targeting and Mage comprehension-scroll shortcuts outside combat.
 - **Tooltips:** item/spell title icons, AFK/DND status beside player names, class/reaction/quality borders and configurable text colors.
 - **Profession helper:** estimated recipe-list profit and return percentage using installed Auctionator, TradeSkillMaster or CraftProfit price APIs; preserves skill-up arrows and supports difficulty-colored recipe names.
@@ -45,7 +45,7 @@ Settings are in **EUI → Bel Toolbox**, or enter `/bel` / `/beltoolbox`.
 
 船与飞艇倒计时默认关闭，位于 **界面增强 → 船与飞艇倒计时**。启用后会自动开启 EUI 的地图标记和交通图标，保留其他地图分类的原有设置。图标下白色表示等待抵达，金色表示等待出发；一个图标关联多条航线时显示最近一班，鼠标提示列出各航线及校准时间。无数据时显示 `?`。航行时站定一段时间可自动校准，校准记录按服务器保存。内置时刻表在服务器重启后可能偏移，乘船校准后更新。当前版本仅处理已有船／飞艇航线，不含电车、航线绘制、动态船只或玩家同步。
 
-商人助手开启时，若同时开启 EUI 的批量购买，将复用 EUI 窗口，普通金币商品可按实际件数输入（如面包输入 1 即请求购买 1 个），总价按每包价格折算。货币兑换、唯一物品保留 EUI 的购买流程；高价金币购买保留确认。未开启 EUI 批量购买时仍使用工具箱窗口。
+商人助手开启时会启用 EUI 批量购买，普通金币商品可按实际件数输入（如面包输入 1 即请求购买 1 个），总价按每包价格折算。货币兑换、唯一物品沿用 EUI 的购买流程，高价金币购买保留确认。
 
 ## Dependencies and compatibility
 
@@ -59,7 +59,7 @@ Settings are in **EUI → Bel Toolbox**, or enter `/bel` / `/beltoolbox`.
 ## Notes
 
 - Auto Weapon Buff is **off by default**. Modifier keys preserve normal bag behavior. Disable competing BuyEmAll/weapon-buff/scroll shortcuts when using their replacements.
-- Visit a character's bank to update its bank snapshot. Log in on each character to record its bags. Inventory data is a snapshot, with no automatic cross-account synchronization.
+- Use EUI's Offline Bank and Item Counts for cross-character inventory, and Expand Vendor UI for a four-column merchant grid. Open each character's bank to populate EUI's own snapshots.
 - Mail shortcuts fill the recipient only; they do not send mail automatically.
 - Profit is an estimate after the configured AH cut (default 5%). Basic-material costs are included; optional reagents, auction deposits and self-crafted intermediate chains are excluded. Missing prices show a dash.
 - Chinese and English strings are maintained in `Locales.lua`; other clients fall back to English.

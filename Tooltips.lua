@@ -139,6 +139,58 @@ local function AddPriceSources(tooltip, sources)
     end
 end
 
+local function AddDisenchantPreview(tooltip, data)
+    if tooltip:IsForbidden() or IsSecret(data) or not data or not IsPrimaryTooltip(tooltip, data)
+        or ns.GetSettings().disenchantPreview == false then return end
+    local id = data.id
+    if IsSecret(id) or type(id) ~= "number" then return end
+    local materials = ns.DisenchantData
+    if materials.excluded[id] or materials.customLoot[id] then return end
+    local _, _, _, equipLocation, _, classID = C_Item.GetItemInfoInstant(id)
+    if IsSecret(classID) or (classID ~= 2 and classID ~= 4)
+        or IsSecret(equipLocation) or not equipLocation or equipLocation == ""
+        or equipLocation == "INVTYPE_NON_EQUIP" then return end
+    local link = data.hyperlink
+    if IsSecret(link) then return end
+    local item = type(link) == "string" and link ~= "" and link or id
+    local _, _, quality, level = C_Item.GetItemInfo(item)
+    if IsSecret(quality) or type(quality) ~= "number" or quality < 2 then return end
+    local actual = data.overrideItemLevel
+    if not IsSecret(actual) and (type(actual) ~= "number" or actual <= 0) and C_Item.GetDetailedItemLevelInfo then
+        actual = C_Item.GetDetailedItemLevelInfo(item)
+    end
+    if not IsSecret(actual) and type(actual) == "number" and actual > 0 then level = actual end
+    if IsSecret(level) or type(level) ~= "number" then return end
+    local row = materials.Find(classID, quality, level)
+    if not row then return end
+
+    local L, sources = ns.L, {}
+    tooltip:AddLine(L("Disenchant preview (estimated)"), 1, .82, 0)
+    if row.unconfirmed then
+        tooltip:AddLine(L("Disenchant results for this item level are unconfirmed."), .65, .65, .65)
+        return
+    end
+    local total, complete = 0, true
+    for i = 3, #row do
+        local outcome = row[i]
+        local chance, low, high, materialID = outcome[1], outcome[2], outcome[3], outcome[4]
+        local name = C_Item.GetItemNameByID(materialID)
+        if IsSecret(name) or not name then
+            if C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(materialID) end
+            name = materials.names[materialID]
+        end
+        local price = ns.GetAuctionUnitPrice and ns.GetAuctionUnitPrice(materialID, sources)
+        if price then total = total + chance / 100 * (low + high) / 2 * price else complete = false end
+        local quantity = low == high and tostring(low) or (low .. "–" .. high)
+        tooltip:AddDoubleLine(L("%s × %s (%d%%)", quantity, name, chance),
+            price and L("%s each", CostText(price)) or L("No auction price"), 1, 1, 1, .8, .8, .8)
+    end
+    if complete then
+        tooltip:AddDoubleLine(L("Estimated disenchant value"), CostText(math.floor(total + .5)), 1, .82, 0, 1, 1, 1)
+    end
+    AddPriceSources(tooltip, sources)
+end
+
 local function AddCrateCosts(tooltip, data)
     if tooltip:IsForbidden() or IsSecret(data) or not data then return end
     local id = data.id
@@ -238,6 +290,9 @@ end
 
 if C_Item and C_Item.GetItemNameByID then
     TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, AddCrateCosts)
+    if ns.DisenchantData and C_Item.GetItemInfoInstant and C_Item.GetItemInfo then
+        TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, AddDisenchantPreview)
+    end
     TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tooltip, data) AddRecipeCosts(tooltip, data, false) end)
     TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, function(tooltip, data) AddRecipeCosts(tooltip, data, true) end)
 end

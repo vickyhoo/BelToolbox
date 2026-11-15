@@ -16,6 +16,23 @@ end
 local function Contacts()
     local db=ns.GetSettings();db.mailContacts=db.mailContacts or {};return db.mailContacts
 end
+local function Characters()
+    local db=ns.GetSettings()
+    if not db.mailCharacters then
+        db.mailCharacters={}
+        -- Preserve known alts from older versions without copying their inventory.
+        for key,record in pairs(db.inventory and db.inventory.characters or {})do
+            db.mailCharacters[key]={realm=record.realm,faction=record.faction,class=record.class}
+        end
+    end
+    return db.mailCharacters
+end
+local function RecordCharacter()
+    local name,realm=UnitFullName("player")
+    if not name then return end
+    realm=realm and realm~=""and realm or GetRealmName()
+    Characters()[name.."-"..realm]={realm=realm,faction=UnitFactionGroup("player"),class=select(2,UnitClass("player"))}
+end
 local function Realm()
     local normalized=GetNormalizedRealmName and GetNormalizedRealmName()
     if type(normalized)=="string" and normalized~="" then return normalized:gsub("%s","") end
@@ -31,7 +48,7 @@ local function NormalizeRecipient(text)
     if IsForever() then
         local first,suffix=text:match("^(.-)%s*%-+%s*(.-)$")
         if first then
-            local record=ns.GetInventoryStore().characters[text]
+            local record=Characters()[text]
             if record and record.realm==suffix and suffix~=Realm()then text=first.." "..suffix
             else text=first end
         end
@@ -63,11 +80,15 @@ local function IsFavorite(key)
     return false
 end
 local function ColorName(key)
-    local record=contactMeta[key] or ns.GetInventoryStore().characters[key]
+    local characters=Characters()
+    local record=contactMeta[key] or characters[key]
     if not record then
-        for raw,data in pairs(ns.GetInventoryStore().characters)do if NormalizeRecipient(raw)==key then record=data;break end end
+        for raw,data in pairs(characters)do if NormalizeRecipient(raw)==key then record=data;break end end
     end
-    local r,g,b=ns.GetCharacterColor(record)
+    local colors=CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS
+    local color=colors and record and record.class and colors[record.class]
+    local r,g,b=1,1,1
+    if color then r,g,b=color.r,color.g,color.b end
     return string.format("|cff%02x%02x%02x%s|r",math.floor(r*255+0.5),math.floor(g*255+0.5),math.floor(b*255+0.5),key)
 end
 local function Recent()
@@ -83,8 +104,8 @@ local function RememberSent(name)
 end
 local function Lists()
     local result={alts={},favorites={},recent={}}
-    local player=UnitName("player");local myself=NormalizeRecipient(player)
-    for key,record in pairs(ns.GetInventoryStore().characters)do
+    local myself=PlayerKey()
+    for key,record in pairs(Characters())do
         local canonical=NormalizeRecipient(key)
         if canonical and canonical~=myself and record.faction==UnitFactionGroup("player")then
             result.alts[#result.alts+1]=canonical
@@ -323,6 +344,7 @@ SlashCmdList.BELCONTACTS=function()ns.OpenContacts()end
 local events=CreateFrame("Frame")
 for _,event in ipairs({"MAIL_SHOW","ADDON_LOADED","MAIL_SEND_SUCCESS","MAIL_FAILED","GROUP_ROSTER_UPDATE","PLAYER_ENTERING_WORLD"})do events:RegisterEvent(event)end
 events:SetScript("OnEvent",function(_,event)
+    if event=="PLAYER_ENTERING_WORLD"then RecordCharacter()end
     if event=="GROUP_ROSTER_UPDATE"or event=="PLAYER_ENTERING_WORLD"then
         RecordGroup()
         C_Timer.After(0.5,RecordGroup);C_Timer.After(2,RecordGroup)
