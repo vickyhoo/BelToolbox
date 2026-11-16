@@ -1,3 +1,7 @@
+# Bel Toolbox 1.0.1-dev
+
+- Detect newly learned active spells from spellbook changes as well as explicit learn events, so first-time spells can appear alongside rank upgrades.
+
 # Bel Toolbox 1.0.0
 
 - Preview estimated disenchant materials, quantities, chances and auction prices in equipment tooltips, with an average value when all prices are available.
