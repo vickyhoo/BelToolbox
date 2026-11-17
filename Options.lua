@@ -101,7 +101,7 @@ local registered = EUI.RegisterPlugin(addonName, {
                 _,h=W:Toggle(parent,L("Profession cooldown reminders"),y,
                     function()return ns.GetSettings().craftingCooldownAlerts==true end,
                     ns.SetProfessionCooldownAlerts,
-                    L("Report ready Mooncloth, transmutation and Salt Shaker cooldowns at login and when they finish while online."));y=y-h
+                    L("Show ready and remaining profession cooldowns in chat at login, and notify once when each cooldown finishes online."));y=y-h
                 return math.abs(y)+12
             end,
         },

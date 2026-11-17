@@ -63,11 +63,22 @@ end
 local function Enabled()
     return ns.GetSettings().craftingCooldownAlerts == true
 end
+local function FormatRemaining(seconds)
+    if seconds < 60 then return L("%ds", seconds) end
+    local minutes = math.ceil(seconds / 60)
+    local days = math.floor(minutes / 1440)
+    local hours = math.floor(minutes / 60) % 24
+    local parts = {}
+    if days > 0 then parts[#parts + 1] = L("%dd", days) end
+    if hours > 0 then parts[#parts + 1] = L("%dh", hours) end
+    if minutes % 60 > 0 then parts[#parts + 1] = L("%dm", minutes % 60) end
+    return table.concat(parts, " ")
+end
 local function ReportReady(login)
     if timer then timer:Cancel(); timer = nil end
     if not Enabled() then return end
     local now, nearest = GetServerTime(), nil
-    local ready = {}
+    local ready, cooling = {}, {}
     for _, character in pairs(Store()) do
         local name = character.name
         if character.realm ~= GetRealmName() then name = name .. "-" .. character.realm end
@@ -76,14 +87,28 @@ local function ReportReady(login)
             if record and record.expires <= now then
                 if login or not record.notified then ready[#ready + 1] = L("%s (%s)", L(group.label), name) end
                 record.notified = true
-            elseif record and (not nearest or record.expires < nearest) then
-                nearest = record.expires
+            elseif record then
+                if not nearest or record.expires < nearest then nearest = record.expires end
+                if login then
+                    cooling[#cooling + 1] = { expires = record.expires, label = L("%s (%s)", L(group.label), name) }
+                end
             end
         end
     end
     if #ready > 0 then
         table.sort(ready)
         print("|cff4accff" .. L("Bel Toolbox") .. "|r " .. L("Profession cooldowns ready: %s", table.concat(ready, ", ")))
+    end
+    if #cooling > 0 then
+        table.sort(cooling, function(a, b)
+            if a.expires == b.expires then return a.label < b.label end
+            return a.expires < b.expires
+        end)
+        local entries = {}
+        for _, entry in ipairs(cooling) do
+            entries[#entries + 1] = L("%s: %s remaining", entry.label, FormatRemaining(entry.expires - now))
+        end
+        print("|cff4accff" .. L("Bel Toolbox") .. "|r " .. L("Profession cooldowns: %s", table.concat(entries, ", ")))
     end
     if nearest then
         timer = C_Timer.NewTimer(math.max(1, nearest - now), function()
