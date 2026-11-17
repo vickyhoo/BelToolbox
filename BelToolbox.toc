@@ -14,6 +14,7 @@
 
 Locales.lua
 Data\WaylaidCrates.lua
+Data\CraftingRecipes.lua
 Data\Disenchant.lua
 Tooltips.lua
 TooltipColors.lua
