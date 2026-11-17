@@ -1,5 +1,6 @@
 # Bel Toolbox 1.0.1-dev
 
+- Show crafting material estimates alongside disenchant previews for matched crafted items, including Frostweave Robe.
 - Detect newly learned active spells from spellbook changes as well as explicit learn events, so first-time spells can appear alongside rank upgrades.
 
 # Bel Toolbox 1.0.0

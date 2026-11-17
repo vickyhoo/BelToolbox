@@ -220,12 +220,16 @@ local function AddCrateCosts(tooltip, data)
 end
 
 local itemRecipes = {
+    [13868] = 18404, -- Frostweave Robe
+    [14467] = 18404, -- Pattern: Frostweave Robe
+    [14152] = 18457, -- Robe of the Archmage
     [14513] = 18457, -- Pattern: Robe of the Archmage
     [249481] = 1248805, -- Formula: Enchant Weapon - Revelation
     [273629] = 1248805, -- Enchant Weapon - Revelation
 }
 -- These recipes can appear in item links before their profession is open.
 local recipeFallbacks = {
+    [18404] = {{14048, 5}, {7079, 2}, {14341, 1}},
     [18457] = {{14048, 12}, {7078, 8}, {7082, 8}, {7076, 8}, {7080, 8}, {14341, 2}, {249431, 10}},
     [1248805] = {{11083, 8}, {11084, 6}, {11082, 2}, {249409, 4}, {249410, 4}},
 }
@@ -248,7 +252,7 @@ local function AddRecipeCosts(tooltip, data, isSpell)
         or ns.GetSettings().recipeCosts == false or not IsPrimaryTooltip(tooltip, data) then return end
     local id = data.id
     if IsSecret(id) then return end
-    local recipeID, recipeLevel
+    local recipeID, recipeLevel, cachedSlots
     if isSpell then
         recipeID = id
     else
@@ -259,11 +263,14 @@ local function AddRecipeCosts(tooltip, data, isSpell)
             if not IsSecret(args) and args then recipeID, recipeLevel = args[1], args[4] end
         else
             recipeID = GetItemRecipeID(id)
+            if not recipeID and type(id) == "number" and ns.GetCraftedItemRecipe then
+                recipeID, cachedSlots = ns.GetCraftedItemRecipe(id)
+            end
         end
     end
     if IsSecret(recipeID) or type(recipeID) ~= "number" or IsSecret(recipeLevel) then return end
 
-    local slots = ns.GetRecipeMaterialSlots and ns.GetRecipeMaterialSlots(recipeID, recipeLevel)
+    local slots = (ns.GetRecipeMaterialSlots and ns.GetRecipeMaterialSlots(recipeID, recipeLevel)) or cachedSlots
     local fallback = recipeFallbacks[recipeID]
     if not slots and fallback then
         slots = {}
