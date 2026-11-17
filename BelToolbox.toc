@@ -42,5 +42,6 @@ Data\TransportRoutes.lua
 TransportTimers.lua
 KnownRecipes.lua
 ProfessionProfit.lua
+ProfessionCooldowns.lua
 RaidToolsExtension.lua
 Options.lua

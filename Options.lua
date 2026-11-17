@@ -98,6 +98,10 @@ local registered = EUI.RegisterPlugin(addonName, {
                     function()return ns.GetProfessionProfitSettings().difficulty~=false end,
                     function(v)ns.GetProfessionProfitSettings().difficulty=v;ns.RefreshProfessionProfit()end,
                     L("Color learned recipe names orange, yellow, green or gray. Native skill-up arrows remain unchanged."));y=y-h
+                _,h=W:Toggle(parent,L("Profession cooldown reminders"),y,
+                    function()return ns.GetSettings().craftingCooldownAlerts==true end,
+                    ns.SetProfessionCooldownAlerts,
+                    L("Report ready Mooncloth, transmutation and Salt Shaker cooldowns at login and when they finish while online."));y=y-h
                 return math.abs(y)+12
             end,
         },
