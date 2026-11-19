@@ -3,6 +3,9 @@
 local _, ns = ...
 local translations = {
     enUS = {
+        ["Resource Bars"] = "Resource Bars",
+        ["Resource health bar heal prediction"] = "Resource health bar heal prediction",
+        ["Show incoming heals after current health on EUI's resource health bar. Requires the EUI Resource Bars module and its health bar. Excess healing is clipped at maximum health."] = "Show incoming heals after current health on EUI's resource health bar. Requires the EUI Resource Bars module and its health bar. Excess healing is clipped at maximum health.",
         ["Newly learned spells"] = "Newly learned spells",
         ["Spell learning"] = "Spell learning",
         ["Show newly learned active spells and ranks in a draggable panel."] = "Show newly learned active spells and ranks in a draggable panel.",
@@ -407,6 +410,9 @@ local translations = {
         ["Show DND text in the client language."] = "Show DND text in the client language.",
     },
     zhCN = {
+        ["Resource Bars"] = "资源条",
+        ["Resource health bar heal prediction"] = "生命条预估治疗",
+        ["Show incoming heals after current health on EUI's resource health bar. Requires the EUI Resource Bars module and its health bar. Excess healing is clipped at maximum health."] = "在 EUI 资源条的当前生命值后显示即将获得的治疗。需要启用 EUI 资源条模块及生命条，超出最大生命值的部分不显示。",
         ["%d choices available. Hover to select; buff consumables require a manual choice."] = "有 %d 种物品可选。移入展开选择；增益消耗品需要手动指定。",
         ["Elixirs"] = "药剂",
         ["Flasks"] = "合剂",

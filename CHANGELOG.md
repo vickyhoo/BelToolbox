@@ -1,3 +1,7 @@
+# Bel Toolbox 1.0.2-dev
+
+- Add optional incoming-heal prediction to EUI's resource health bar, following its size, orientation and visibility, with overhealing clipped at maximum health.
+
 # Bel Toolbox 1.0.1
 
 - Add optional profession cooldown reminders in chat, with ready and remaining cooldowns at login and a reminder when each cooldown finishes online.
