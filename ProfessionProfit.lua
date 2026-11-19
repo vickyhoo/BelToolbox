@@ -80,9 +80,7 @@ end
 function ns.GetMaterialUnitPrice(itemID, sources)
     return Lookup(itemID,"reagent",sources)
 end
-function ns.GetRecipeMaterialSlots(recipeID, recipeLevel)
-    local api=C_TradeSkillUI
-    local schematic=api and Call(api.GetRecipeSchematic,recipeID,false,recipeLevel)
+local function MaterialSlots(schematic)
     if (issecretvalue and issecretvalue(schematic)) or type(schematic)~="table" then return end
     local slots={}
     local basic=(Enum.CraftingReagentType and Enum.CraftingReagentType.Basic) or 0
@@ -100,6 +98,50 @@ function ns.GetRecipeMaterialSlots(recipeID, recipeLevel)
         end
     end
     if #slots>0 then return slots end
+end
+function ns.GetRecipeMaterialSlots(recipeID, recipeLevel)
+    local api=C_TradeSkillUI
+    return MaterialSlots(api and Call(api.GetRecipeSchematic,recipeID,false,recipeLevel))
+end
+local recipeIndex
+local function CraftedItems()
+    if recipeIndex then return recipeIndex end
+    local db=ns.GetSettings()
+    local build=GetBuildInfo and select(2,GetBuildInfo()) or ""
+    if not db.craftedItems or db.craftedItems.build~=build then db.craftedItems={build=build,items={}} end
+    recipeIndex=db.craftedItems.items
+    return recipeIndex
+end
+function ns.GetCraftedItemRecipe(itemID)
+    local entry=CraftedItems()[itemID]
+    if entry and not entry.ambiguous then return entry.id,entry.slots end
+end
+local function IndexCraftedItems()
+    if ns.GetSettings().recipeCosts==false then return end
+    local api=C_TradeSkillUI
+    local getIDs=api and (api.GetAllRecipeIDs or api.GetFilteredRecipeIDs)
+    local ids=Call(getIDs)
+    if (issecretvalue and issecretvalue(ids)) or type(ids)~="table" then return end
+    local items=CraftedItems()
+    for _,recipeID in ipairs(ids) do
+        if Number(recipeID) and recipeID>0 then
+            local schematic=Call(api.GetRecipeSchematic,recipeID,false)
+            local slots=MaterialSlots(schematic)
+            local output=slots and schematic.outputItemID
+            if slots and (not Number(output) or output<=0) then
+                local link=Call(api.GetRecipeItemLink,recipeID)
+                if not (issecretvalue and issecretvalue(link)) and type(link)=="string" then
+                    output=tonumber(link:match("item:(%d+)"))
+                end
+            end
+            if slots and Number(output) and output>0 then
+                local previous=items[output]
+                if not previous then items[output]={id=recipeID,slots=slots}
+                elseif previous.id==recipeID then previous.slots=slots
+                else previous.ambiguous=true end
+            end
+        end
+    end
 end
 local function Missing(reason) return {reason=reason} end
 local function VendorUnitPrice(itemID)
@@ -378,6 +420,7 @@ local function Attach()
     ns.RefreshProfessionProfit()
 end
 local events=CreateFrame("Frame")
+local indexPending
 for _,event in ipairs({"PLAYER_LOGIN","ADDON_LOADED","TRADE_SKILL_SHOW","TRADE_SKILL_LIST_UPDATE","TRADE_SKILL_DATA_SOURCE_CHANGED","SKILL_LINES_CHANGED","AUCTION_HOUSE_CLOSED","GET_ITEM_INFO_RECEIVED"})do events:RegisterEvent(event)end
 events:SetScript("OnEvent",function(_,event,addon,success)
     if event=="ADDON_LOADED"and addon~="Blizzard_Professions"and addon~="Auctionator"and addon~="TradeSkillMaster"and addon~="CraftProfit"then return end
@@ -387,6 +430,10 @@ events:SetScript("OnEvent",function(_,event,addon,success)
         if not success then return end
     end
     Debug(event)
+    if (event=="TRADE_SKILL_SHOW" or event=="TRADE_SKILL_DATA_SOURCE_CHANGED" or event=="TRADE_SKILL_LIST_UPDATE") and not indexPending then
+        indexPending=true
+        C_Timer.After(.25,function()indexPending=nil;IndexCraftedItems()end)
+    end
     if pending then return end
     pending=true
     C_Timer.After(.1,function()pending=nil;Attach();ns.RefreshProfessionProfit()end)

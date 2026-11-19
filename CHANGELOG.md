@@ -1,3 +1,9 @@
+# Bel Toolbox 1.0.1
+
+- Add optional profession cooldown reminders in chat, with ready and remaining cooldowns at login and a reminder when each cooldown finishes online.
+- Use a bundled Forever recipe catalog to show material costs for crafted items and patterns without opening a profession window. Show separate estimates for alternative recipes and keep disenchant previews visible.
+- Detect newly learned active spells from spellbook changes as well as explicit learn events, so first-time spells can appear alongside rank upgrades.
+
 # Bel Toolbox 1.0.0
 
 - Preview estimated disenchant materials, quantities, chances and auction prices in equipment tooltips, with an average value when all prices are available.

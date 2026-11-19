@@ -219,20 +219,8 @@ local function AddCrateCosts(tooltip, data)
     AddPriceSources(tooltip, sources)
 end
 
-local itemRecipes = {
-    [14513] = 18457, -- Pattern: Robe of the Archmage
-    [249481] = 1248805, -- Formula: Enchant Weapon - Revelation
-    [273629] = 1248805, -- Enchant Weapon - Revelation
-}
--- These recipes can appear in item links before their profession is open.
-local recipeFallbacks = {
-    [18457] = {{14048, 12}, {7078, 8}, {7082, 8}, {7076, 8}, {7080, 8}, {14341, 2}, {249431, 10}},
-    [1248805] = {{11083, 8}, {11084, 6}, {11082, 2}, {249409, 4}, {249410, 4}},
-}
-
 local function GetItemRecipeID(id)
     if type(id) ~= "number" then return end
-    if itemRecipes[id] then return itemRecipes[id] end
     local getInfo = C_Item.GetItemInfoInstant
     local getSpell = C_Item.GetItemSpell
     if not getInfo or not getSpell then return end
@@ -243,37 +231,28 @@ local function GetItemRecipeID(id)
     return spellID
 end
 
-local function AddRecipeCosts(tooltip, data, isSpell)
-    if tooltip:IsForbidden() or IsSecret(data) or not data or not ns.GetMaterialUnitPrice
-        or ns.GetSettings().recipeCosts == false or not IsPrimaryTooltip(tooltip, data) then return end
-    local id = data.id
-    if IsSecret(id) then return end
-    local recipeID, recipeLevel
-    if isSpell then
-        recipeID = id
-    else
-        local info = tooltip.GetPrimaryTooltipInfo and tooltip:GetPrimaryTooltipInfo()
-        if IsSecret(info) then return end
-        if info and not IsSecret(info.getterName) and info.getterName == "GetRecipeResultItem" then
-            local args = info.getterArgs
-            if not IsSecret(args) and args then recipeID, recipeLevel = args[1], args[4] end
-        else
-            recipeID = GetItemRecipeID(id)
-        end
-    end
+local function AddRecipeCostSection(tooltip, recipeID, recipeLevel, cachedSlots, showRecipeName)
     if IsSecret(recipeID) or type(recipeID) ~= "number" or IsSecret(recipeLevel) then return end
 
-    local slots = ns.GetRecipeMaterialSlots and ns.GetRecipeMaterialSlots(recipeID, recipeLevel)
-    local fallback = recipeFallbacks[recipeID]
+    local slots = (ns.GetRecipeMaterialSlots and ns.GetRecipeMaterialSlots(recipeID, recipeLevel)) or cachedSlots
+    local fallback = ns.CraftingMaterialsByRecipe and ns.CraftingMaterialsByRecipe[recipeID]
     if not slots and fallback then
         slots = {}
-        for _, pair in ipairs(fallback) do slots[#slots + 1] = {quantity = pair[2], ids = {pair[1]}} end
+        for i = 1, #fallback, 2 do
+            slots[#slots + 1] = {quantity = fallback[i + 1], ids = {fallback[i]}}
+        end
     end
     if not slots then return end
 
     local L, sources = ns.L, {}
     local sum, complete = 0, true
-    tooltip:AddLine(L("Recipe material costs"), 1, .82, 0)
+    local title = L("Recipe material costs")
+    if showRecipeName then
+        local name = C_Spell and C_Spell.GetSpellName and C_Spell.GetSpellName(recipeID)
+        if IsSecret(name) or not name then name = "#" .. recipeID end
+        title = title .. " (" .. name .. ")"
+    end
+    tooltip:AddLine(title, 1, .82, 0)
     for _, slot in ipairs(slots) do
         local cheapest
         for _, material in ipairs(slot.ids) do
@@ -286,6 +265,36 @@ local function AddRecipeCosts(tooltip, data, isSpell)
     end
     tooltip:AddDoubleLine(L("Estimated material total"), complete and CostText(sum) or L("Missing reagent prices"), 1, .82, 0, 1, 1, 1)
     AddPriceSources(tooltip, sources)
+end
+
+local function AddRecipeCosts(tooltip, data, isSpell)
+    if tooltip:IsForbidden() or IsSecret(data) or not data or not ns.GetMaterialUnitPrice
+        or ns.GetSettings().recipeCosts == false or not IsPrimaryTooltip(tooltip, data) then return end
+    local id = data.id
+    if IsSecret(id) then return end
+    if isSpell then AddRecipeCostSection(tooltip, id); return end
+
+    local info = tooltip.GetPrimaryTooltipInfo and tooltip:GetPrimaryTooltipInfo()
+    if IsSecret(info) then return end
+    if info and not IsSecret(info.getterName) and info.getterName == "GetRecipeResultItem" then
+        local args = info.getterArgs
+        if not IsSecret(args) and args then AddRecipeCostSection(tooltip, args[1], args[4]) end
+        return
+    end
+    if type(id) ~= "number" then return end
+
+    local recipes = ns.CraftingRecipesByItem and ns.CraftingRecipesByItem[id]
+    local cachedID, cachedSlots
+    if ns.GetCraftedItemRecipe then cachedID, cachedSlots = ns.GetCraftedItemRecipe(id) end
+    if recipes then
+        local showRecipeName = #recipes > 1
+        for _, recipeID in ipairs(recipes) do
+            AddRecipeCostSection(tooltip, recipeID, nil, recipeID == cachedID and cachedSlots or nil, showRecipeName)
+        end
+    else
+        local recipeID = GetItemRecipeID(id) or cachedID
+        AddRecipeCostSection(tooltip, recipeID, nil, recipeID == cachedID and cachedSlots or nil)
+    end
 end
 
 if C_Item and C_Item.GetItemNameByID then

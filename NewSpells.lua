@@ -4,6 +4,8 @@ local events=CreateFrame("Frame")
 local panel,buttons,page
 local spells,listed,pending={},{},{}
 local queued,drag
+local knownSpells
+local checkSpellbook
 local generation=0
 local PAGE_SIZE=8
 local MAX_ACTION_SLOTS=180
@@ -157,12 +159,46 @@ local function AddSpell(id)
     if not slot then return nil end
     if listed[id]or C_SpellBook.IsSpellBookItemPassive(slot,bank)
         or C_SpellBook.GetSpellBookItemType(slot,bank)~=Enum.SpellBookItemType.Spell then return false end
+    if knownSpells then knownSpells[id]=true end
     spells[#spells+1]=id;listed[id]=true
     return true
+end
+local function ReadSpellbook()
+    local book=C_SpellBook
+    if not book or not book.GetNumSpellBookSkillLines or not book.GetSpellBookSkillLineInfo
+        or not book.GetSpellBookItemInfo then return end
+    local bank=Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Player or 0
+    local active={}
+    for index=1,book.GetNumSpellBookSkillLines()or 0 do
+        local line=book.GetSpellBookSkillLineInfo(index)
+        if line and not line.offSpecID then
+            for slot=line.itemIndexOffset+1,line.itemIndexOffset+line.numSpellBookItems do
+                local info=book.GetSpellBookItemInfo(slot,bank)
+                if info and info.itemType==Enum.SpellBookItemType.Spell and not info.isPassive
+                    and Plain(info.spellID)and type(info.spellID)=="number"and info.spellID>0 then
+                    active[info.spellID]=true
+                end
+            end
+        end
+    end
+    if next(active)then return active end
 end
 local function Flush()
     queued=nil
     if not Enabled()or InCombatLockdown()then return end
+    if checkSpellbook then
+        checkSpellbook=nil
+        local current=ReadSpellbook()
+        if current then
+            if knownSpells then
+                local learned={}
+                for id in pairs(current)do if not knownSpells[id]then learned[#learned+1]=id end end
+                table.sort(learned)
+                for _,id in ipairs(learned)do pending[#pending+1]=id end
+            end
+            knownSpells=current
+        end
+    end
     local added,retry
     for _,id in ipairs(pending)do
         local result=AddSpell(id)
@@ -182,12 +218,22 @@ local function Flush()
         end)
     end
 end
+local function QueueFlush()
+    if queued or InCombatLockdown()then return end
+    queued=true
+    local current=generation
+    C_Timer.After(.15,function()if current==generation then Flush()end end)
+end
 function ns.RefreshNewSpells()
-    if Enabled()then events:RegisterEvent("LEARNED_SPELL_IN_SKILL_LINE")
+    if Enabled()then
+        knownSpells=knownSpells or ReadSpellbook()
+        events:RegisterEvent("LEARNED_SPELL_IN_SKILL_LINE")
+        events:RegisterEvent("SPELLS_CHANGED")
     else
-        generation=generation+1;queued=nil
+        generation=generation+1;queued=nil;knownSpells=nil;checkSpellbook=nil
         StopDrag()
         events:UnregisterEvent("LEARNED_SPELL_IN_SKILL_LINE")
+        events:UnregisterEvent("SPELLS_CHANGED")
         spells,listed,pending={},{},{};page=nil
         if panel then panel:Hide()end
     end
@@ -195,7 +241,9 @@ end
 events:RegisterEvent("PLAYER_LOGIN");events:RegisterEvent("PLAYER_REGEN_ENABLED")
 events:SetScript("OnEvent",function(_,event,id,_,guildPerk)
     if event=="PLAYER_LOGIN"then ns.RefreshNewSpells()
-    elseif event=="PLAYER_REGEN_ENABLED"then if #pending>0 then Flush()end
+    elseif event=="PLAYER_REGEN_ENABLED"then if #pending>0 or checkSpellbook then Flush()end
+    elseif event=="SPELLS_CHANGED"then
+        checkSpellbook=true;QueueFlush()
     elseif event=="ACTIONBAR_SLOT_CHANGED"then
         if not drag or not Plain(id)or type(id)~="number"or id<=0 then return end
         local kind,spell=GetActionInfo(id)
@@ -203,13 +251,9 @@ events:SetScript("OnEvent",function(_,event,id,_,guildPerk)
             RemoveSpell(drag.spell);StopDrag()
             Show()
         end
-    elseif Plain(id)and type(id)=="number"and id>0 and Plain(guildPerk)and not guildPerk then
+    elseif event=="LEARNED_SPELL_IN_SKILL_LINE"and Plain(id)and type(id)=="number"and id>0 and Plain(guildPerk)and not guildPerk then
         pending[#pending+1]=id
-        if not queued and not InCombatLockdown()then
-            queued=true
-            local current=generation
-            C_Timer.After(.15,function()if current==generation then Flush()end end)
-        end
+        QueueFlush()
     end
 end)
 SLASH_BELNEWSPELLS1="/belnewspells"

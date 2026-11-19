@@ -98,6 +98,10 @@ local registered = EUI.RegisterPlugin(addonName, {
                     function()return ns.GetProfessionProfitSettings().difficulty~=false end,
                     function(v)ns.GetProfessionProfitSettings().difficulty=v;ns.RefreshProfessionProfit()end,
                     L("Color learned recipe names orange, yellow, green or gray. Native skill-up arrows remain unchanged."));y=y-h
+                _,h=W:Toggle(parent,L("Profession cooldown reminders"),y,
+                    function()return ns.GetSettings().craftingCooldownAlerts==true end,
+                    ns.SetProfessionCooldownAlerts,
+                    L("Show ready and remaining profession cooldowns in chat at login, and notify once when each cooldown finishes online."));y=y-h
                 return math.abs(y)+12
             end,
         },
