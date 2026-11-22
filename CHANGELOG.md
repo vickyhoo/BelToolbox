@@ -1,3 +1,8 @@
+# Bel Toolbox 1.0.2
+
+- Reject invalid profession cooldown readings and remove stale multi-week records; avoid repeated login summaries when reminders are reapplied, and ignore transient recipe cooldowns while switching professions.
+- Add optional incoming-heal prediction to EUI's resource health bar, following its size, orientation and visibility, with overhealing clipped at maximum health.
+
 # Bel Toolbox 1.0.1
 
 - Add optional profession cooldown reminders in chat, with ready and remaining cooldowns at login and a reminder when each cooldown finishes online.

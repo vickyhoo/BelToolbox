@@ -12,17 +12,28 @@ for _, group in ipairs(groups) do
 end
 local timer, scanTimer, loginPending
 local confirmed = {}
+local summaryShown, subscribed
+-- All tracked classic cooldowns fit within a week. Do not persist corrupt
+-- readings (including a mismatched client clock) as multi-week cooldowns.
+local MAX_REMAINING = 7 * 86400
 
 local function Readable(value)
     return not (issecretvalue and issecretvalue(value))
 end
 local function Number(value)
-    return Readable(value) and type(value) == "number"
+    return Readable(value) and type(value) == "number" and value == value
+        and value > -math.huge and value < math.huge
+end
+local function ValidRemaining(value)
+    return Number(value) and value >= 0 and value <= MAX_REMAINING
 end
 local function Remaining(start, duration, enabled)
     if not Number(start) or not Number(duration) or not Readable(enabled) or enabled == false or enabled == 0 then return end
     if duration < 60 then return 0 end -- Ignore the global cooldown.
-    return math.max(0, start + duration - GetTime())
+    if duration > MAX_REMAINING then return end
+    local remaining = math.max(0, start + duration - GetTime())
+    if remaining > duration + 2 or not ValidRemaining(remaining) then return end
+    return remaining
 end
 local function SpellRemaining(id)
     local recipeAPI = C_TradeSkillUI
@@ -35,10 +46,17 @@ local function SpellRemaining(id)
     end
     if not known then return end
 
-    local recipeTime = recipeAPI and recipeAPI.GetRecipeCooldown and recipeAPI.GetRecipeCooldown(id)
+    local recipeTime
+    -- Recipe data is scoped to the open profession and can be transient while
+    -- switching between two professions. Spell/item cooldowns remain usable.
+    if recipeAPI and recipeAPI.GetRecipeCooldown
+        and not (recipeAPI.IsDataSourceChanging and recipeAPI.IsDataSourceChanging())
+        and not (recipeAPI.IsTradeSkillReady and not recipeAPI.IsTradeSkillReady()) then
+        recipeTime = recipeAPI.GetRecipeCooldown(id)
+    end
     local cd = C_Spell and C_Spell.GetSpellCooldown and C_Spell.GetSpellCooldown(id)
     local spellTime = Readable(cd) and cd and Remaining(cd.startTime, cd.duration, cd.isEnabled)
-    if not Number(recipeTime) then return spellTime or nil end
+    if not ValidRemaining(recipeTime) then return spellTime or nil end
     return math.max(0, recipeTime, spellTime or 0)
 end
 local function GroupRemaining(group)
@@ -84,6 +102,10 @@ local function ReportReady(login)
         if character.realm ~= GetRealmName() then name = name .. "-" .. character.realm end
         for _, group in ipairs(groups) do
             local record = character.cooldowns[group.key]
+            if record and (not Number(record.expires) or record.expires > now + MAX_REMAINING) then
+                character.cooldowns[group.key] = nil
+                record = nil
+            end
             if record and record.expires <= now then
                 if login or not record.notified then ready[#ready + 1] = L("%s (%s)", L(group.label), name) end
                 record.notified = true
@@ -111,7 +133,7 @@ local function ReportReady(login)
         print("|cff4accff" .. L("Bel Toolbox") .. "|r " .. L("Profession cooldowns: %s", table.concat(entries, ", ")))
     end
     if nearest then
-        timer = C_Timer.NewTimer(math.max(1, nearest - now), function()
+        timer = C_Timer.NewTimer(math.min(3600, math.max(1, nearest - now)), function()
             timer = nil
             ReportReady(false)
         end)
@@ -127,6 +149,10 @@ local function ReadCharacter()
         local remaining = GroupRemaining(group)
         local character = characters[key]
         local old = character and character.cooldowns[group.key]
+        if old and (not Number(old.expires) or old.expires > now + MAX_REMAINING) then
+            character.cooldowns[group.key] = nil
+            old = nil
+        end
         if remaining and (remaining > 0 or not old or old.expires <= now) then
             if not character then
                 character = { name = name, realm = realm, cooldowns = {} }
@@ -148,7 +174,9 @@ local function Scan()
     scanTimer = nil
     if not Enabled() or InCombatLockdown() then return end
     ReadCharacter()
-    ReportReady(loginPending)
+    local summary = loginPending and not summaryShown
+    if summary then summaryShown = true end
+    ReportReady(summary)
     loginPending = nil
 end
 local function QueueScan(delay)
@@ -160,12 +188,15 @@ local events = CreateFrame("Frame")
 local scanEvents = {"UNIT_SPELLCAST_SUCCEEDED", "TRADE_SKILL_SHOW", "TRADE_SKILL_LIST_UPDATE",
     "PLAYER_REGEN_ENABLED", "BAG_UPDATE_COOLDOWN", "BAG_UPDATE_DELAYED", "SPELLS_CHANGED"}
 function ns.SetProfessionCooldownAlerts(enabled)
+    enabled = enabled == true
     ns.GetSettings().craftingCooldownAlerts = enabled
+    if subscribed == enabled then return end
+    subscribed = enabled
     for _, event in ipairs(scanEvents) do
         if enabled then events:RegisterEvent(event) else events:UnregisterEvent(event) end
     end
     if enabled then
-        loginPending = true
+        loginPending = not summaryShown
         QueueScan(2)
     else
         if scanTimer then scanTimer:Cancel(); scanTimer = nil end

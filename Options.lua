@@ -246,6 +246,10 @@ local registered = EUI.RegisterPlugin(addonName, {
                 Toggle("Animated resting indicator",function()return ns.GetEnhancements().animatedRestIndicator~=false end,
                     function(v)ns.GetEnhancements().animatedRestIndicator=v;ns.RefreshRestIndicator()end,
                     "Replace the player-frame ZZZ text with the clock's animated resting icon. Visibility and position follow EUI's Rested Indicator settings.")
+                Header("Resource Bars")
+                Toggle("Resource health bar heal prediction",function()return ns.GetEnhancements().resourceHealPrediction==true end,
+                    function(v)ns.GetEnhancements().resourceHealPrediction=v;ns.RefreshResourceHealPrediction()end,
+                    "Show incoming heals after current health on EUI's resource health bar. Requires the EUI Resource Bars module and its health bar. Excess healing is clipped at maximum health.")
                 Header("Known Recipes")
                 Toggle("Color learned recipes",function()return ns.GetEnhancements().knownRecipes~=false end,
                     function(v)ns.GetEnhancements().knownRecipes=v;ns.RefreshKnownRecipes()end,
