@@ -254,9 +254,10 @@ local function Difficulty(info)
     if not info.learned or info.disabled then return end
     local t=C_TradeSkillUI
     if (t.IsTradeSkillGuild and t.IsTradeSkillGuild()) or (t.IsNPCCrafting and t.IsNPCCrafting()) or (t.IsRuneforging and t.IsRuneforging()) then return end
-    if info.canSkillUp==false then return TRIVIAL_DIFFICULTY_COLOR or GRAY_FONT_COLOR end
-    local e=Enum.TradeskillRelativeDifficulty
-    if not e then return end
+    -- At the skill cap canSkillUp is false even for difficult recipes. Use
+    -- the recipe's relative difficulty; missing data leaves native text alone.
+    local e=Enum and Enum.TradeskillRelativeDifficulty
+    if not e or not Number(info.relativeDifficulty) then return end
     if info.relativeDifficulty==e.Optimal then return DIFFICULT_DIFFICULTY_COLOR
     elseif info.relativeDifficulty==e.Medium then return FAIR_DIFFICULTY_COLOR
     elseif info.relativeDifficulty==e.Easy then return EASY_DIFFICULTY_COLOR
