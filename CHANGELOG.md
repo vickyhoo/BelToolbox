@@ -1,4 +1,4 @@
-# Bel Toolbox 1.0.3-dev
+# Bel Toolbox 1.0.3
 
 - Color profession recipes by their reported relative difficulty even at the skill cap; preserve native colors when difficulty data is unavailable.
 
