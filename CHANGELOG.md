@@ -1,5 +1,6 @@
 # Bel Toolbox 1.0.4-dev
 
+- Match GearInsight's trade receipt wording, item counts, compact money format and message-length summarization.
 - Add optional successful-trade receipt whispers with given items/gold and configurable received contents. Off by default; defer to GearInsight receipts when enabled.
 - Show conjured food and water item names and their client-reported required use levels in Mage Bar main and flyout spell tooltips.
 - Show spell cooldown swipes and countdowns on Mage Bar main buttons and flyout choices, including portals; refresh cooldowns during combat and when changing the selected spell.

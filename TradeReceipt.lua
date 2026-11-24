@@ -19,7 +19,11 @@ local function Money(value)
     local gold = math.floor(value / 10000)
     local silver = math.floor(value / 100) % 100
     local copper = value % 100
-    return ns.L("%dg %ds %dc", gold, silver, copper)
+    local parts={}
+    if gold>0 then parts[#parts+1]=ns.L("Receipt gold: %d",gold) end
+    if silver>0 then parts[#parts+1]=ns.L("Receipt silver: %d",silver) end
+    if copper>0 then parts[#parts+1]=ns.L("Receipt copper: %d",copper) end
+    return table.concat(parts,ns.L("Receipt money separator"))
 end
 local function ReadItems(info, link)
     local items = {}
@@ -50,30 +54,46 @@ end
 local function Side(items, coins, detail)
     local parts = {}
     if #items > 0 then
-        if detail == 0 then parts[#parts+1] = ns.L("%d item stacks",#items)
+        if detail == 0 then parts[#parts+1] = ns.L("%d item(s)",#items)
         else
+            local listed={}
             for index = 1, detail do
                 local item = items[index]
-                parts[#parts+1] = (item.link or ("["..item.name.."]")).." x"..item.count
+                listed[#listed+1] = (item.link or ("["..item.name.."]"))
+                    ..(item.count>1 and ("x"..item.count) or "")
             end
-            if detail < #items then parts[#parts+1] = ns.L("and %d more stacks",#items-detail) end
+            local text=table.concat(listed,ns.L("Receipt item separator"))
+            if #items>1 then text=text..ns.L(" (%d items)",#items) end
+            parts[#parts+1]=text
         end
     end
     if coins > 0 then parts[#parts+1] = Money(coins) end
-    return #parts > 0 and table.concat(parts, ", ") or ns.L("Nothing")
+    return #parts > 0 and table.concat(parts, ns.L("Receipt side separator")) or nil
 end
 local function Text(record)
-    local give, receive = #record.gave, #record.received
+    local give, receive = math.min(3,#record.gave), math.min(2,#record.received)
     while true do
-        local text = ns.L("Trade complete. Gave: %s.", Side(record.gave,record.paid,give))
-        if ns.GetEnhancements().tradeReceiptReceived ~= false then
-            text = text.." "..ns.L("Received: %s.", Side(record.received,record.earned,receive))
-        end
+        local given=Side(record.gave,record.paid,give)
+        local received=ns.GetEnhancements().tradeReceiptReceived~=false
+            and Side(record.received,record.earned,receive) or nil
+        if not given and not received then return end
+        local name=record.partner:match("^[^-]+") or record.partner
+        local text=ns.L("Trade with <%s> complete. ",name)
+        if given then text=text..ns.L("Gave ")..given end
+        if received then text=text..ns.L(given and "; got " or "Got ")..received end
+        text=text..ns.L("Receipt sentence end")
         -- Drop whole item links, never cut a hyperlink or a UTF-8 character.
         if #text <= 255 then return text end
-        if receive > 0 then receive = receive - 1
-        elseif give > 0 then give = give - 1
-        else return end
+        if receive>1 then receive=receive-1
+        elseif give>1 then give=give-1
+        elseif receive>0 then receive=0
+        elseif give>0 then give=0
+        else
+            -- Only summaries remain; trim on a UTF-8 boundary as a last resort.
+            local limit=255
+            while limit>0 and text:byte(limit+1)>=128 and text:byte(limit+1)<192 do limit=limit-1 end
+            return text:sub(1,limit)
+        end
     end
 end
 local function Complete()
