@@ -73,6 +73,28 @@ local function UpdateCounts()
         group.main.count:SetText(group.data.rune and (count == nil and "?" or tostring(count)) or "")
     end
 end
+local function PaintCooldown(button)
+    local cooldown, id = button.cooldown, button.activeSpell
+    if not cooldown then return end
+    if not id then cooldown:Clear(); return end
+    -- Duration objects carry secret timing values directly into the widget,
+    -- matching EUI's action bars without doing cooldown arithmetic in Lua.
+    if C_Spell.GetSpellCooldownDuration and cooldown.SetCooldownFromDurationObject then
+        local duration = C_Spell.GetSpellCooldownDuration(id)
+        if duration then cooldown:SetCooldownFromDurationObject(duration)
+        else cooldown:Clear() end
+    else
+        local info = C_Spell.GetSpellCooldown and C_Spell.GetSpellCooldown(id)
+        if info then cooldown:SetCooldown(info.startTime, info.duration, info.modRate)
+        else cooldown:Clear() end
+    end
+end
+local function UpdateCooldowns()
+    for _, group in ipairs(groups) do
+        PaintCooldown(group.main)
+        for _, button in ipairs(group.buttons) do PaintCooldown(button) end
+    end
+end
 local function Style(button, icon)
     local background = button:CreateTexture(nil, "BACKGROUND")
     background:SetAllPoints(); background:SetColorTexture(0.12, 0.14, 0.17, 1)
@@ -83,6 +105,9 @@ local function Style(button, icon)
     button.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     button.count = button:CreateFontString(nil, "OVERLAY", "NumberFontNormalSmall")
     button.count:SetPoint("BOTTOMRIGHT", -2, 2)
+    button.cooldown = CreateFrame("Cooldown", nil, button, "CooldownFrameTemplate")
+    button.cooldown:SetAllPoints(button)
+    if button.cooldown.SetHideCountdownNumbers then button.cooldown:SetHideCountdownNumbers(false) end
 end
 local function MakeGroup(index, data)
     local main = CreateFrame("Button", "BelToolboxMage" .. data.key, root, "SecureActionButtonTemplate,SecureHandlerEnterLeaveTemplate")
@@ -154,6 +179,7 @@ local function MakeGroup(index, data)
         button:SetAttribute("shift-type2", "none")
         EnableDrag(button)
         Style(button, C_Spell.GetSpellTexture(id))
+        button.activeSpell=id
         button:SetAttribute("type", "spell"); button:SetAttribute("spell", SpellBinding(id))
         button:HookScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT"); GameTooltip:SetSpellByID(id)
@@ -173,6 +199,7 @@ local function MakeGroup(index, data)
             local db=Settings(); db.lastSpells=db.lastSpells or {}; db.lastSpells[data.key]=id
             main.activeSpell=id
             main.icon:SetTexture(C_Spell.GetSpellTexture(id))
+            PaintCooldown(main)
         end)
         group.buttons[i] = button
     end
@@ -338,6 +365,7 @@ function ns.RefreshMageBar(rescanSpells)
         group.main:Show()
     end
     UpdateCounts()
+    UpdateCooldowns()
     root:SetShown(db.enabled ~= false and visibleGroups>0)
     for _,group in ipairs(groups)do PositionGroup(group)end
     -- One deferred check per burst, not a polling loop. Only repair categories
@@ -401,9 +429,10 @@ RegisterMageUnlock=function()
     unlockRegistered=true
 end
 local events = CreateFrame("Frame")
-for _, event in ipairs({"PLAYER_LOGIN","SPELLS_CHANGED","PLAYER_REGEN_ENABLED","BAG_UPDATE_DELAYED","UNIT_SPELLCAST_SUCCEEDED"}) do events:RegisterEvent(event) end
+for _, event in ipairs({"PLAYER_LOGIN","SPELLS_CHANGED","PLAYER_REGEN_ENABLED","BAG_UPDATE_DELAYED","UNIT_SPELLCAST_SUCCEEDED","SPELL_UPDATE_COOLDOWN"}) do events:RegisterEvent(event) end
 events:SetScript("OnEvent",function(_,event,unit,castGUID,spellID)
-    if event=="UNIT_SPELLCAST_SUCCEEDED" then
+    if event=="SPELL_UPDATE_COOLDOWN" then UpdateCooldowns()
+    elseif event=="UNIT_SPELLCAST_SUCCEEDED" then
         if unit~="player" or (issecretvalue and issecretvalue(spellID)) then return end
         for _, data in ipairs(categories) do
             for _, id in ipairs(data.spells) do

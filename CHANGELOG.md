@@ -1,3 +1,7 @@
+# Bel Toolbox 1.0.4-dev
+
+- Show spell cooldown swipes and countdowns on Mage Bar main buttons and flyout choices, including portals; refresh cooldowns during combat and when changing the selected spell.
+
 # Bel Toolbox 1.0.3
 
 - Color profession recipes by their reported relative difficulty even at the skill cap; preserve native colors when difficulty data is unavailable.
