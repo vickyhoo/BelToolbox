@@ -1,5 +1,6 @@
 # Bel Toolbox 1.0.4-dev
 
+- Show conjured food and water item names and their client-reported required use levels in Mage Bar main and flyout spell tooltips.
 - Show spell cooldown swipes and countdowns on Mage Bar main buttons and flyout choices, including portals; refresh cooldowns during combat and when changing the selected spell.
 
 # Bel Toolbox 1.0.3

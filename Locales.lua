@@ -3,6 +3,9 @@
 local _, ns = ...
 local translations = {
     enUS = {
+        ["Created item: %s"] = "Created item: %s",
+        ["Created item requires level %d"] = "Created item requires level %d",
+        ["Created item use level: loading..."] = "Created item use level: loading...",
         ["Resource Bars"] = "Resource Bars",
         ["Resource health bar heal prediction"] = "Resource health bar heal prediction",
         ["Show incoming heals after current health on EUI's resource health bar. Requires the EUI Resource Bars module and its health bar. Excess healing is clipped at maximum health."] = "Show incoming heals after current health on EUI's resource health bar. Requires the EUI Resource Bars module and its health bar. Excess healing is clipped at maximum health.",
@@ -410,6 +413,9 @@ local translations = {
         ["Show DND text in the client language."] = "Show DND text in the client language.",
     },
     zhCN = {
+        ["Created item: %s"] = "制作物品：%s",
+        ["Created item requires level %d"] = "制作物品使用等级：%d",
+        ["Created item use level: loading..."] = "制作物品使用等级：加载中……",
         ["Resource Bars"] = "资源条",
         ["Resource health bar heal prediction"] = "生命条预估治疗",
         ["Show incoming heals after current health on EUI's resource health bar. Requires the EUI Resource Bars module and its health bar. Excess healing is clipped at maximum health."] = "在 EUI 资源条的当前生命值后显示即将获得的治疗。需要启用 EUI 资源条模块及生命条，超出最大生命值的部分不显示。",
