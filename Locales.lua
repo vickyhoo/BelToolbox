@@ -3,6 +3,7 @@
 local _, ns = ...
 local translations = {
     enUS = {
+        ["Delete alt entry"] = "Delete alt entry",
         ["Receipt gold: %d"] = "%dg",
         ["Receipt silver: %d"] = "%ds",
         ["Receipt copper: %d"] = "%dc",
@@ -437,6 +438,7 @@ local translations = {
         ["Show DND text in the client language."] = "Show DND text in the client language.",
     },
     zhCN = {
+        ["Delete alt entry"] = "删除小号记录",
         ["Receipt gold: %d"] = "%d金",
         ["Receipt silver: %d"] = "%d银",
         ["Receipt copper: %d"] = "%d铜",
