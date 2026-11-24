@@ -28,6 +28,7 @@ Consumables.lua
 ChatBar.lua
 ChatCopyEnhancements.lua
 MailContacts.lua
+TradeReceipt.lua
 Enhancements.lua
 MinimapButtons.lua
 BagActions.lua

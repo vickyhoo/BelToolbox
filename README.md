@@ -51,6 +51,8 @@ Settings are in **EUI → Bel Toolbox**, or enter `/bel` / `/beltoolbox`.
 
 ## Dependencies and compatibility
 
+交易回执位于 **界面增强 → 交易 → 交易回执密语**，默认关闭。开启后，仅在系统确认交易成功时向对方发送一条物品、数量及金币摘要；齿轮可关闭收到的内容。取消、失败、空交易及战斗中不发送，过长内容汇总为物品组数。GearInsight 自带回执开启时工具箱不重复发送。此功能不保存历史账本。
+
 - Designed for **WoW Forever / Interface 16001** and the local EllesmereUI Forever APIs used by this version.
 - EllesmereUI is a required TOC dependency and loads before Bel Toolbox. Missing or disabled EUI prevents Bel Toolbox from loading. Install the relevant optional EUI modules for their corresponding integrations.
 - In the game addon manager, Bel Toolbox is grouped under EllesmereUI.

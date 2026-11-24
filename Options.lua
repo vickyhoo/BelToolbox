@@ -206,6 +206,19 @@ local registered = EUI.RegisterPlugin(addonName, {
                         },
                     })
                 end
+                Header("Trading")
+                local receiptRow=Toggle("Trade receipt whispers",function()return ns.GetEnhancements().tradeReceipt==true end,
+                    function(v)ns.GetEnhancements().tradeReceipt=v;ns.RefreshTradeReceipt()end,
+                    "Whisper items and gold after a confirmed successful trade. Disabled by default. Skip receipts when GearInsight's trade receipt is enabled.")
+                if EUI.BuildInlineCog and not EUI._prebuilding then
+                    EUI.BuildInlineCog(receiptRow,{
+                        title=L("Trade receipt settings"),minWidth=280,
+                        anchorTo=receiptRow,relPoint="RIGHT",gap=70,chain=false,
+                        rows={{type="toggle",label=L("Include received items and gold"),
+                            get=function()return ns.GetEnhancements().tradeReceiptReceived~=false end,
+                            set=function(v)ns.GetEnhancements().tradeReceiptReceived=v end}},
+                    })
+                end
                 Header("Minimap")
                 Toggle("Collect the ItemRack minimap button",function()return ns.GetEnhancements().collectItemRack==true end,
                     function(v)ns.GetEnhancements().collectItemRack=v;ns.RefreshItemRackButton()end,
