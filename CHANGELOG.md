@@ -1,4 +1,4 @@
-# Bel Toolbox 1.0.4-dev
+# Bel Toolbox 1.0.4
 
 - Click an alt's name directly to fill the mail recipient; remove saved characters through a separate Delete Alt Entry submenu. Logging into a removed character adds it again normally.
 - Match GearInsight's trade receipt wording, item counts, compact money format and message-length summarization.
