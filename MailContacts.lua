@@ -138,6 +138,16 @@ local function RemoveFavorite(key)
     for name in pairs(Contacts())do if NormalizeRecipient(name)==key then Contacts()[name]=nil end end
     RefreshFavorite()
 end
+local function RemoveAlt(key)
+    -- Remove all saved aliases of this recipient. No blacklist: the normal
+    -- character recording path will add it again when that alt is played.
+    local characters=Characters()
+    local remove={}
+    for name in pairs(characters)do
+        if NormalizeRecipient(name)==key then remove[#remove+1]=name end
+    end
+    for _,name in ipairs(remove)do characters[name]=nil end
+end
 local function SaveCurrent()
     local key=CurrentRecipient()
     if not key then print("Bel Toolbox: "..L("Enter a recipient before adding a contact."));return end
@@ -278,6 +288,15 @@ function ns.OpenContacts()
                     actions:CreateButton(L("Use this recipient"),function()FillRecipient(key)end)
                     actions:CreateButton(L("Delete favorite"),function()RemoveFavorite(key)end)
                 else submenu:CreateButton(ColorName(key),function()FillRecipient(key)end)end
+            end
+            if section.key=="alts"and #names>0 then
+                submenu:CreateDivider()
+                local remove=submenu:CreateButton(L("Delete alt entry"))
+                if remove.SetScrollMode then remove:SetScrollMode(340)end
+                for _,name in ipairs(names)do
+                    local key=name
+                    remove:CreateButton(ColorName(key),function()RemoveAlt(key)end)
+                end
             end
         end
         root:CreateDivider()

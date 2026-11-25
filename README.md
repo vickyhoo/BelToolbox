@@ -2,7 +2,7 @@
 
 贝尔工具箱 · Quality-of-life extensions for **EllesmereUI on WoW Forever**.
 
-Author: **Bel** · License: **MIT** · Current version: **1.0.3**
+Author: **Bel** · License: **MIT** · Current version: **1.0.4**
 
 消耗品条：在 EUI → 贝尔工具箱 → 消耗品条开启（默认关闭）。鼠标移入展开，左键使用，展开项右键设为当前选项。支持食物、饮水、红药、蓝药、治疗石、法力宝石、绷带、合剂、药剂、抗性药水和武器附魔。武器附魔在脱战后可一键用于兼容的已装备武器或鱼竿。空类别保留灰色按钮以保持位置稳定。未知或增益食物需手动指定，已知普通食物与魔法制造食物可自动选择。战斗中不根据背包变化自动切换物品，脱战后更新。位置使用 EUI 解锁模式，按键使用 EUI 快速键位绑定模式（/kb），并在原窗口保存或取消。
 
@@ -50,6 +50,10 @@ Settings are in **EUI → Bel Toolbox**, or enter `/bel` / `/beltoolbox`.
 资源条生命条的预估治疗位于 **界面增强 → 资源条 → 生命条预估治疗**，默认关闭。启用后以半透明绿色显示自己及他人即将给予的治疗，跟随 EUI 生命条的尺寸、方向和可见性；超出最大生命值的部分不显示。需要启用 EUI 资源条模块及其中的生命条。头像框体的同类功能直接使用 EUI 自带的「治疗预测」设置。
 
 ## Dependencies and compatibility
+
+邮箱助手的「我的小号」中，直接点击角色名称即可填入收件人；列表底部的「删除小号记录」子菜单可选择要移除的角色。删除只移除该小号列表的记录，收藏及最近收件人不受影响；重新登录该角色后会自动加入。
+
+交易回执位于 **界面增强 → 交易 → 交易回执密语**，默认关闭。开启后，仅在系统确认交易成功时向对方发送一条物品、数量及金币摘要；齿轮可关闭收到的内容。取消、失败、空交易及战斗中不发送，过长内容汇总为物品组数。GearInsight 自带回执开启时工具箱不重复发送。此功能不保存历史账本。
 
 - Designed for **WoW Forever / Interface 16001** and the local EllesmereUI Forever APIs used by this version.
 - EllesmereUI is a required TOC dependency and loads before Bel Toolbox. Missing or disabled EUI prevents Bel Toolbox from loading. Install the relevant optional EUI modules for their corresponding integrations.

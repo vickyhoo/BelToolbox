@@ -1,3 +1,11 @@
+# Bel Toolbox 1.0.4
+
+- Click an alt's name directly to fill the mail recipient; remove saved characters through a separate Delete Alt Entry submenu. Logging into a removed character adds it again normally.
+- Match GearInsight's trade receipt wording, item counts, compact money format and message-length summarization.
+- Add optional successful-trade receipt whispers with given items/gold and configurable received contents. Off by default; defer to GearInsight receipts when enabled.
+- Show conjured food and water item names and their client-reported required use levels in Mage Bar main and flyout spell tooltips.
+- Show spell cooldown swipes and countdowns on Mage Bar main buttons and flyout choices, including portals; refresh cooldowns during combat and when changing the selected spell.
+
 # Bel Toolbox 1.0.3
 
 - Color profession recipes by their reported relative difficulty even at the skill cap; preserve native colors when difficulty data is unavailable.
