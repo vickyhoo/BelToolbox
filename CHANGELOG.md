@@ -1,6 +1,6 @@
 # Bel Toolbox 1.0.4-dev
 
-- Allow removing saved characters from the mail helper's My Alts list. Logging into a removed character adds it again normally.
+- Click an alt's name directly to fill the mail recipient; remove saved characters through a separate Delete Alt Entry submenu. Logging into a removed character adds it again normally.
 - Match GearInsight's trade receipt wording, item counts, compact money format and message-length summarization.
 - Add optional successful-trade receipt whispers with given items/gold and configurable received contents. Off by default; defer to GearInsight receipts when enabled.
 - Show conjured food and water item names and their client-reported required use levels in Mage Bar main and flyout spell tooltips.

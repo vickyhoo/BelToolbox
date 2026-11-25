@@ -283,13 +283,20 @@ function ns.OpenContacts()
             if #names==0 then submenu:CreateTitle(L(section.key=="alts"and "Log in to each alt once to list it here."or"No entries yet"))end
             for _,name in ipairs(names)do
                 local key=name
-                if section.key=="favorites"or section.key=="alts"then
+                if section.key=="favorites"then
                     local actions=submenu:CreateButton(ColorName(key))
                     actions:CreateButton(L("Use this recipient"),function()FillRecipient(key)end)
-                    if section.key=="alts"then
-                        actions:CreateButton(L("Delete alt entry"),function()RemoveAlt(key)end)
-                    else actions:CreateButton(L("Delete favorite"),function()RemoveFavorite(key)end)end
+                    actions:CreateButton(L("Delete favorite"),function()RemoveFavorite(key)end)
                 else submenu:CreateButton(ColorName(key),function()FillRecipient(key)end)end
+            end
+            if section.key=="alts"and #names>0 then
+                submenu:CreateDivider()
+                local remove=submenu:CreateButton(L("Delete alt entry"))
+                if remove.SetScrollMode then remove:SetScrollMode(340)end
+                for _,name in ipairs(names)do
+                    local key=name
+                    remove:CreateButton(ColorName(key),function()RemoveAlt(key)end)
+                end
             end
         end
         root:CreateDivider()
