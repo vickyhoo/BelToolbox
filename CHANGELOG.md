@@ -1,3 +1,7 @@
+# Bel Toolbox 1.0.5-dev
+
+- Show class-colored player choice lists while hovering Need, Greed and Pass buttons when loot roll counts are enabled. Preserve native button tooltips and refresh lists as choices change.
+
 # Bel Toolbox 1.0.4
 
 - Click an alt's name directly to fill the mail recipient; remove saved characters through a separate Delete Alt Entry submenu. Logging into a removed character adds it again normally.

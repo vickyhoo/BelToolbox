@@ -3,6 +3,9 @@
 local _, ns = ...
 local translations = {
     enUS = {
+        ["Loot choices unavailable"] = "Loot choices unavailable",
+        ["No players have chosen this yet."] = "No players have chosen this yet.",
+        ["Unknown player"] = "Unknown player",
         ["Delete alt entry"] = "Delete alt entry",
         ["Receipt gold: %d"] = "%dg",
         ["Receipt silver: %d"] = "%ds",
@@ -438,6 +441,9 @@ local translations = {
         ["Show DND text in the client language."] = "Show DND text in the client language.",
     },
     zhCN = {
+        ["Loot choices unavailable"] = "暂时无法获取选择名单",
+        ["No players have chosen this yet."] = "暂时还没有玩家选择此项。",
+        ["Unknown player"] = "未知玩家",
         ["Delete alt entry"] = "删除小号记录",
         ["Receipt gold: %d"] = "%d金",
         ["Receipt silver: %d"] = "%d银",

@@ -4,6 +4,9 @@ local history = C_LootHistory
 local events = CreateFrame("Frame")
 local labels, matches = {}, {}
 local enabled, queued
+local playerLists = {}
+local hovered, choiceTooltip
+local choiceTitles = {NeedButton=NEED or "Need",GreedButton=GREED or "Greed",PassButton=PASS or "Pass"}
 local rollStates = Enum.EncounterLootDropRollState or { NeedMainSpec = 0, NeedOffSpec = 1, Greed = 3, Pass = 5 }
 local choiceByState = {
     [rollStates.NeedMainSpec] = "NeedButton",
@@ -48,7 +51,38 @@ function ns.SetLootRollMovement(enabled)
     end
 end
 
-local function Draw(frame, counts)
+local function HideNames(button)
+    if hovered==button then
+        hovered=nil
+        if choiceTooltip then choiceTooltip:Hide() end
+    end
+end
+local function ShowNames(button)
+    local data=playerLists[button]
+    if not enabled or not data or not button:IsShown() then HideNames(button);return end
+    hovered=button
+    if not choiceTooltip then
+        choiceTooltip=CreateFrame("GameTooltip","BelToolboxLootChoiceTooltip",UIParent,"GameTooltipTemplate")
+    end
+    choiceTooltip:SetOwner(button,"ANCHOR_NONE")
+    choiceTooltip:ClearAllPoints()
+    -- Keep Blizzard's explanation (including why Need is unavailable) intact.
+    if GameTooltip and GameTooltip:IsShown() and GameTooltip:GetOwner()==button then
+        choiceTooltip:SetPoint("TOPLEFT",GameTooltip,"BOTTOMLEFT",0,-2)
+    else choiceTooltip:SetPoint("TOPLEFT",button,"TOPRIGHT",4,0)end
+    choiceTooltip:SetText(data.title)
+    if not data.players then choiceTooltip:AddLine(ns.L("Loot choices unavailable"),.7,.7,.7)
+    elseif #data.players==0 then choiceTooltip:AddLine(ns.L("No players have chosen this yet."),.7,.7,.7)
+    else
+        for _,player in ipairs(data.players)do
+            local colors=CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS
+            local color=colors and player.class and colors[player.class]
+            choiceTooltip:AddLine(player.name,color and color.r or 1,color and color.g or 1,color and color.b or 1)
+        end
+    end
+    choiceTooltip:Show()
+end
+local function Draw(frame, counts, players)
     local buttons = frame.LootButtonContainer or frame
     for _, choice in ipairs(choices) do
         local button = buttons[choice]
@@ -60,7 +94,11 @@ local function Draw(frame, counts)
                 label:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 2, 2)
                 label:SetShadowOffset(1, -1)
                 labels[button] = label
+                button:HookScript("OnEnter",ShowNames)
+                button:HookScript("OnLeave",HideNames)
+                button:HookScript("OnHide",HideNames)
             end
+            playerLists[button]={title=choiceTitles[choice],players=players and players[choice]}
             label:SetText(counts and tostring(counts[choice] or 0) or "–")
             label:Show()
         end
@@ -90,6 +128,7 @@ end
 
 local function Update()
     for _, label in pairs(labels) do label:Hide() end
+    wipe(playerLists)
     if not enabled then return end
 
     local active, unpaired = {}, {}
@@ -110,17 +149,25 @@ local function Update()
             matches[roll.id] = match
         end
         local drop = match and history.GetSortedInfoForDrop(match.encounterID, match.key)
-        local counts
+        local counts, players
         if drop and ItemKey(drop.itemHyperlink) == roll.item and Plain(drop.rollInfos) and type(drop.rollInfos) == "table" then
             counts = {}
+            players={NeedButton={},GreedButton={},PassButton={}}
             for _, info in ipairs(drop.rollInfos) do
                 local state = info.state
                 local choice = Plain(state) and choiceByState[state]
-                if choice then counts[choice] = (counts[choice] or 0) + 1 end
+                if choice then
+                    counts[choice] = (counts[choice] or 0) + 1
+                    local name=Plain(info.playerName) and type(info.playerName)=="string" and info.playerName or ns.L("Unknown player")
+                    local class=Plain(info.playerClass) and type(info.playerClass)=="string" and info.playerClass or nil
+                    players[choice][#players[choice]+1]={name=name,class=class}
+                end
             end
+            for _,list in pairs(players)do table.sort(list,function(a,b)return a.name<b.name end)end
         end
-        Draw(roll.frame, counts)
+        Draw(roll.frame, counts, players)
     end
+    if hovered then ShowNames(hovered)end
 end
 
 local function QueueUpdate()
@@ -145,6 +192,8 @@ function ns.RefreshLootRollCounts()
     if enabled then QueueUpdate()
     else
         wipe(matches)
+        wipe(playerLists)
+        if hovered then HideNames(hovered)end
         for _, label in pairs(labels) do label:Hide() end
     end
 end
