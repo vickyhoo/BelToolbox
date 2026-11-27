@@ -1,4 +1,4 @@
-# Bel Toolbox 1.0.5-dev
+# Bel Toolbox 1.0.5
 
 - Show class-colored player choice lists while hovering Need, Greed and Pass buttons when loot roll counts are enabled. Preserve native button tooltips and refresh lists as choices change.
 
